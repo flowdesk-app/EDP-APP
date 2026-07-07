@@ -17,7 +17,7 @@ class ApiService {
   // Using the host machine's LAN IP address or localhost
   String get baseUrl {
     // If you run on Android Emulator, change this to http://10.0.2.2:5001/api
-    return 'http://127.0.0.1:5001/api';
+    return 'https://edp-app-unq5.onrender.com/api';
   }
   String? _token;
   UserModel? currentUser;
