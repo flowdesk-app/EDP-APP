@@ -1,0 +1,293 @@
+import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
+import '../../models/job_model.dart';
+import '../login_screen.dart';
+import 'filtered_jobs_screen.dart';
+import 'material_search_screen.dart';
+import 'recoating_dashboard_screen.dart';
+import 'production_dashboard_screen.dart';
+import 'blank_orders_screen.dart';
+import '../../widgets/flowdesk_logo.dart';
+import '../../widgets/drawer_menu_button.dart';
+import 'package:intl/intl.dart';
+
+class OwnerDashboard extends StatefulWidget {
+  const OwnerDashboard({super.key});
+
+  @override
+  State<OwnerDashboard> createState() => _OwnerDashboardState();
+}
+
+class _OwnerDashboardState extends State<OwnerDashboard> {
+  final ApiService _api = ApiService();
+  bool _loading = true;
+  List<JobModel> _currentJobs = [];
+
+  int _returnedJobs = 0;
+  int _recoatingJobs = 0;
+  int _productionJobs = 0;
+  int _readyForDeliveryJobs = 0;
+  int _blankOrders = 0;
+  int _poNotGivenCount = 0;
+
+  String? _selectedMonth;
+  String? _selectedDate;
+  
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = null;
+    _selectedMonth = DateFormat('yyyy-MM').format(DateTime.now());
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final jobs = await _api.getFilteredJobs(
+        month: _selectedMonth,
+        date: _selectedDate,
+      );
+      final stats = _selectedDate != null 
+        ? await _api.getDashboardDateStats(_selectedDate!) 
+        : await _api.getDashboardMonthStats(_selectedMonth!);
+
+      if (mounted) {
+        _currentJobs = jobs;
+
+        _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
+        _poNotGivenCount = stats?['poNotGivenCount'] ?? 0;
+        final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
+        _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
+        _productionJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).length;
+        _readyForDeliveryJobs = jobs.where((j) => j.status == 'Completed').length;
+
+        _blankOrders = jobs.where((j) => j.status == 'Blank Order').length;
+        _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
+
+      }
+    } catch (e) {
+      debugPrint('Error loading dashboard: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = DateFormat('dd-MM-yyyy').format(picked);
+        _selectedMonth = null;
+      });
+      _load();
+    }
+  }
+
+  void _clearDateFilter() {
+    setState(() {
+      _selectedDate = null;
+      _selectedMonth = DateFormat('yyyy-MM').format(DateTime.now());
+    });
+    _load();
+  }
+
+  void _performSearch() {
+    final query = _searchCtrl.text.trim();
+    if (query.isNotEmpty) {
+      _searchCtrl.clear();
+      Navigator.push(context, MaterialPageRoute(builder: (_) => MaterialSearchScreen(initialQuery: query)))
+          .then((_) => _load());
+    }
+  }
+
+  void _navToFiltered(String title, List<JobModel> jobs, {bool Function(JobModel)? filter}) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter)))
+        .then((_) => _load());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = 2;
+    double childAspectRatio = 1.15;
+    if (screenWidth > 1200) {
+      crossAxisCount = 4;
+      childAspectRatio = 2.0;
+    } else if (screenWidth > 800) {
+      crossAxisCount = 3;
+      childAspectRatio = 1.5;
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        leading: const DrawerMenuButton(),
+        title: const FlowdeskLogo(fontSize: 24),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF202124)),
+            onPressed: _loading ? null : _load,
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined, color: Color(0xFF202124)),
+            onPressed: _selectDate,
+          ),
+
+          IconButton(
+            icon: const Icon(Icons.logout, color: Color(0xFF202124)),
+            onPressed: () async {
+              await _api.logout();
+              if (context.mounted) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              }
+            },
+          ),
+        ],
+      ),
+      body: _loading ? const Center(child: CircularProgressIndicator()) : RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Search Job/Part',
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF5F6368)),
+                      filled: true,
+                      fillColor: const Color(0xFFF1F3F4),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    ),
+                    onSubmitted: (_) => _performSearch(),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (_selectedDate == null)
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: _selectedMonth,
+                            underline: const SizedBox(),
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+                            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF202124)),
+                            items: List.generate(12, (index) {
+                              final date = DateTime(DateTime.now().year, DateTime.now().month - index, 1);
+                              final value = DateFormat('yyyy-MM').format(date);
+                              final label = DateFormat('MMMM yyyy').format(date);
+                              return DropdownMenuItem(value: value, child: Text(label));
+                            }),
+                            onChanged: (val) {
+                              setState(() => _selectedMonth = val);
+                              _load();
+                            },
+                          ),
+                        )
+                      else
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text(DateFormat('dd MMMM yyyy').format(DateTime.parse(_selectedDate!)), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                              IconButton(icon: const Icon(Icons.close, color: Colors.red), onPressed: _clearDateFilter),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio: childAspectRatio,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    children: [
+                      _buildStatCard('Returned', _returnedJobs, Icons.assignment_return, const Color(0xFF8E24AA), () => _navToFiltered('Returned Materials', _currentJobs.where((j) => j.status == 'Returned').toList())),
+                      _buildStatCard('PO Not Given', _poNotGivenCount, Icons.assignment_late, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.poNotGiven == true).toList(), title: 'PO Not Given'))).then((_) => _load())),
+                      _buildStatCard('Blank Orders', _blankOrders, Icons.note_add, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.status == 'Blank Order').toList(), title: 'Blank Orders'))).then((_) => _load())),
+                      _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList()))).then((_) => _load())),
+                      _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionDashboardScreen(productionJobs: _currentJobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList()))).then((_) => _load())),
+                      _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, Colors.green, () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+
+
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  Widget _buildStatCard(String title, int count, IconData icon, Color color, VoidCallback onTap) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE0E0E0)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                    child: Icon(icon, color: color, size: 20),
+                  ),
+                  const Icon(Icons.chevron_right, color: Color(0xFF5F6368)),
+                ],
+              ),
+              const Spacer(),
+              Text('$count', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+              Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF5F6368)), overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+}
+
+
