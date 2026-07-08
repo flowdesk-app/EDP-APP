@@ -95,6 +95,17 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = 2;
+    double childAspectRatio = 1.15;
+    if (screenWidth > 1200) {
+      crossAxisCount = 4;
+      childAspectRatio = 2.0;
+    } else if (screenWidth > 800) {
+      crossAxisCount = 3;
+      childAspectRatio = 1.5;
+    }
+
     final arrivedJobs = _currentJobs.where((j) => j.status == 'Created' || j.status == 'Arrived').toList();
     final extractedJobs = _currentJobs.where((j) => j.status == 'Extracted').toList();
 
@@ -120,9 +131,9 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.count(
-          crossAxisCount: 2,
+          crossAxisCount: crossAxisCount,
           shrinkWrap: true,
-          childAspectRatio: 1.15,
+          childAspectRatio: childAspectRatio,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
           children: [
