@@ -5,8 +5,15 @@ import 'filtered_jobs_screen.dart';
 
 class RecoatingDashboardScreen extends StatefulWidget {
   final List<JobModel> recoatingJobs;
+  final String? month;
+  final String? date;
 
-  const RecoatingDashboardScreen({super.key, required this.recoatingJobs});
+  const RecoatingDashboardScreen({
+    super.key, 
+    required this.recoatingJobs,
+    this.month,
+    this.date,
+  });
 
   @override
   State<RecoatingDashboardScreen> createState() => _RecoatingDashboardScreenState();
@@ -25,7 +32,7 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   Future<void> _fetchJobs() async {
     setState(() => _isLoading = true);
     try {
-      final jobs = await ApiService().getJobsForOwner();
+      final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
       if (mounted) {
         setState(() {
           _currentJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
@@ -38,7 +45,7 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   }
 
   void _navToFiltered(BuildContext context, String title, List<JobModel> jobs, {bool Function(JobModel)? filter}) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter)))
+    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter, month: widget.month, date: widget.date)))
       .then((_) => _fetchJobs());
   }
 

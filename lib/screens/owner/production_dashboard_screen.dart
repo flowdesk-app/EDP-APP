@@ -7,8 +7,15 @@ import 'active_jobs_screen.dart';
 
 class ProductionDashboardScreen extends StatefulWidget {
   final List<JobModel> productionJobs;
+  final String? month;
+  final String? date;
 
-  const ProductionDashboardScreen({super.key, required this.productionJobs});
+  const ProductionDashboardScreen({
+    super.key, 
+    required this.productionJobs,
+    this.month,
+    this.date,
+  });
 
   @override
   State<ProductionDashboardScreen> createState() => _ProductionDashboardScreenState();
@@ -31,7 +38,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
 
   Future<void> _fetchJobs() async {
     try {
-      final jobs = await ApiService().getJobsForOwner();
+      final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
       if (mounted) {
         setState(() {
           _currentJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
@@ -59,7 +66,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
   }
 
   void _navToFiltered(BuildContext context, String title, List<JobModel> jobs, {bool Function(JobModel)? filter}) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter)))
+    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter, month: widget.month, date: widget.date)))
         .then((_) => _fetchJobs());
   }
 

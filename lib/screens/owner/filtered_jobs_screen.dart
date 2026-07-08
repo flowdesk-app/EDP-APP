@@ -8,12 +8,16 @@ class FilteredJobsScreen extends StatefulWidget {
   final String title;
   final List<JobModel> jobs;
   final bool Function(JobModel)? filter;
+  final String? month;
+  final String? date;
 
   const FilteredJobsScreen({
     super.key,
     required this.title,
     required this.jobs,
     this.filter,
+    this.month,
+    this.date,
   });
 
   @override
@@ -64,7 +68,7 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
   Future<void> _refreshJobs() async {
     setState(() => _isRefreshing = true);
     try {
-      final allJobs = await _api.getFilteredJobs();
+      final allJobs = await _api.getFilteredJobs(month: widget.month, date: widget.date);
       List<JobModel> freshJobs = [];
       if (widget.filter != null) {
         freshJobs = allJobs.where((j) => j.status != 'Removed').where(widget.filter!).toList();
