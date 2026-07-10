@@ -147,7 +147,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                               });
                             } : (alert.jobId != null ? () async {
                               final job = await _api.getJobByJobId(alert.jobId!);
-                              if (job != null && mounted) {
+                              if (job != null && context.mounted) {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => JobTimelineScreen(job: job)));
                               }
                             } : null),

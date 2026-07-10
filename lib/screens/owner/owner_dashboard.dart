@@ -285,7 +285,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => JobTimelineScreen(job: _currentJobs[jobIndex])));
                         } else {
                           final job = await _api.getJobByJobId(alert.jobId!);
-                          if (job != null && mounted) {
+                          if (job != null && context.mounted) {
                             Navigator.push(context, MaterialPageRoute(builder: (_) => JobTimelineScreen(job: job)));
                           }
                         }
