@@ -34,11 +34,19 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
        _errorMessage = null;
     });
     try {
-      final jobs = await _api.getFilteredJobs(
-        partNumber: _partNumberCtrl.text.trim().isEmpty ? null : _partNumberCtrl.text.trim(),
-      );
+      final jobs = await _api.getFilteredJobs();
       
-      final deliveredJobs = jobs.where((j) => j.status == 'Delivered' || j.status == 'Closed').toList();
+      final query = _partNumberCtrl.text.trim().toLowerCase();
+      final deliveredJobs = jobs.where((j) {
+        if (j.status != 'Delivered' && j.status != 'Closed') return false;
+        if (query.isEmpty) return true;
+        
+        final partNo = j.partNumber?.toLowerCase() ?? '';
+        final invNo = j.invoiceNumber?.toLowerCase() ?? '';
+        final insNo = j.inspectionReportNumber?.toLowerCase() ?? '';
+        
+        return partNo.contains(query) || invNo.contains(query) || insNo.contains(query);
+      }).toList();
           
       setState(() => _jobs = deliveredJobs);
     } catch (e) {
@@ -135,7 +143,7 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                   child: TextField(
                     controller: _partNumberCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Search Part Number...',
+                      hintText: 'Search Part No, Invoice No, or Inspection No...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       filled: true,
                       fillColor: const Color(0xFFF8F9FA),
