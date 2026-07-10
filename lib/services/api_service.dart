@@ -233,15 +233,21 @@ class ApiService {
     final res = await http.get(Uri.parse('$baseUrl/notifications'), headers: _headers);
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
-      return data.map((d) => NotificationModel(
-        id: d['_id'],
-        message: d['message'],
-        timestamp: DateTime.parse(d['createdAt']),
-        type: d['type'],
-        read: d['read'] ?? false,
-      )).toList();
+      return data.map((d) => NotificationModel.fromJson(d)).toList();
     }
     return [];
+  }
+
+  Future<void> deleteNotifications(List<String> ids) async {
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/notifications/delete-bulk'),
+      headers: _headers,
+      body: jsonEncode({'ids': ids}),
+    );
+    if (res.statusCode >= 400) {
+      throw Exception('Failed to delete notifications: ${res.body}');
+    }
   }
 
   Future<void> createJob(JobModel job) async {

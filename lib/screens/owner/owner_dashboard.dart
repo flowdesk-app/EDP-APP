@@ -10,6 +10,8 @@ import 'blank_orders_screen.dart';
 import '../../widgets/flowdesk_logo.dart';
 import '../../widgets/drawer_menu_button.dart';
 import 'package:intl/intl.dart';
+import 'alerts_screen.dart';
+import '../../models/notification_model.dart';
 
 class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
@@ -22,6 +24,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   final ApiService _api = ApiService();
   bool _loading = true;
   List<JobModel> _currentJobs = [];
+  List<NotificationModel> _alerts = [];
 
   int _returnedJobs = 0;
   int _recoatingJobs = 0;
@@ -53,9 +56,12 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       final stats = _selectedDate != null 
         ? await _api.getDashboardDateStats(_selectedDate!) 
         : await _api.getDashboardMonthStats(_selectedMonth!);
+      
+      final notifications = await _api.getNotifications();
 
       if (mounted) {
         _currentJobs = jobs;
+        _alerts = notifications.take(5).toList();
 
         _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
         _poNotGivenCount = stats?['poNotGivenCount'] ?? 0;
@@ -239,10 +245,65 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 ],
               ),
             ),
-
-
-
-          ],
+            
+            // Alerts Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Alerts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+                  TextButton(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AlertsScreen())).then((_) => _load()),
+                    child: const Text('More'),
+                  ),
+                ],
+              ),
+            ),
+            if (_alerts.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Center(child: Text('No active alerts.', style: TextStyle(color: Colors.grey))),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: _alerts.map((alert) => Card(
+                    elevation: 0,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: Color(0xFFE0E0E0)),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            alert.type == 'delayed' ? Icons.warning_amber_rounded : Icons.info_outline,
+                            color: alert.type == 'delayed' ? Colors.orange : Colors.blue,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(alert.message, style: const TextStyle(fontSize: 13, color: Color(0xFF202124), fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 4),
+                                Text(DateFormat('dd MMM yyyy, hh:mm a').format(alert.createdAt.toLocal()), style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )).toList(),
+                ),
+              ),
+            const SizedBox(height: 24),          ],
         ),
       ),
     );
