@@ -19,6 +19,8 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
   List<JobModel> _jobs = [];
 
   final TextEditingController _partNumberCtrl = TextEditingController();
+  bool _isEditing = false;
+  final Set<String> _selectedJobIds = {};
 
   @override
   void initState() {
@@ -47,17 +49,79 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
     }
   }
 
+  Future<void> _removeSelectedJobs() async {
+    if (_selectedJobIds.isEmpty) return;
+    
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Jobs?'),
+        content: Text('Are you sure you want to remove ${_selectedJobIds.length} job(s)? They will be moved to Edit.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      if (!mounted) return;
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+      await Future.wait(_selectedJobIds.map((id) async {
+        try {
+          await _api.updateJobStatus(id, 'Removed');
+          _jobs.removeWhere((j) => j.jobId == id);
+        } catch (e) {
+          debugPrint('Failed to remove $id: $e');
+        }
+      }));
+      if (!mounted) return;
+      Navigator.pop(context); // close progress
+      setState(() {
+        _isEditing = false;
+        _selectedJobIds.clear();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        leading: const DrawerMenuButton(),
-        title: const Text('Delivered Jobs', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        leading: _isEditing 
+            ? IconButton(icon: const Icon(Icons.close, color: Color(0xFF202124)), onPressed: () => setState(() { _isEditing = false; _selectedJobIds.clear(); }))
+            : const DrawerMenuButton(),
+        title: Text(_isEditing ? '${_selectedJobIds.length} Selected' : 'Delivered Jobs', style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.refresh, color: Color(0xFF202124)), onPressed: _fetchJobs),
+          if (_isEditing)
+            IconButton(
+              icon: Icon(
+                _selectedJobIds.length == _jobs.length && _jobs.isNotEmpty ? Icons.deselect : Icons.select_all,
+                color: const Color(0xFF202124),
+              ),
+              tooltip: _selectedJobIds.length == _jobs.length && _jobs.isNotEmpty ? 'Deselect All' : 'Select All',
+              onPressed: () {
+                setState(() {
+                  if (_selectedJobIds.length == _jobs.length && _jobs.isNotEmpty) {
+                    _selectedJobIds.clear();
+                  } else {
+                    _selectedJobIds.addAll(_jobs.map((j) => j.jobId));
+                  }
+                });
+              },
+            ),
+          if (_isEditing && _selectedJobIds.isNotEmpty)
+            IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: _removeSelectedJobs),
+          if (!_isEditing)
+            IconButton(icon: const Icon(Icons.edit, color: Color(0xFF202124)), onPressed: () => setState(() => _isEditing = true)),
+          if (!_isEditing)
+            IconButton(icon: const Icon(Icons.refresh, color: Color(0xFF202124)), onPressed: _fetchJobs),
         ],
       ),
       body: Column(
@@ -96,19 +160,31 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                         itemCount: _jobs.length,
                         itemBuilder: (context, index) {
                           final job = _jobs[index];
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => JobTimelineScreen(job: job)),
-                              ).then((_) => _fetchJobs());
-                            },
-                            child: Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide.none,
-                              ),
+                          return Card(
+                            elevation: 0,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: _selectedJobIds.contains(job.jobId) ? const BorderSide(color: Color(0xFF29B6F6), width: 2) : const BorderSide(color: Color(0xFFE0E0E0)),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: _isEditing ? () {
+                                setState(() {
+                                  if (_selectedJobIds.contains(job.jobId)) {
+                                    _selectedJobIds.remove(job.jobId);
+                                  } else {
+                                    _selectedJobIds.add(job.jobId);
+                                  }
+                                });
+                              } : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => JobTimelineScreen(job: job),
+                                  ),
+                                ).then((_) => _fetchJobs());
+                              },
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Column(

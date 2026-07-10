@@ -191,6 +191,23 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          if (_isAdmin && _isEditing)
+            IconButton(
+              icon: Icon(
+                _selectedJobIds.length == _jobs.length && _jobs.isNotEmpty ? Icons.deselect : Icons.select_all,
+                color: const Color(0xFF202124),
+              ),
+              tooltip: _selectedJobIds.length == _jobs.length && _jobs.isNotEmpty ? 'Deselect All' : 'Select All',
+              onPressed: () {
+                setState(() {
+                  if (_selectedJobIds.length == _jobs.length && _jobs.isNotEmpty) {
+                    _selectedJobIds.clear();
+                  } else {
+                    _selectedJobIds.addAll(_jobs.map((j) => j.jobId));
+                  }
+                });
+              },
+            ),
           if (_isAdmin && _isEditing && _selectedJobIds.isNotEmpty)
             IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: _removeSelectedJobs),
           if (_isAdmin && !_isEditing)

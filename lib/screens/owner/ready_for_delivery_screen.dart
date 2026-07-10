@@ -119,6 +119,23 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          if (_isEditing)
+            IconButton(
+              icon: Icon(
+                _selectedJobIds.length == _filteredJobs.length && _filteredJobs.isNotEmpty ? Icons.deselect : Icons.select_all,
+                color: const Color(0xFF202124),
+              ),
+              tooltip: _selectedJobIds.length == _filteredJobs.length && _filteredJobs.isNotEmpty ? 'Deselect All' : 'Select All',
+              onPressed: () {
+                setState(() {
+                  if (_selectedJobIds.length == _filteredJobs.length && _filteredJobs.isNotEmpty) {
+                    _selectedJobIds.clear();
+                  } else {
+                    _selectedJobIds.addAll(_filteredJobs.map((j) => j.jobId));
+                  }
+                });
+              },
+            ),
           if (_isEditing && _selectedJobIds.isNotEmpty)
             IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: _removeSelectedJobs),
           if (!_isEditing)
