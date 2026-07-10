@@ -19,6 +19,8 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
   List<JobModel> _jobs = [];
 
   final TextEditingController _partNumberCtrl = TextEditingController();
+  final TextEditingController _invoiceCtrl = TextEditingController();
+  final TextEditingController _inspectionCtrl = TextEditingController();
   bool _isEditing = false;
   final Set<String> _selectedJobIds = {};
 
@@ -36,16 +38,21 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
     try {
       final jobs = await _api.getFilteredJobs();
       
-      final query = _partNumberCtrl.text.trim().toLowerCase();
+      final queryPart = _partNumberCtrl.text.trim().toLowerCase();
+      final queryInv = _invoiceCtrl.text.trim().toLowerCase();
+      final queryIns = _inspectionCtrl.text.trim().toLowerCase();
       final deliveredJobs = jobs.where((j) {
         if (j.status != 'Delivered' && j.status != 'Closed') return false;
-        if (query.isEmpty) return true;
         
         final partNo = j.partNumber?.toLowerCase() ?? '';
         final invNo = j.invoiceNumber?.toLowerCase() ?? '';
         final insNo = j.inspectionReportNumber?.toLowerCase() ?? '';
         
-        return partNo.contains(query) || invNo.contains(query) || insNo.contains(query);
+        bool matchesPart = queryPart.isEmpty || partNo.contains(queryPart);
+        bool matchesInv = queryInv.isEmpty || invNo.contains(queryInv);
+        bool matchesIns = queryIns.isEmpty || insNo.contains(queryIns);
+        
+        return matchesPart && matchesInv && matchesIns;
       }).toList();
           
       setState(() => _jobs = deliveredJobs);
@@ -143,7 +150,37 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                   child: TextField(
                     controller: _partNumberCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Search Part No, Invoice No, or Inspection No...',
+                      hintText: 'Part Number...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      filled: true,
+                      fillColor: const Color(0xFFF8F9FA),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    ),
+                    onSubmitted: (_) => _fetchJobs(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _invoiceCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Invoice Number...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      filled: true,
+                      fillColor: const Color(0xFFF8F9FA),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    ),
+                    onSubmitted: (_) => _fetchJobs(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _inspectionCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Inspection Report...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       filled: true,
                       fillColor: const Color(0xFFF8F9FA),
@@ -277,5 +314,13 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
         Text(value, style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.w500)),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _partNumberCtrl.dispose();
+    _invoiceCtrl.dispose();
+    _inspectionCtrl.dispose();
+    super.dispose();
   }
 }
