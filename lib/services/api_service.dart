@@ -262,6 +262,15 @@ class ApiService {
     }
   }
 
+  Future<JobModel?> getJobByJobId(String jobId) async {
+    await _loadToken();
+    final res = await http.get(Uri.parse('$baseUrl/jobs/by-jobid/$jobId'), headers: _headers);
+    if (res.statusCode == 200) {
+      return JobModel.fromJson(jsonDecode(res.body));
+    }
+    return null;
+  }
+
   Future<void> updateJob(JobModel job) async {
     await _loadToken();
     final res = await http.put(

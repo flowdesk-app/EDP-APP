@@ -98,6 +98,18 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// @route   GET api/jobs/by-jobid/:jobId
+router.get('/by-jobid/:jobId', auth, async (req, res) => {
+    try {
+        const job = await Job.findOne({ jobId: req.params.jobId });
+        if (!job) return res.status(404).json({ msg: 'Job not found' });
+        res.json(job);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   PUT api/jobs/:id
 router.put('/:id', auth, async (req, res) => {
     try {

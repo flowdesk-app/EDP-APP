@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/notification_model.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'job_timeline_screen.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -144,7 +145,12 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                   _selectedIds.add(alert.id);
                                 }
                               });
-                            } : null,
+                            } : (alert.jobId != null ? () async {
+                              final job = await _api.getJobByJobId(alert.jobId!);
+                              if (job != null && mounted) {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => JobTimelineScreen(job: job)));
+                              }
+                            } : null),
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Row(

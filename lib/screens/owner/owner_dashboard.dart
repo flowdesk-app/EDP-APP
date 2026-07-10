@@ -12,6 +12,7 @@ import '../../widgets/drawer_menu_button.dart';
 import 'package:intl/intl.dart';
 import 'alerts_screen.dart';
 import '../../models/notification_model.dart';
+import 'job_timeline_screen.dart';
 
 class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
@@ -276,10 +277,23 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                       borderRadius: BorderRadius.circular(8),
                       side: const BorderSide(color: Color(0xFFE0E0E0)),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: alert.jobId != null ? () async {
+                        final jobIndex = _currentJobs.indexWhere((j) => j.jobId == alert.jobId);
+                        if (jobIndex != -1) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => JobTimelineScreen(job: _currentJobs[jobIndex])));
+                        } else {
+                          final job = await _api.getJobByJobId(alert.jobId!);
+                          if (job != null && mounted) {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => JobTimelineScreen(job: job)));
+                          }
+                        }
+                      } : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             alert.type == 'delayed' ? Icons.warning_amber_rounded : Icons.info_outline,
@@ -300,7 +314,8 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                         ],
                       ),
                     ),
-                  )).toList(),
+                  ), // closes InkWell
+                )).toList(),
                 ),
               ),
             const SizedBox(height: 24),          ],
