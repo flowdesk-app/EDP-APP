@@ -164,6 +164,30 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Valid Quantity is required')));
       return;
     }
+    
+    // Additional fields for recoating
+    if (_flowType == FlowType.recoating || widget.initialCustomerName != null) {
+      if (_receivedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Received Date is required')));
+        return;
+      }
+      if (_returnableGatePassNumberCtrl.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Returnable Gate Pass Number is required')));
+        return;
+      }
+      if (_returnableGatePassDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Returnable Gate Pass Date is required')));
+        return;
+      }
+      if (_purchaseOrderReceived == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select whether Purchase Order was received')));
+        return;
+      }
+      if (_purchaseOrderReceived == true && (_purchaseOrderDate == null || _poNumberCtrl.text.trim().isEmpty)) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all PO fields')));
+        return;
+      }
+    }
 
     _showLoadingDialog();
     try {
@@ -354,8 +378,20 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill Customer, Part Number, and Quantity')));
       return;
     }
+    if (_wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill Description and Grit Size')));
+      return;
+    }
+    if (_assignedWorkerCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Person Responsible')));
+      return;
+    }
+    if (_deliveryDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Delivery Date')));
+      return;
+    }
     if (_customerOrderDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Order Date')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Blank Order Date')));
       return;
     }
     if (_purchaseOrderReceived == null) {
@@ -673,6 +709,27 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                 type: StepperType.vertical,
                 currentStep: _currentStep,
                 onStepContinue: () {
+                  if (_currentStep == 0) {
+                    if (_customerNameCtrl.text.trim().isEmpty || _receivedDate == null || _returnableGatePassNumberCtrl.text.trim().isEmpty || _returnableGatePassDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields in this step')));
+                      return;
+                    }
+                  } else if (_currentStep == 1) {
+                    if (_partNumberCtrl.text.trim().isEmpty || _quantityCtrl.text.trim().isEmpty || _wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields in this step')));
+                      return;
+                    }
+                  } else if (_currentStep == 2) {
+                    if (_assignedWorkerCtrl.text.trim().isEmpty || _deliveryDate == null || _purchaseOrderReceived == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields in this step')));
+                      return;
+                    }
+                    if (_purchaseOrderReceived == true && (_poNumberCtrl.text.trim().isEmpty || _purchaseOrderDate == null)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all PO fields')));
+                      return;
+                    }
+                  }
+
                   if (_currentStep < 3) {
                     setState(() => _currentStep += 1);
                   } else {
