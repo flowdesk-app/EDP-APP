@@ -20,7 +20,7 @@ router.get('/', auth, async (req, res) => {
                     await Notification.create({
                         jobId: job.jobId,
                         alertKey: 'expectedExtractionDate',
-                        message: `Job ${job.jobId} crossed Expected Extraction Date.`,
+                        message: `Part No. ${job.partNumber || 'N/A'} (${job.customerName || 'N/A'}) crossed Expected Extraction Date.`,
                         type: 'delayed'
                     });
                 }
@@ -33,7 +33,7 @@ router.get('/', auth, async (req, res) => {
                     await Notification.create({
                         jobId: job.jobId,
                         alertKey: 'expectedProductionDate',
-                        message: `Job ${job.jobId} crossed Expected Production Date.`,
+                        message: `Part No. ${job.partNumber || 'N/A'} (${job.customerName || 'N/A'}) crossed Expected Production Date.`,
                         type: 'delayed'
                     });
                 }
