@@ -681,6 +681,22 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     }
   }
 
+  Future<void> _undoSendToSpare() async {
+    setState(() => _isUpdating = true);
+    try {
+      await ApiService().undoSendToSpare(_currentJob.jobId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Undo Send to Spare successful')));
+        _refresh();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to undo: $e')));
+        setState(() => _isUpdating = false);
+      }
+    }
+  }
+
   Future<void> _showUseSpareDialog() async {
     showDialog(
       context: context,
@@ -804,11 +820,23 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(8)),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                    SizedBox(width: 12),
-                    Expanded(child: Text('You have sent the extracted blank to Spare. You must select a finished spare to continue to Production.', style: TextStyle(color: Colors.deepOrange))),
+                    const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    const SizedBox(width: 12),
+                    const Expanded(child: Text('You have sent the extracted blank to Spare. You must select a finished spare to continue to Production.', style: TextStyle(color: Colors.deepOrange))),
+                    if (_isUpdating)
+                      const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                    else
+                      TextButton(
+                        onPressed: _undoSendToSpare,
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.orange.shade100,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text('Undo', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
+                      ),
                   ],
                 ),
               )
@@ -847,6 +875,18 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Enter Production Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _extractionCompletedYes = false),
+                        icon: const Icon(Icons.undo, size: 16, color: Colors.red),
+                        label: const Text('Undo', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () async {
                       final picked = await showDatePicker(

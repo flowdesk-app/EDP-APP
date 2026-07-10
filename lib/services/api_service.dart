@@ -652,13 +652,27 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'status': status}),
     );
-    if (res.statusCode != 200) throw Exception('Failed to update spare status');
+    if (res.statusCode >= 400) {
+      throw Exception('Server returned ${res.statusCode}: ${res.body}');
+    }
   }
 
-  Future<void> consumeSpare(String id, int quantity, String targetJobId) async {
+  Future<void> undoSendToSpare(String jobId) async {
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/spares/undo-send'),
+      headers: _headers,
+      body: jsonEncode({'jobId': jobId}),
+    );
+    if (res.statusCode >= 400) {
+      throw Exception('Server returned ${res.statusCode}: ${res.body}');
+    }
+  }
+
+  Future<void> consumeSpare(String spareId, int quantity, String targetJobId) async {
     await _loadToken();
     final res = await http.put(
-      Uri.parse('$baseUrl/spares/$id/consume'),
+      Uri.parse('$baseUrl/spares/$spareId/consume'),
       headers: _headers,
       body: jsonEncode({'quantity': quantity, 'targetJobId': targetJobId}),
     );

@@ -34,6 +34,27 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// @route   POST api/spares/undo-send
+// @desc    Undo sending a job to spare
+router.post('/undo-send', auth, async (req, res) => {
+    try {
+        const { jobId } = req.body;
+        if (!jobId) return res.status(400).json({ msg: 'Job ID is required' });
+        
+        // Find and delete the spare that was created from this job (only if it is still a Blank and hasn't been modified further)
+        // Actually, let's just delete it if it exists.
+        await Spare.findOneAndDelete({ sourceJobId: jobId });
+        
+        // Revert the job's sentToSpare flag
+        await Job.findOneAndUpdate({ jobId }, { sentToSpare: false });
+        
+        res.json({ msg: 'Undo successful' });
+    } catch (err) {
+        console.error("POST /spares/undo-send Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   GET api/spares
 // @desc    Get all spares
 router.get('/', auth, async (req, res) => {
