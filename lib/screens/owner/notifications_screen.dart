@@ -183,7 +183,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                         ),
                                         const SizedBox(height: 3),
                                         Text(
-                                          '${n.timestamp.hour}:${n.timestamp.minute.toString().padLeft(2, '0')} — ${n.timestamp.day}/${n.timestamp.month}/${n.timestamp.year}',
+                                          '${n.createdAt.hour}:${n.createdAt.minute.toString().padLeft(2, '0')} — ${n.createdAt.day}/${n.createdAt.month}/${n.createdAt.year}',
                                           style: const TextStyle(
                                             fontSize: 11,
                                             color: Color(0xFF5F6368),
