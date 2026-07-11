@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 
 class StockAtEdpScreen extends StatefulWidget {
   final String jobType;
-  const StockAtEdpScreen({super.key, required this.jobType});
+  final String? supplierName;
+  const StockAtEdpScreen({super.key, required this.jobType, this.supplierName});
 
   @override
   State<StockAtEdpScreen> createState() => _StockAtEdpScreenState();
@@ -35,7 +36,13 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       final spares = await _api.getSpares();
       if (mounted) {
         setState(() {
-          _spares = spares.where((s) => s['jobType'] == widget.jobType).toList();
+          _spares = spares.where((s) {
+            final matchesJobType = s['jobType'] == widget.jobType;
+            final matchesSupplier = (widget.supplierName == null) 
+              ? (s['currentSupplier'] == null || s['currentSupplier'] == 'EDP')
+              : (s['currentSupplier'] == widget.supplierName);
+            return matchesJobType && matchesSupplier;
+          }).toList();
           _isLoading = false;
         });
       }
@@ -53,19 +60,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     super.dispose();
   }
 
-  Future<void> _updateStatus(String spareId, String newStatus) async {
-    try {
-      await _api.updateSpareStatus(spareId, newStatus);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Moved to $newStatus')));
-      }
-      _loadSpares();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-      }
-    }
-  }
+
 
   Future<void> _deleteSpare(String id) async {
     try {
@@ -81,9 +76,92 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     }
   }
 
+  Future<void> _updateStatus(String id, String status) async {
+    try {
+      await _api.updateSpare(id, status: status);
+      _loadSpares();
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  void _sendToSupplier(String id) async {
+    final parentContext = context;
+    try {
+      final suppliers = await _api.getSuppliers();
+      if (!mounted) return;
+      
+      showDialog(
+        context: parentContext,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Select Next Supplier'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: suppliers.length,
+              itemBuilder: (context, index) {
+                final supplier = suppliers[index];
+                return ListTile(
+                  title: Text(supplier.supplierName),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    try {
+                      await _api.updateSpare(id, currentSupplier: supplier.supplierName);
+                      _loadSpares();
+                    } catch (e) {
+                      if (mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ],
+        )
+      );
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading suppliers: $e')));
+    }
+  }
+
+  void _showSpareOptions(dynamic spare) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.local_shipping, color: Colors.blue),
+                title: const Text('Next Supplier'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _sendToSupplier(spare['_id']);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.check_circle, color: Colors.green),
+                title: const Text('Move to Finished'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _updateStatus(spare['_id'], 'Finished');
+                },
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
   Widget _buildSpareCard(Map<String, dynamic> spare, bool isBlank) {
     final date = spare['createdAt'] != null ? DateTime.parse(spare['createdAt']) : null;
-    return Card(
+    final cardContent = Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
@@ -143,25 +221,18 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text('Added: ${DateFormat('dd-MM-yyyy').format(date)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ),
-            if (isBlank)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () => _updateStatus(spare['_id'], 'Finished'),
-                    child: const Text('Move to Finished', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
     );
+    
+    if (isBlank) {
+      return InkWell(
+        onTap: () => _showSpareOptions(spare),
+        child: cardContent,
+      );
+    }
+    return cardContent;
   }
 
   Widget _buildList(String status) {

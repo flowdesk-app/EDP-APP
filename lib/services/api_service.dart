@@ -648,16 +648,18 @@ class ApiService {
     if (res.statusCode != 200) throw Exception('Failed to delete spare');
   }
 
-  Future<void> updateSpareStatus(String id, String status) async {
+  Future<void> updateSpare(String id, {String? status, String? currentSupplier}) async {
     await _loadToken();
+    final Map<String, dynamic> body = {};
+    if (status != null) body['status'] = status;
+    if (currentSupplier != null) body['currentSupplier'] = currentSupplier;
+
     final res = await http.put(
-      Uri.parse('$baseUrl/spares/$id/status'),
+      Uri.parse('$baseUrl/spares/$id'),
       headers: _headers,
-      body: jsonEncode({'status': status}),
+      body: jsonEncode(body),
     );
-    if (res.statusCode >= 400) {
-      throw Exception('Server returned ${res.statusCode}: ${res.body}');
-    }
+    if (res.statusCode != 200) throw Exception('Failed to update spare');
   }
 
   Future<void> undoSendToSpare(String jobId) async {

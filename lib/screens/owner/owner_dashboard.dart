@@ -7,7 +7,7 @@ import 'material_search_screen.dart';
 import 'recoating_dashboard_screen.dart';
 import 'production_dashboard_screen.dart';
 import 'blank_orders_screen.dart';
-import 'edp_spare_production_screen.dart';
+import 'spare_production_dashboard_screen.dart';
 import '../../widgets/flowdesk_logo.dart';
 import '../../widgets/drawer_menu_button.dart';
 import 'package:intl/intl.dart';
@@ -242,7 +242,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                       _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
                       _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionDashboardScreen(productionJobs: _currentJobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
                       _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, Colors.green, () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),
-                      _buildStatCard('EDP Spare Production', 0, Icons.settings_suggest, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EDPSpareProductionScreen()))),
+                      _buildStatCard('EDP Spare Production', 0, Icons.settings_suggest, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareProductionDashboardScreen()))),
                     ],
                   ),
                 ],

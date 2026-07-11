@@ -70,19 +70,21 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
-// @route   PUT api/spares/:id/status
-// @desc    Update spare status (e.g. Blank to Finished)
-router.put('/:id/status', auth, async (req, res) => {
+// @route   PUT api/spares/:id
+// @desc    Update spare status and/or supplier
+router.put('/:id', auth, async (req, res) => {
     try {
         const spare = await Spare.findById(req.params.id);
         if (!spare) return res.status(404).json({ msg: 'Spare not found' });
         
-        spare.status = req.body.status || 'Finished';
+        if (req.body.status !== undefined) spare.status = req.body.status;
+        if (req.body.currentSupplier !== undefined) spare.currentSupplier = req.body.currentSupplier;
+        
         await spare.save();
         
         res.json(spare);
     } catch (err) {
-        console.error("PUT /spares/:id/status Error:", err);
+        console.error("PUT /spares/:id Error:", err);
         res.status(500).send('Server Error');
     }
 });

@@ -10,6 +10,7 @@ const spareSchema = new mongoose.Schema({
     jobType: { type: String }, // 'New' or 'Re-coating'
     personResponsible: { type: String },
     expectedCompletionDate: { type: String },
+    currentSupplier: { type: String }, // Supplier name where it is currently located, or null if at EDP
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
