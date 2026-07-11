@@ -30,6 +30,11 @@ const jobSchema = new mongoose.Schema({
     date: { type: Date },
     location: { type: String }
   }],
+  supplierMovements: [{
+    supplierName: { type: String },
+    sentDate: { type: Date },
+    receivedDate: { type: Date }
+  }],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   jobType: { type: String, enum: ['New', 'Re-coating'] },
   customerName: { type: String },

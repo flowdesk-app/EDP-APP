@@ -144,6 +144,15 @@ router.put('/:id/status', auth, async (req, res) => {
 
         let oldStatus = job.status;
 
+        // If the job was at a supplier, and it is now moving to Production, EDP, Delivery, etc, close the movement.
+        if (job.supplierMovements && job.supplierMovements.length > 0 && status !== 'At Supplier') {
+            const lastMovement = job.supplierMovements[job.supplierMovements.length - 1];
+            // If the status implies returning from supplier, close it out
+            if (!lastMovement.receivedDate && (status === 'Production' || status === 'Extracted' || status === 'Delivery' || status === 'Delivered' || currentLocation === 'EDP')) {
+                lastMovement.receivedDate = new Date();
+            }
+        }
+
         if (status === 'Delivered' && deliveredQuantity) {
             if (inspectionReportNumber) job.inspectionReportNumber = inspectionReportNumber;
             if (invoiceNumber) job.invoiceNumber = invoiceNumber;
@@ -260,6 +269,21 @@ router.put('/:id/forward', auth, async (req, res) => {
         // Filter out empty strings if any, then push
         job.supplierChain = job.supplierChain.filter(s => s);
         job.supplierChain.push(nextSupplier);
+
+        // Track Supplier Movements
+        if (!job.supplierMovements) job.supplierMovements = [];
+        if (job.supplierMovements.length > 0) {
+            const lastMovement = job.supplierMovements[job.supplierMovements.length - 1];
+            if (!lastMovement.receivedDate) {
+                lastMovement.receivedDate = new Date();
+            }
+        }
+        if (nextSupplier !== 'EDP') {
+            job.supplierMovements.push({
+                supplierName: nextSupplier,
+                sentDate: new Date()
+            });
+        }
 
         job.supplier = nextSupplier;
         job.destinationName = nextSupplier;

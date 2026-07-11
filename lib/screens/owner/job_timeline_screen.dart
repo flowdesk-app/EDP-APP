@@ -369,6 +369,24 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     _row('Production Date', DateFormat('dd-MM-yyyy').format(_currentJob.productionDate!)),
                 ],
               ),
+            if (_currentJob.supplierMovements.isNotEmpty)
+              _buildSectionCard(
+                title: 'Supplier Tracking',
+                icon: Icons.sync_alt,
+                children: _currentJob.supplierMovements.expand<Widget>((movement) {
+                  final supplierName = movement['supplierName'] ?? 'Unknown';
+                  final sentDateStr = movement['sentDate'];
+                  final receivedDateStr = movement['receivedDate'];
+                  final sentDate = sentDateStr != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(sentDateStr.toString()).toLocal()) : null;
+                  final receivedDate = receivedDateStr != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(receivedDateStr.toString()).toLocal()) : null;
+                  return [
+                    if (sentDate != null)
+                      _row('Sent to $supplierName', sentDate),
+                    if (receivedDate != null)
+                      _row('Received from $supplierName', receivedDate),
+                  ];
+                }).toList(),
+              ),
             if (_currentJob.expectedExtractionDate != null || _currentJob.expectedProductionDate != null)
               _buildSectionCard(
                 title: 'Expected',

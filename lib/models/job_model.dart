@@ -26,6 +26,7 @@ class JobModel {
   final String? remarks;
   final List<String> attachments;
   final List<dynamic> statusHistory;
+  final List<dynamic> supplierMovements;
 
   // New Fields
   final String? jobType;
@@ -85,6 +86,7 @@ class JobModel {
     this.expectedReturnDate,
     this.attachments = const [],
     this.statusHistory = const [],
+    this.supplierMovements = const [],
     required this.createdDate,
     this.jobType,
     this.customerName,
@@ -163,6 +165,7 @@ class JobModel {
     String? remarks,
     List<String>? attachments,
     List<dynamic>? statusHistory,
+    List<dynamic>? supplierMovements,
     String? invoiceNumber,
     bool? sentToSpare,
     String? usedSpareId,
@@ -194,6 +197,7 @@ class JobModel {
       expectedReturnDate: expectedReturnDate ?? this.expectedReturnDate,
       attachments: attachments ?? this.attachments,
       statusHistory: statusHistory ?? this.statusHistory,
+      supplierMovements: supplierMovements ?? this.supplierMovements,
       createdDate: createdDate ?? this.createdDate,
       jobType: jobType ?? this.jobType,
       customerName: customerName ?? this.customerName,
@@ -250,6 +254,7 @@ class JobModel {
     expectedReturnDate: json['expectedReturnDate'] != null ? DateTime.parse(json['expectedReturnDate']) : null,
     attachments: (json['attachments'] as List?)?.map((e) => e.toString()).toList() ?? [],
     statusHistory: (json['statusHistory'] as List?)?.map((e) => e as Map<String, dynamic>).toList() ?? [],
+    supplierMovements: (json['supplierMovements'] as List?)?.map((e) => e as Map<String, dynamic>).toList() ?? [],
     createdDate: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
     jobType: json['jobType'],
     customerName: json['customerName'],
@@ -305,6 +310,7 @@ class JobModel {
     'expectedReturnDate': expectedReturnDate?.toIso8601String(),
     'attachments': attachments,
     'statusHistory': statusHistory,
+    'supplierMovements': supplierMovements,
     'createdAt': createdDate.toIso8601String(),
     'jobType': jobType,
     'customerName': customerName,
