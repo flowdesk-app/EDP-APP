@@ -241,13 +241,13 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
                 children: [
                   _buildStatCard(
                     context,
-                    'EDP Production',
+                    'EDP Spare Production',
                     getEdpCount(),
                     Icons.precision_manufacturing,
                     const Color(0xFF9C27B0),
                     () => _navToTabs(null),
                   ),
-                  ..._suppliers.map((s) {
+                  ..._suppliers.where((s) => s.supplierName.toLowerCase() != 'edp' && s.supplierName.toLowerCase() != 'edp production').map((s) {
                     final isSelected = _selectedSupplierIds.contains(s.supplierId);
                     return _buildStatCard(
                       context,
