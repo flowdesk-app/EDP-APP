@@ -4,7 +4,8 @@ import '../../widgets/drawer_menu_button.dart';
 import 'package:intl/intl.dart';
 
 class StockAtEdpScreen extends StatefulWidget {
-  const StockAtEdpScreen({super.key});
+  final String jobType;
+  const StockAtEdpScreen({super.key, required this.jobType});
 
   @override
   State<StockAtEdpScreen> createState() => _StockAtEdpScreenState();
@@ -34,7 +35,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       final spares = await _api.getSpares();
       if (mounted) {
         setState(() {
-          _spares = spares;
+          _spares = spares.where((s) => s['jobType'] == widget.jobType).toList();
           _isLoading = false;
         });
       }
@@ -204,7 +205,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
               if (partCtrl.text.trim().isEmpty) return;
               final qty = int.tryParse(qtyCtrl.text.trim()) ?? 1;
               try {
-                await _api.createSpare(partCtrl.text.trim(), qty, descCtrl.text.trim(), gritCtrl.text.trim(), null);
+                await _api.createSpare(partCtrl.text.trim(), qty, descCtrl.text.trim(), gritCtrl.text.trim(), null, widget.jobType);
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 _loadSpares();
@@ -224,32 +225,42 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        leading: _isEditing ? IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _isEditing = false)) : const DrawerMenuButton(),
-        title: const Text('Spare at EDP', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF202124),
-        elevation: 0,
-        actions: [
-          if (!_isEditing)
-            IconButton(icon: const Icon(Icons.edit, color: Color(0xFF202124)), onPressed: () => setState(() => _isEditing = true)),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF29B6F6),
-          unselectedLabelColor: const Color(0xFF5F6368),
-          indicatorColor: const Color(0xFF29B6F6),
-          tabs: const [
-            Tab(text: 'Finished'),
-            Tab(text: 'Blank'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildList('Finished'),
-          _buildList('Blank'),
+          Container(
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (!_isEditing)
+                  IconButton(icon: const Icon(Icons.edit, color: Color(0xFF202124)), onPressed: () => setState(() => _isEditing = true))
+                else
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _isEditing = false)),
+              ],
+            ),
+          ),
+          Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: const Color(0xFF29B6F6),
+              unselectedLabelColor: const Color(0xFF5F6368),
+              indicatorColor: const Color(0xFF29B6F6),
+              tabs: const [
+                Tab(text: 'Finished'),
+                Tab(text: 'Blank'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildList('Finished'),
+                _buildList('Blank'),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: _tabController.index == 1 ? FloatingActionButton.extended(

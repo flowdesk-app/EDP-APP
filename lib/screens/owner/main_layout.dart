@@ -9,7 +9,7 @@ import 'delivered_jobs_screen.dart';
 
 import 'removed_jobs_screen.dart';
 import 'part_management_screen.dart';
-import 'stock_at_edp_screen.dart';
+import 'edp_spare_production_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
@@ -40,7 +40,7 @@ class _MainLayoutState extends State<MainLayout> {
       const DeliveredJobsScreen(), // 3. Delivered
       if (_isAdmin) const PartManagementScreen(), // 4. Job Names (Parts)
       if (_isAdmin) const RemovedJobsScreen(), // 5. Edit
-      if (_isAdmin) const StockAtEdpScreen(), // 6. Spare at EDP
+      if (_isAdmin) const EDPSpareProductionScreen(), // 6. Spare at EDP
       if (_isAdmin) const ReadyForDeliveryScreen(), // 7. Ready for Delivery
     ];
 

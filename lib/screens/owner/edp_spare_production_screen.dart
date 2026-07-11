@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'stock_at_edp_screen.dart';
 
 class EDPSpareProductionScreen extends StatelessWidget {
   const EDPSpareProductionScreen({super.key});
@@ -9,7 +10,7 @@ class EDPSpareProductionScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('EDP Spare Production'),
+          title: const Text('Spare at EDP', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 1,
@@ -25,8 +26,8 @@ class EDPSpareProductionScreen extends StatelessWidget {
         ),
         body: const TabBarView(
           children: [
-            Center(child: Text('New (To be implemented)')),
-            Center(child: Text('Re-coating (To be implemented)')),
+            StockAtEdpScreen(jobType: 'New'),
+            StockAtEdpScreen(jobType: 'Re-coating'),
           ],
         ),
       ),

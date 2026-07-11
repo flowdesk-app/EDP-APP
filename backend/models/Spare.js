@@ -7,6 +7,7 @@ const spareSchema = new mongoose.Schema({
     quantity: { type: Number, required: true, default: 1 },
     status: { type: String, enum: ['Blank', 'Finished'], default: 'Blank' },
     sourceJobId: { type: String }, // Job ID it was extracted from
+    jobType: { type: String }, // 'New' or 'Re-coating'
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

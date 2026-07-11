@@ -610,7 +610,7 @@ class ApiService {
     }
   }
 
-  Future<void> createSpare(String partNumber, int quantity, String? description, String? gritSize, String? sourceJobId) async {
+  Future<void> createSpare(String partNumber, int quantity, String? description, String? gritSize, String? sourceJobId, String? jobType) async {
     await _loadToken();
     final res = await http.post(
       Uri.parse('$baseUrl/spares'),
@@ -621,6 +621,7 @@ class ApiService {
         'description': description,
         'gritSize': gritSize,
         'sourceJobId': sourceJobId,
+        'jobType': jobType,
       }),
     );
     if (res.statusCode != 200) throw Exception('Failed to create spare');

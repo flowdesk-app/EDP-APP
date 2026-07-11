@@ -677,11 +677,12 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     setState(() => _isUpdating = true);
     try {
       await ApiService().createSpare(
-        _currentJob.partNumber ?? 'Unknown',
+        _currentJob.partNumber ?? '',
         _currentJob.quantity ?? 1,
-        _currentJob.partDescription ?? _currentJob.wheelSize,
+        _currentJob.partDescription,
         _currentJob.diamondPowderGritSize,
         _currentJob.jobId,
+        _currentJob.jobType ?? 'Re-coating',
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sent to Spare at EDP as Blank')));
