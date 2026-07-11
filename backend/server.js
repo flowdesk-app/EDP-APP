@@ -52,6 +52,7 @@ app.use('/api/movements', require('./routes/movements'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/logistics', require('./routes/logistics'));
 app.use('/api/binbox', require('./routes/binbox'));
+app.use('/api/spare-suppliers', require('./routes/spareSuppliers'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/leads', require('./routes/leads'));
 

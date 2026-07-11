@@ -26,7 +26,7 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
   Future<void> _fetchData() async {
     setState(() => _isLoading = true);
     try {
-      final suppliers = await ApiService().getSuppliers();
+      final suppliers = await ApiService().getSpareSuppliers();
       final spares = await ApiService().getSpares();
       if (mounted) {
         setState(() {
@@ -64,7 +64,7 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
               
               try {
                 if (!_suppliers.any((s) => s.supplierName.toLowerCase() == name.toLowerCase())) {
-                  await ApiService().addSupplier(name);
+                  await ApiService().addSpareSupplier(name);
                 }
                 await _fetchData();
               } catch (e) {
@@ -100,7 +100,7 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
       setState(() => _isLoading = true);
       try {
         for (final id in _selectedSupplierIds) {
-          await ApiService().deleteSupplier(id);
+          await ApiService().deleteSpareSupplier(id);
         }
         setState(() {
           _isEditing = false;

@@ -105,9 +105,31 @@ class ApiService {
     final res = await http.get(Uri.parse('$baseUrl/suppliers'), headers: _headers);
     if (res.statusCode == 200) {
       final List data = jsonDecode(res.body);
-      return data.map((d) => SupplierModel(supplierId: d['_id'], supplierName: d['supplierName'])).toList();
+      return data.map((json) {
+        return SupplierModel(
+          supplierId: json['_id'],
+          supplierName: json['supplierName'],
+        );
+      }).toList();
+    } else {
+      throw Exception('Failed to load suppliers');
     }
-    return [];
+  }
+
+  Future<List<SupplierModel>> getSpareSuppliers() async {
+    await _loadToken();
+    final res = await http.get(Uri.parse('$baseUrl/spare-suppliers'), headers: _headers);
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.map((json) {
+        return SupplierModel(
+          supplierId: json['_id'],
+          supplierName: json['supplierName'],
+        );
+      }).toList();
+    } else {
+      throw Exception('Failed to load spare suppliers');
+    }
   }
 
   Future<List<String>> getCustomers() async {
@@ -646,6 +668,22 @@ class ApiService {
       headers: _headers,
     );
     if (res.statusCode != 200) throw Exception('Failed to delete spare');
+  }
+
+  Future<void> addSpareSupplier(String name) async {
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/spare-suppliers'),
+      headers: _headers,
+      body: jsonEncode({'supplierName': name}),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to add spare supplier');
+  }
+
+  Future<void> deleteSpareSupplier(String id) async {
+    await _loadToken();
+    final res = await http.delete(Uri.parse('$baseUrl/spare-suppliers/$id'), headers: _headers);
+    if (res.statusCode != 200) throw Exception('Failed to delete spare supplier');
   }
 
   Future<void> updateSpare(String id, {String? status, String? currentSupplier}) async {

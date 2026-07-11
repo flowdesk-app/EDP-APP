@@ -88,7 +88,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   void _sendToSupplier(String id) async {
     final parentContext = context;
     try {
-      final suppliers = await _api.getSuppliers();
+      final suppliers = await _api.getSpareSuppliers();
       if (!mounted) return;
       
       showDialog(
