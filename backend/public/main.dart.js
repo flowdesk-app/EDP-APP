@@ -49955,11 +49955,11 @@ s.f=r
 s.r=!1},
 $S:0}
 A.aC5.prototype={
-$1(a){var s,r,q="currentSupplier",p=this.a,o=J.d(a.h(0,"jobType"),p.a.c)
-if(p.a.d==null)r=a.h(0,q)==null||J.d(a.h(0,q),"EDP")
-else r=J.d(a.h(0,q),p.a.d)
+$1(a){var s,r,q="currentSupplier",p=a.h(0,"jobType"),o=p==null?"Re-coating":p,n=this.a,m=J.d(o,n.a.c)
+if(n.a.d==null)r=a.h(0,q)==null||J.d(a.h(0,q),"EDP")
+else r=J.d(a.h(0,q),n.a.d)
 s=r
-return o&&s},
+return m&&s},
 $S:59}
 A.aC8.prototype={
 $0(){return this.a.r=!1},
@@ -50020,7 +50020,9 @@ A.aC4.prototype={
 $0(){return this.a.aoD(this.b)},
 $S:0}
 A.aC1.prototype={
-$1(a){return J.d(a.h(0,"status"),this.a)},
+$1(a){var s=a.h(0,"status")
+if(s==null)s="Blank"
+return J.d(s,this.a)},
 $S:59}
 A.aC2.prototype={
 $2(a,b){return this.a.aaG(this.b[b],this.c==="Blank")},

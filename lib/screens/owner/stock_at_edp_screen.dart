@@ -37,7 +37,8 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       if (mounted) {
         setState(() {
           _spares = spares.where((s) {
-            final matchesJobType = s['jobType'] == widget.jobType;
+            final jobType = s['jobType'] ?? 'Re-coating';
+            final matchesJobType = jobType == widget.jobType;
             final matchesSupplier = (widget.supplierName == null) 
               ? (s['currentSupplier'] == null || s['currentSupplier'] == 'EDP')
               : (s['currentSupplier'] == widget.supplierName);
@@ -238,7 +239,10 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   Widget _buildList(String status) {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     
-    final filtered = _spares.where((s) => s['status'] == status).toList();
+    final filtered = _spares.where((s) {
+      final sStatus = s['status'] ?? 'Blank';
+      return sStatus == status;
+    }).toList();
     if (filtered.isEmpty) {
       return Center(
         child: Text(
