@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
-import '../../widgets/drawer_menu_button.dart';
 import 'package:intl/intl.dart';
 
 class StockAtEdpScreen extends StatefulWidget {
@@ -87,13 +86,12 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   }
 
   void _sendToSupplier(String id) async {
-    final parentContext = context;
     try {
       final suppliers = await _api.getSpareSuppliers();
       if (!mounted) return;
       
       showDialog(
-        context: parentContext,
+        context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Select Next Supplier'),
           content: SizedBox(
@@ -111,7 +109,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                       await _api.updateSpare(id, currentSupplier: supplier.supplierName);
                       _loadSpares();
                     } catch (e) {
-                      if (mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
                   },
                 );
