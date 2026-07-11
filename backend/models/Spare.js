@@ -8,6 +8,8 @@ const spareSchema = new mongoose.Schema({
     status: { type: String, enum: ['Blank', 'Finished'], default: 'Blank' },
     sourceJobId: { type: String }, // Job ID it was extracted from
     jobType: { type: String }, // 'New' or 'Re-coating'
+    personResponsible: { type: String },
+    expectedCompletionDate: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

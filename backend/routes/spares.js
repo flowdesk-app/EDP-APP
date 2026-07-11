@@ -8,7 +8,7 @@ const auth = require('../middleware/auth');
 // @desc    Create a new spare from an extracted job
 router.post('/', auth, async (req, res) => {
     try {
-        const { partNumber, quantity, description, gritSize, sourceJobId, jobType } = req.body;
+        const { partNumber, quantity, description, gritSize, sourceJobId, jobType, personResponsible, expectedCompletionDate } = req.body;
         
         const newSpare = new Spare({
             partNumber,
@@ -18,6 +18,8 @@ router.post('/', auth, async (req, res) => {
             status: 'Blank',
             sourceJobId,
             jobType: jobType || 'Re-coating', // default to Re-coating if not provided
+            personResponsible,
+            expectedCompletionDate,
             createdBy: req.user.id
         });
         

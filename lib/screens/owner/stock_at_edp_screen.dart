@@ -128,6 +128,16 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                 padding: const EdgeInsets.only(bottom: 4.0),
                 child: Text('Grit Size: ${spare['gritSize']}'),
               ),
+            if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text('Person Responsible: ${spare['personResponsible']}'),
+              ),
+            if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text('Expected Completion: ${spare['expectedCompletionDate']}'),
+              ),
             if (date != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
@@ -182,6 +192,8 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     final qtyCtrl = TextEditingController(text: '1');
     final descCtrl = TextEditingController();
     final gritCtrl = TextEditingController();
+    final personCtrl = TextEditingController();
+    final dateCtrl = TextEditingController();
 
     showDialog(
       context: parentContext,
@@ -195,6 +207,23 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
               TextField(controller: qtyCtrl, decoration: const InputDecoration(labelText: 'Quantity'), keyboardType: TextInputType.number),
               TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
               TextField(controller: gritCtrl, decoration: const InputDecoration(labelText: 'Grit Size')),
+              TextField(controller: personCtrl, decoration: const InputDecoration(labelText: 'Person Responsible')),
+              TextField(
+                controller: dateCtrl,
+                decoration: const InputDecoration(labelText: 'Expected Completion Date', suffixIcon: Icon(Icons.calendar_today)),
+                readOnly: true,
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (picked != null) {
+                    dateCtrl.text = DateFormat('yyyy-MM-dd').format(picked);
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -205,7 +234,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
               if (partCtrl.text.trim().isEmpty) return;
               final qty = int.tryParse(qtyCtrl.text.trim()) ?? 1;
               try {
-                await _api.createSpare(partCtrl.text.trim(), qty, descCtrl.text.trim(), gritCtrl.text.trim(), null, widget.jobType);
+                await _api.createSpare(partCtrl.text.trim(), qty, descCtrl.text.trim(), gritCtrl.text.trim(), null, widget.jobType, personCtrl.text.trim(), dateCtrl.text.trim());
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 _loadSpares();

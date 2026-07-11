@@ -683,6 +683,8 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
         _currentJob.diamondPowderGritSize,
         _currentJob.jobId,
         _currentJob.jobType ?? 'Re-coating',
+        null,
+        null,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sent to Spare at EDP as Blank')));
