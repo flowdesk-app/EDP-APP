@@ -278,12 +278,11 @@ router.put('/:id/forward', auth, async (req, res) => {
                 lastMovement.receivedDate = new Date();
             }
         }
-        if (nextSupplier !== 'EDP') {
-            job.supplierMovements.push({
-                supplierName: nextSupplier,
-                sentDate: new Date()
-            });
-        }
+        
+        job.supplierMovements.push({
+            supplierName: nextSupplier,
+            sentDate: new Date()
+        });
 
         job.supplier = nextSupplier;
         job.destinationName = nextSupplier;
