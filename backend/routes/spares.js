@@ -78,7 +78,10 @@ router.put('/:id', auth, async (req, res) => {
         if (!spare) return res.status(404).json({ msg: 'Spare not found' });
         
         if (req.body.status !== undefined) spare.status = req.body.status;
-        if (req.body.currentSupplier !== undefined) spare.currentSupplier = req.body.currentSupplier;
+        if (req.body.currentSupplier !== undefined) {
+            spare.currentSupplier = req.body.currentSupplier;
+            spare.lastSentDate = new Date(); // Record when it was moved
+        }
         
         await spare.save();
         

@@ -11,6 +11,7 @@ const spareSchema = new mongoose.Schema({
     personResponsible: { type: String },
     expectedCompletionDate: { type: String },
     currentSupplier: { type: String }, // Supplier name where it is currently located, or null if at EDP
+    lastSentDate: { type: Date }, // Date when it was sent to currentSupplier
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

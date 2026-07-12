@@ -98,9 +98,23 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: suppliers.length,
+              itemCount: suppliers.length + 1,
               itemBuilder: (context, index) {
-                final supplier = suppliers[index];
+                if (index == 0) {
+                  return ListTile(
+                    title: const Text('Back to EDP Spare Production', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      try {
+                        await _api.updateSpare(id, currentSupplier: 'EDP');
+                        _loadSpares();
+                      } catch (e) {
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    },
+                  );
+                }
+                final supplier = suppliers[index - 1];
                 return ListTile(
                   title: Text(supplier.supplierName),
                   onTap: () async {
@@ -214,6 +228,14 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
               Padding(
                 padding: const EdgeInsets.only(bottom: 4.0),
                 child: Text('Expected Completion: ${spare['expectedCompletionDate']}'),
+              ),
+            if (spare['lastSentDate'] != null && spare['currentSupplier'] != null && spare['currentSupplier'] != 'EDP')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text(
+                  'Sent to ${spare['currentSupplier']} on: ${DateFormat('dd-MM-yyyy').format(DateTime.parse(spare['lastSentDate']))}', 
+                  style: const TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                ),
               ),
             if (date != null)
               Padding(
