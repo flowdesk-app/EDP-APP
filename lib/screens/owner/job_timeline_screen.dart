@@ -722,7 +722,15 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     );
     try {
       final spares = await ApiService().getSpares();
-      final finishedSpares = spares.where((s) => s['status'] == 'Finished').toList();
+      final finishedSpares = spares.where((s) {
+        if (s['status'] != 'Finished') return false;
+        
+        final samePartNo = (s['partNumber'] ?? '').toString().toLowerCase().trim() == (_currentJob.partNumber ?? '').toLowerCase().trim();
+        final sameDesc = (s['description'] ?? '').toString().toLowerCase().trim() == (_currentJob.partDescription ?? '').toLowerCase().trim();
+        final sameGrit = (s['gritSize'] ?? '').toString().toLowerCase().trim() == (_currentJob.diamondPowderGritSize ?? '').toLowerCase().trim();
+        
+        return samePartNo && sameDesc && sameGrit;
+      }).toList();
       if (!mounted) return;
       Navigator.pop(context); // hide loading
 
