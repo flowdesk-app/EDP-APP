@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'spare_details_screen.dart';
 
 class StockAtEdpScreen extends StatefulWidget {
   final String jobType;
@@ -61,115 +62,15 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   }
 
 
-
   Future<void> _deleteSpare(String id) async {
     try {
       await _api.deleteSpare(id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Spare deleted')));
-      }
       _loadSpares();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
       }
     }
-  }
-
-  Future<void> _updateStatus(String id, String status) async {
-    try {
-      await _api.updateSpare(id, status: status);
-      _loadSpares();
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-  void _sendToSupplier(String id) async {
-    try {
-      final suppliers = await _api.getSpareSuppliers();
-      if (!mounted) return;
-      
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Select Next Supplier'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: suppliers.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return ListTile(
-                    title: const Text('Back to EDP Spare Production', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      try {
-                        await _api.updateSpare(id, currentSupplier: 'EDP');
-                        _loadSpares();
-                      } catch (e) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                      }
-                    },
-                  );
-                }
-                final supplier = suppliers[index - 1];
-                return ListTile(
-                  title: Text(supplier.supplierName),
-                  onTap: () async {
-                    Navigator.pop(ctx);
-                    try {
-                      await _api.updateSpare(id, currentSupplier: supplier.supplierName);
-                      _loadSpares();
-                    } catch (e) {
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ],
-        )
-      );
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading suppliers: $e')));
-    }
-  }
-
-  void _showSpareOptions(dynamic spare) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.local_shipping, color: Colors.blue),
-                title: const Text('Next Supplier'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _sendToSupplier(spare['_id']);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.check_circle, color: Colors.green),
-                title: const Text('Move to Finished'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _updateStatus(spare['_id'], 'Finished');
-                },
-              ),
-            ],
-          ),
-        );
-      }
-    );
   }
 
   Widget _buildSpareCard(Map<String, dynamic> spare, bool isBlank) {
@@ -247,13 +148,15 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       ),
     );
     
-    if (isBlank) {
-      return InkWell(
-        onTap: () => _showSpareOptions(spare),
-        child: cardContent,
-      );
-    }
-    return cardContent;
+    return InkWell(
+      onTap: () async {
+        final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareDetailsScreen(spare: spare)));
+        if (result == true) {
+          _loadSpares();
+        }
+      },
+      child: cardContent,
+    );
   }
 
   Widget _buildList(String status) {

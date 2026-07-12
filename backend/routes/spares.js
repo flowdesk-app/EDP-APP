@@ -20,6 +20,7 @@ router.post('/', auth, async (req, res) => {
             jobType: jobType || 'Re-coating', // default to Re-coating if not provided
             personResponsible,
             expectedCompletionDate,
+            history: [{ supplier: 'EDP Spare Production', date: new Date() }],
             createdBy: req.user.id
         });
         
@@ -81,6 +82,10 @@ router.put('/:id', auth, async (req, res) => {
         if (req.body.currentSupplier !== undefined) {
             spare.currentSupplier = req.body.currentSupplier;
             spare.lastSentDate = new Date(); // Record when it was moved
+            
+            // Append to history
+            const targetSupplierName = req.body.currentSupplier === 'EDP' ? 'EDP Spare Production' : req.body.currentSupplier;
+            spare.history.push({ supplier: targetSupplierName, date: new Date() });
         }
         
         await spare.save();

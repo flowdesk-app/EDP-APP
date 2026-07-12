@@ -1,0 +1,298 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../services/api_service.dart';
+
+class SpareDetailsScreen extends StatefulWidget {
+  final Map<String, dynamic> spare;
+
+  const SpareDetailsScreen({super.key, required this.spare});
+
+  @override
+  State<SpareDetailsScreen> createState() => _SpareDetailsScreenState();
+}
+
+class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
+  final ApiService _api = ApiService();
+  bool _isLoading = false;
+
+  Future<void> _updateStatus(String status) async {
+    setState(() => _isLoading = true);
+    try {
+      await _api.updateSpare(widget.spare['_id'], status: status);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _sendToSupplier() async {
+    setState(() => _isLoading = true);
+    try {
+      final suppliers = await _api.getSpareSuppliers();
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Select Next Supplier'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: suppliers.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return ListTile(
+                    title: const Text('Back to EDP Spare Production', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      await _executeSupplierUpdate('EDP');
+                    },
+                  );
+                }
+                final supplier = suppliers[index - 1];
+                return ListTile(
+                  title: Text(supplier.supplierName),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await _executeSupplierUpdate(supplier.supplierName);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ],
+        )
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading suppliers: $e')));
+      }
+    }
+  }
+
+  Future<void> _executeSupplierUpdate(String targetSupplier) async {
+    setState(() => _isLoading = true);
+    try {
+      await _api.updateSpare(widget.spare['_id'], currentSupplier: targetSupplier);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Widget _buildHistoryTimeline() {
+    final history = widget.spare['history'] as List<dynamic>? ?? [];
+    
+    if (history.isEmpty) {
+      // Fallback if no history exists (older records)
+      final createdDate = widget.spare['createdAt'] != null ? DateTime.parse(widget.spare['createdAt']) : null;
+      final lastSentDate = widget.spare['lastSentDate'] != null ? DateTime.parse(widget.spare['lastSentDate']) : null;
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Movement History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          if (createdDate != null)
+            _buildTimelineItem('Created at EDP Spare Production', createdDate, isLast: lastSentDate == null),
+          if (lastSentDate != null && widget.spare['currentSupplier'] != null && widget.spare['currentSupplier'] != 'EDP')
+            _buildTimelineItem('Sent to ${widget.spare['currentSupplier']}', lastSentDate, isLast: true),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Movement History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        ...List.generate(history.length, (index) {
+          final entry = history[index];
+          final supplier = entry['supplier'] ?? 'Unknown';
+          final date = entry['date'] != null ? DateTime.parse(entry['date']) : null;
+          final isLast = index == history.length - 1;
+          return _buildTimelineItem(
+            supplier == 'EDP Spare Production' ? 'Arrived at EDP Spare Production' : 'Sent to $supplier', 
+            date, 
+            isLast: isLast
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem(String title, DateTime? date, {bool isLast = false}) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 4)
+                  ]
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    color: Colors.blue.withValues(alpha: 0.2),
+                  ),
+                )
+              else
+                const SizedBox(height: 24), // padding for the last item
+            ],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Colors.black87)),
+                  const SizedBox(height: 4),
+                  if (date != null)
+                    Text(DateFormat('dd-MM-yyyy hh:mm a').format(date.toLocal()), style: const TextStyle(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spare = widget.spare;
+    final isAtEdp = spare['currentSupplier'] == null || spare['currentSupplier'] == 'EDP';
+    final isFinished = spare['status'] == 'Finished';
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text('Spare Job: ${spare['partNumber'] ?? 'Unknown'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 1,
+      ),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Job Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const Divider(height: 30),
+                        _buildDetailRow('Part Number', spare['partNumber'] ?? '-'),
+                        _buildDetailRow('Quantity', '${spare['quantity'] ?? 1}'),
+                        if (spare['description'] != null && spare['description'].toString().isNotEmpty)
+                          _buildDetailRow('Description', spare['description']),
+                        if (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty)
+                          _buildDetailRow('Grit Size', spare['gritSize']),
+                        if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
+                          _buildDetailRow('Person Responsible', spare['personResponsible']),
+                        if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
+                          _buildDetailRow('Expected Completion', spare['expectedCompletionDate']),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _buildHistoryTimeline(),
+              ],
+            ),
+          ),
+      bottomNavigationBar: (!isFinished && !_isLoading) ? Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+          ]
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _sendToSupplier,
+                icon: const Icon(Icons.local_shipping),
+                label: const Text('Next Supplier', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            if (isAtEdp) ...[
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _updateStatus('Finished'),
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('Move to Finished', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ) : null,
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(label, style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            child: Text(value, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+}
