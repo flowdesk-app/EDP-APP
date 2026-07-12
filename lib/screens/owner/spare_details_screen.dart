@@ -217,13 +217,13 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
                         _buildDetailRow('Part Number', spare['partNumber'] ?? '-'),
                         _buildDetailRow('Quantity', '${spare['quantity'] ?? 1}'),
                         if (spare['description'] != null && spare['description'].toString().isNotEmpty)
-                          _buildDetailRow('Description', spare['description']),
+                          _buildDetailRow('Description', spare['description'].toString()),
                         if (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty)
-                          _buildDetailRow('Grit Size', spare['gritSize']),
+                          _buildDetailRow('Grit Size', spare['gritSize'].toString()),
                         if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
-                          _buildDetailRow('Person Responsible', spare['personResponsible']),
+                          _buildDetailRow('Person Responsible', spare['personResponsible'].toString()),
                         if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
-                          _buildDetailRow('Expected Completion', spare['expectedCompletionDate']),
+                          _buildDetailRow('Expected Completion', spare['expectedCompletionDate'].toString()),
                       ],
                     ),
                   ),
