@@ -45856,7 +45856,7 @@ if(j.length===0)j=null
 h=B.c.aC(c.a.a)
 if(h.length===0)h=null
 s=11
-return A.n(d.pd(a9,i,j,h,m,"New",null,null),$async$oE)
+return A.n(d.pd(a9,i,j,h,m,"Re-coating",null,null),$async$oE)
 case 11:s=9
 break
 case 10:s=a9==="use"&&n.dx!=null?12:13

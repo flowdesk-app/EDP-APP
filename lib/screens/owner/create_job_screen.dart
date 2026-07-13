@@ -445,7 +445,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           _wheelSizeCtrl.text.trim().isEmpty ? null : _wheelSizeCtrl.text.trim(),
           _gritSizeCtrl.text.trim().isEmpty ? null : _gritSizeCtrl.text.trim(),
           generatedJobId,
-          'New',
+          'Re-coating',
           null,
           null,
         );
