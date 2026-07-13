@@ -151,18 +151,23 @@ router.post('/:id/to-ready-delivery', auth, async (req, res) => {
         // Determine status
         const newStatus = poReceived ? 'Completed' : 'PO Not Given';
         
+        // Generate a new jobId
+        const generatedJobId = 'JOB-' + Date.now().toString().slice(5);
+        
         // Create the new Job
         const newJob = new Job({
+            jobId: generatedJobId,
             partNumber: spare.partNumber,
             quantity: spare.quantity, // consuming the entire spare
-            description: spare.description,
-            gritSize: spare.gritSize,
-            personResponsible: spare.personResponsible,
+            partDescription: spare.description,
+            diamondPowderGritSize: spare.gritSize,
+            assignedWorker: spare.personResponsible,
             customerName,
-            expectedDeliveryDate,
-            poReceived,
-            poNumber,
-            poDate,
+            deliveryDate: expectedDeliveryDate,
+            purchaseOrderReceived: poReceived,
+            purchaseOrderNumber: poNumber,
+            purchaseOrderDate: poDate,
+            poNotGiven: !poReceived,
             jobType: 'New', // As requested, this is for NEW jobs only
             createdBy: req.user.id,
             status: newStatus,
