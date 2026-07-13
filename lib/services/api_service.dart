@@ -632,7 +632,7 @@ class ApiService {
     }
   }
 
-  Future<void> createSpare(String partNumber, int quantity, String? description, String? gritSize, String? sourceJobId, String? jobType, String? personResponsible, String? expectedCompletionDate) async {
+  Future<Map<String, dynamic>> createSpare(String partNumber, int quantity, String? description, String? gritSize, String? sourceJobId, String? jobType, String? personResponsible, String? expectedCompletionDate) async {
     await _loadToken();
     final res = await http.post(
       Uri.parse('$baseUrl/spares'),
@@ -648,7 +648,11 @@ class ApiService {
         'expectedCompletionDate': expectedCompletionDate,
       }),
     );
-    if (res.statusCode != 200) throw Exception('Failed to create spare');
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return jsonDecode(res.body);
+    } else {
+      throw Exception('Failed to create spare');
+    }
   }
 
   Future<List<Map<String, dynamic>>> getSpares() async {
