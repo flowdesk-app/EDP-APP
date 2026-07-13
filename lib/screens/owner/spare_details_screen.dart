@@ -230,7 +230,7 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
           ],
         ),
       );
-    } else if (isFinished && widget.spare['jobType'] == 'New') {
+    } else if (isFinished && (widget.spare['jobType'] == 'New')) {
       return Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -262,7 +262,7 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
           ]
         )
       );
-    } else if (isFinished && widget.spare['jobType'] == 'Re-coating') {
+    } else if (isFinished && (widget.spare['jobType'] == 'Re-coating' || widget.spare['jobType'] == null)) {
       return Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
