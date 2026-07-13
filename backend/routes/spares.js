@@ -200,4 +200,58 @@ router.post('/:id/to-ready-delivery', auth, async (req, res) => {
     }
 });
 
+// @route   POST api/spares/:id/to-production
+// @desc    Consume a spare and create a job directly to Production
+router.post('/:id/to-production', auth, async (req, res) => {
+    try {
+        const spare = await Spare.findById(req.params.id);
+        if (!spare) return res.status(404).json({ msg: 'Spare not found' });
+        
+        const { customerName, receivedDate, returnableGatePassNumber, returnableGatePassDate } = req.body;
+        
+        const newStatus = 'Production';
+        const generatedJobId = 'JOB-' + Date.now().toString().slice(5);
+        
+        const newJob = new Job({
+            jobId: generatedJobId,
+            partNumber: spare.partNumber,
+            quantity: spare.quantity, 
+            partDescription: spare.description,
+            diamondPowderGritSize: spare.gritSize,
+            assignedWorker: spare.personResponsible,
+            customerName,
+            receivedDate,
+            returnableGatePassNumber,
+            returnableGatePassDate,
+            jobType: 'Re-coating', // As requested, this is for Re-coating jobs
+            createdBy: req.user.id,
+            status: newStatus,
+            currentLocation: 'EDP',
+            statusHistory: [{
+                status: newStatus,
+                date: new Date(),
+                location: 'EDP'
+            }]
+        });
+        
+        const job = await newJob.save();
+        
+        await JobMovement.create({
+            jobId: job.jobId,
+            partNumber: job.partNumber,
+            quantity: job.quantity,
+            source: 'Spare Inventory',
+            destination: 'EDP',
+            recordedBy: req.user.id
+        });
+        
+        await Spare.findByIdAndDelete(req.params.id);
+        
+        res.status(201).json(job);
+    } catch (err) {
+        console.error("POST /spares/:id/to-production Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

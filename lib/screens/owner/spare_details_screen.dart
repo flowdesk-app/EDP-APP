@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import 'spare_to_ready_for_delivery_screen.dart';
+import 'spare_to_production_screen.dart';
 
 class SpareDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> spare;
@@ -253,6 +254,38 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ]
+        )
+      );
+    } else if (isFinished && widget.spare['jobType'] == 'Re-coating') {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+          ]
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                   final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToProductionScreen(spare: widget.spare)));
+                   if (result == true && mounted) {
+                     Navigator.pop(context, true);
+                   }
+                },
+                icon: const Icon(Icons.precision_manufacturing),
+                label: const Text('Move to Production', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.orange.shade700,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),

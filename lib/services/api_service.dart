@@ -686,6 +686,18 @@ class ApiService {
     }
   }
 
+  Future<void> createJobFromSpareToProduction(String spareId, Map<String, dynamic> payload) async {
+    await _loadToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/spares/$spareId/to-production'),
+      headers: _headers,
+      body: json.encode(payload),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to move spare to production');
+    }
+  }
+
   Future<void> addSpareSupplier(String name) async {
     await _loadToken();
     final res = await http.post(
