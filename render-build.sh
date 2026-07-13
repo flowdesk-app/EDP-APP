@@ -17,4 +17,8 @@ flutter pub get
 echo "Building Flutter Web..."
 flutter build web --release
 
-echo "Build complete! The output is in build/web"
+echo "Copying to backend/public..."
+rm -rf backend/public/*
+cp -r build/web/* backend/public/
+
+echo "Build complete! The output is in build/web and copied to backend/public"
