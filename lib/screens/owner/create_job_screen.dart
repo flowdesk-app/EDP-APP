@@ -445,27 +445,19 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         diamondPowderGritSize: _gritSizeCtrl.text.trim().isEmpty ? null : _gritSizeCtrl.text.trim(),
         assignedWorker: _assignedWorkerCtrl.text.trim().isEmpty ? null : _assignedWorkerCtrl.text.trim(),
         deliveryDate: _deliveryDate,
-        customerOrderDate: (_isSentToSpare || _selectedSpareToUse != null) ? null : _customerOrderDate,
+        customerOrderDate: _customerOrderDate,
         purchaseOrderReceived: _purchaseOrderReceived,
         purchaseOrderDate: _purchaseOrderDate,
         purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
         poNotGiven: _purchaseOrderReceived == false,
-        status: _selectedSpareToUse != null ? 'Production' : 'Blank Order',
+        status: 'Blank Order',
         currentLocation: 'EDP',
         createdDate: DateTime.now(),
-        sentToSpare: _isSentToSpare,
-        usedSpareId: _selectedSpareToUse != null ? _selectedSpareToUse!['_id'] : null,
+        sentToSpare: false,
+        usedSpareId: null,
       );
 
       await _api.createJob(job);
-
-      if (_selectedSpareToUse != null) {
-        await _api.consumeSpare(
-          _selectedSpareToUse!['_id'],
-          int.tryParse(_quantityCtrl.text.trim()) ?? 1,
-          generatedJobId,
-        );
-      }
 
       if (mounted) {
         _hideLoadingDialog();
@@ -696,58 +688,16 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           
           if (_purchaseOrderReceived != null) ...[
             const SizedBox(height: 24),
-            const Text('Spare Options', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Blank Order Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _isSentToSpare ? Colors.orange.shade700 : Colors.grey.shade600,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      elevation: _isSentToSpare ? 4 : 0,
-                    ),
-                    onPressed: _handleSendToSpare,
-                    icon: Icon(_isSentToSpare ? Icons.undo : Icons.outbox, color: Colors.white),
-                    label: Text(_isSentToSpare ? 'Undo Send to Spare' : 'Send to Spare', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedSpareToUse != null ? Colors.deepPurple : Colors.deepPurple.shade300,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      elevation: _selectedSpareToUse != null ? 4 : 0,
-                    ),
-                    onPressed: () {
-                      if (_selectedSpareToUse != null) {
-                        setState(() {
-                          _selectedSpareToUse = null;
-                        });
-                      } else {
-                        _showUseSpareDialog();
-                      }
-                    },
-                    icon: Icon(_selectedSpareToUse != null ? Icons.check_circle : Icons.handyman, color: Colors.white),
-                    label: Text(_selectedSpareToUse != null ? 'Using Spare (${_selectedSpareToUse!['partNumber']})' : 'Use from Spare', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-            
-            if (!_isSentToSpare && _selectedSpareToUse == null) ...[
-              const SizedBox(height: 24),
-              const Text('Blank Order Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () => _pickDate(context, _customerOrderDate, (d) => setState(() => _customerOrderDate = d)),
-                child: InputDecorator(
-                  decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
-                  child: Text(_customerOrderDate != null ? DateFormat('dd-MM-yyyy').format(_customerOrderDate!) : 'Select Date'),
-                ),
+            InkWell(
+              onTap: () => _pickDate(context, _customerOrderDate, (d) => setState(() => _customerOrderDate = d)),
+              child: InputDecorator(
+                decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+                child: Text(_customerOrderDate != null ? DateFormat('dd-MM-yyyy').format(_customerOrderDate!) : 'Select Date'),
               ),
-            ],
+            ),
+
             
             const SizedBox(height: 32),
             ElevatedButton(
