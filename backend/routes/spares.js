@@ -183,11 +183,11 @@ router.post('/:id/to-ready-delivery', auth, async (req, res) => {
         // Log movement
         await JobMovement.create({
             jobId: job.jobId,
-            fromSupplier: 'Spare Inventory',
-            toSupplier: 'EDP',
-            date: new Date(),
+            partNumber: job.partNumber,
             quantity: job.quantity,
-            type: 'Send'
+            source: 'Spare Inventory',
+            destination: 'EDP',
+            recordedBy: req.user.id
         });
         
         // Delete the spare since we consumed all of it
