@@ -779,70 +779,72 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Extraction Complete Options', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 52,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: (_isUpdating || _currentJob.sentToSpare)
-                            ? [Colors.grey.shade400, Colors.grey.shade500]
-                            : [const Color(0xFF4CA1AF), const Color(0xFF2C3E50)],
+            if (_currentJob.jobType != 'Re-coating') ...[
+              const Text('Extraction Complete Options', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: (_isUpdating || _currentJob.sentToSpare)
+                              ? [Colors.grey.shade400, Colors.grey.shade500]
+                              : [const Color(0xFF4CA1AF), const Color(0xFF2C3E50)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: (_isUpdating || _currentJob.sentToSpare) ? [] : [
+                          BoxShadow(color: Colors.blueGrey.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: (_isUpdating || _currentJob.sentToSpare) ? [] : [
-                        BoxShadow(color: Colors.blueGrey.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))
-                      ],
-                    ),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        icon: const Icon(Icons.inventory_2_outlined, size: 20, color: Colors.white),
+                        label: const Text('Send to Spare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                        onPressed: (_isUpdating || _currentJob.sentToSpare) ? null : _sendToSpare,
                       ),
-                      icon: const Icon(Icons.inventory_2_outlined, size: 20, color: Colors.white),
-                      label: const Text('Send to Spare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                      onPressed: (_isUpdating || _currentJob.sentToSpare) ? null : _sendToSpare,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    height: 52,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: (_isUpdating || _currentJob.usedSpareId != null)
-                            ? [Colors.grey.shade400, Colors.grey.shade500]
-                            : [const Color(0xFF8E2DE2), const Color(0xFF4A00E0)],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: (_isUpdating || _currentJob.usedSpareId != null) ? [] : [
-                        BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))
-                      ],
-                    ),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      icon: const Icon(Icons.handyman, size: 20, color: Colors.white),
-                      label: const Text('Use from Spare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                      onPressed: (_isUpdating || _currentJob.usedSpareId != null) ? null : _showUseSpareDialog,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Divider(thickness: 1),
-            ),
-            if (_currentJob.sentToSpare && _currentJob.usedSpareId == null)
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: (_isUpdating || _currentJob.usedSpareId != null)
+                              ? [Colors.grey.shade400, Colors.grey.shade500]
+                              : [const Color(0xFF8E2DE2), const Color(0xFF4A00E0)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: (_isUpdating || _currentJob.usedSpareId != null) ? [] : [
+                          BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        icon: const Icon(Icons.handyman, size: 20, color: Colors.white),
+                        label: const Text('Use from Spare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                        onPressed: (_isUpdating || _currentJob.usedSpareId != null) ? null : _showUseSpareDialog,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(thickness: 1),
+              ),
+            ],
+            if (_currentJob.jobType != 'Re-coating' && _currentJob.sentToSpare && _currentJob.usedSpareId == null)
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(8)),
