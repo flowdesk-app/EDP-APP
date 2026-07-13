@@ -426,7 +426,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         purchaseOrderDate: _purchaseOrderDate,
         purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
         poNotGiven: _purchaseOrderReceived == false,
-        status: _selectedSpareToUse != null ? 'Blank Preparation' : 'Blank Order',
+        status: _selectedSpareToUse != null ? 'Production' : 'Blank Order',
         currentLocation: 'EDP',
         createdDate: DateTime.now(),
         sentToSpare: _isSentToSpare,
