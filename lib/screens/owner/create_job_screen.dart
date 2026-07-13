@@ -44,6 +44,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   final TextEditingController _poNumberCtrl = TextEditingController();
   DateTime? _purchaseOrderDate;
 
+  String? _selectedSpareOption; // 'send' or 'use'
+  Map<String, dynamic>? _selectedSpare;
+
   List<Map<String, dynamic>> _masterData = [];
 
   @override
@@ -390,8 +393,12 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Delivery Date')));
       return;
     }
-    if (_customerOrderDate == null) {
+    if (_selectedSpareOption == null && _customerOrderDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Blank Order Date')));
+      return;
+    }
+    if (_selectedSpareOption == 'use' && _selectedSpare == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a spare to use')));
       return;
     }
     if (_purchaseOrderReceived == null) {
@@ -417,26 +424,123 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         diamondPowderGritSize: _gritSizeCtrl.text.trim().isEmpty ? null : _gritSizeCtrl.text.trim(),
         assignedWorker: _assignedWorkerCtrl.text.trim().isEmpty ? null : _assignedWorkerCtrl.text.trim(),
         deliveryDate: _deliveryDate,
-        customerOrderDate: _customerOrderDate,
+        customerOrderDate: _selectedSpareOption != null ? null : _customerOrderDate,
         purchaseOrderReceived: _purchaseOrderReceived,
         purchaseOrderDate: _purchaseOrderDate,
         purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
         poNotGiven: _purchaseOrderReceived == false,
-        status: 'Blank Order',
+        status: _selectedSpareOption == 'use' ? 'Blank Preparation' : 'Blank Order',
         currentLocation: 'EDP',
         createdDate: DateTime.now(),
+        sentToSpare: _selectedSpareOption == 'send',
+        usedSpareId: _selectedSpareOption == 'use' ? _selectedSpare!['_id'] : null,
       );
 
       await _api.createJob(job);
 
+      if (_selectedSpareOption == 'send') {
+        await _api.createSpare(
+          _partNumberCtrl.text.trim(),
+          int.tryParse(_quantityCtrl.text.trim()) ?? 1,
+          _wheelSizeCtrl.text.trim().isEmpty ? null : _wheelSizeCtrl.text.trim(),
+          _gritSizeCtrl.text.trim().isEmpty ? null : _gritSizeCtrl.text.trim(),
+          generatedJobId,
+          'New',
+          null,
+          null,
+        );
+      } else if (_selectedSpareOption == 'use' && _selectedSpare != null) {
+        await _api.consumeSpare(
+          _selectedSpare!['_id'],
+          int.tryParse(_quantityCtrl.text.trim()) ?? 1,
+          generatedJobId,
+        );
+      }
+
       if (mounted) {
         _hideLoadingDialog();
-        await _showSuccessPopupAndNavigate('Saved as Blank Order');
+        await _showSuccessPopupAndNavigate('Job Created Successfully');
       }
     } catch (e) {
       if (mounted) {
         _hideLoadingDialog();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _showUseSpareDialog() async {
+    _showLoadingDialog();
+    try {
+      final spares = await _api.getSpares();
+      final finishedSpares = spares.where((s) {
+        if (s['status'] != 'Finished') return false;
+        
+        final samePartNo = (s['partNumber'] ?? '').toString().toLowerCase().trim() == _partNumberCtrl.text.toLowerCase().trim();
+        final sameDesc = (s['description'] ?? '').toString().toLowerCase().trim() == _wheelSizeCtrl.text.toLowerCase().trim();
+        final sameGrit = (s['gritSize'] ?? '').toString().toLowerCase().trim() == _gritSizeCtrl.text.toLowerCase().trim();
+        
+        return samePartNo && sameDesc && sameGrit;
+      }).toList();
+      if (!mounted) return;
+      _hideLoadingDialog();
+
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height * 0.8,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Use from Spare', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: finishedSpares.isEmpty
+                      ? const Center(child: Text('No matching finished spares found.'))
+                      : ListView.builder(
+                          itemCount: finishedSpares.length,
+                          itemBuilder: (context, index) {
+                            final spare = finishedSpares[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                title: Text(spare['partNumber'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                                subtitle: Text('Desc: ${spare['description'] ?? '-'} | Grit: ${spare['gritSize'] ?? '-'}\nQty: ${spare['quantity'] ?? 1}'),
+                                isThreeLine: true,
+                                trailing: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedSpareOption = 'use';
+                                      _selectedSpare = spare;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('Select'),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        _hideLoadingDialog();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load spares: $e')));
       }
     }
   }
@@ -517,16 +621,78 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           
           if (_purchaseOrderReceived != null) ...[
             const SizedBox(height: 24),
-            const Text('Blank Order Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Spare Options', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            InkWell(
-              onTap: () => _pickDate(context, _customerOrderDate, (d) => setState(() => _customerOrderDate = d)),
-              child: InputDecorator(
-                decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
-                child: Text(_customerOrderDate != null ? DateFormat('dd-MM-yyyy').format(_customerOrderDate!) : 'Select Date'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedSpareOption == 'send' ? Colors.grey.shade600 : Colors.grey.shade400,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: _selectedSpareOption == 'send' ? 4 : 0,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (_selectedSpareOption == 'send') {
+                          _selectedSpareOption = null;
+                        } else {
+                          _selectedSpareOption = 'send';
+                          _selectedSpare = null;
+                        }
+                      });
+                    },
+                    icon: const Icon(Icons.outbox, color: Colors.white),
+                    label: const Text('Send to Spare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedSpareOption == 'use' ? Colors.deepPurple : Colors.deepPurple.shade300,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: _selectedSpareOption == 'use' ? 4 : 0,
+                    ),
+                    onPressed: () {
+                      if (_selectedSpareOption == 'use') {
+                        setState(() {
+                          _selectedSpareOption = null;
+                          _selectedSpare = null;
+                        });
+                      } else {
+                        if (_partNumberCtrl.text.trim().isEmpty || _wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill Part Number, Description, and Grit Size first')));
+                          return;
+                        }
+                        _showUseSpareDialog();
+                      }
+                    },
+                    icon: const Icon(Icons.build, color: Colors.white),
+                    label: const Text('Use from Spare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 32),
+            if (_selectedSpareOption == 'use' && _selectedSpare != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Text('Selected Spare: ${_selectedSpare!['partNumber']} (Desc: ${_selectedSpare!['description']}, Grit: ${_selectedSpare!['gritSize']})', style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+              ),
+            
+            if (_selectedSpareOption == null) ...[
+              const SizedBox(height: 24),
+              const Text('Blank Order Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => _pickDate(context, _customerOrderDate, (d) => setState(() => _customerOrderDate = d)),
+                child: InputDecorator(
+                  decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+                  child: Text(_customerOrderDate != null ? DateFormat('dd-MM-yyyy').format(_customerOrderDate!) : 'Select Date'),
+                ),
+              ),
+            ],
+            
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _createBlankOrder,
