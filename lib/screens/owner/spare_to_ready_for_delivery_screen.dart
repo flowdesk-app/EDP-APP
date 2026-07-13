@@ -101,24 +101,23 @@ class _SpareToReadyForDeliveryScreenState extends State<SpareToReadyForDeliveryS
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Display Spare Details (Read-only)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade100),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Job Details (From Spare)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
-                      const SizedBox(height: 12),
-                      _buildInfoRow('Part Number', spare['partNumber']?.toString() ?? ''),
-                      _buildInfoRow('Quantity', '${spare['quantity'] ?? 1}'),
-                      _buildInfoRow('Description', spare['description']?.toString() ?? ''),
-                      _buildInfoRow('Grit Size', spare['gritSize']?.toString() ?? ''),
-                      _buildInfoRow('Person Responsible', spare['personResponsible']?.toString() ?? ''),
-                    ],
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Job Details (From Spare)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const Divider(height: 32),
+                        _buildInfoRow('Part Number', spare['partNumber']?.toString() ?? ''),
+                        _buildInfoRow('Quantity', '${spare['quantity'] ?? 1}'),
+                        _buildInfoRow('Description', spare['description']?.toString() ?? ''),
+                        _buildInfoRow('Grit Size', spare['gritSize']?.toString() ?? ''),
+                        _buildInfoRow('Person Responsible', spare['personResponsible']?.toString() ?? ''),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -234,16 +233,16 @@ class _SpareToReadyForDeliveryScreenState extends State<SpareToReadyForDeliveryS
   Widget _buildInfoRow(String label, String value) {
     if (value.isEmpty) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 130,
-            child: Text(label, style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.w500)),
+            width: 140,
+            child: Text(label, style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500)),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(value, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
