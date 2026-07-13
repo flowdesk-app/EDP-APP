@@ -207,9 +207,9 @@ router.post('/:id/to-production', auth, async (req, res) => {
         const spare = await Spare.findById(req.params.id);
         if (!spare) return res.status(404).json({ msg: 'Spare not found' });
         
-        const { customerName, receivedDate, returnableGatePassNumber, returnableGatePassDate } = req.body;
+        const { customerName, receivedDate, returnableGatePassNumber, returnableGatePassDate, poReceived, poNumber, poDate } = req.body;
         
-        const newStatus = 'Production';
+        const newStatus = poReceived ? 'Production' : 'PO Not Given';
         const generatedJobId = 'JOB-' + Date.now().toString().slice(5);
         
         const newJob = new Job({
@@ -223,6 +223,10 @@ router.post('/:id/to-production', auth, async (req, res) => {
             receivedDate,
             returnableGatePassNumber,
             returnableGatePassDate,
+            purchaseOrderReceived: poReceived,
+            purchaseOrderNumber: poNumber,
+            purchaseOrderDate: poDate,
+            poNotGiven: !poReceived,
             jobType: 'Re-coating', // As requested, this is for Re-coating jobs
             createdBy: req.user.id,
             status: newStatus,

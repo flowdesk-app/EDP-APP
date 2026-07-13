@@ -16,9 +16,12 @@ class _SpareToProductionScreenState extends State<SpareToProductionScreen> {
   final _receiveDateCtrl = TextEditingController();
   final _gatePassNumberCtrl = TextEditingController();
   final _gatePassDateCtrl = TextEditingController();
+  final _poNumberCtrl = TextEditingController();
+  final _poDateCtrl = TextEditingController();
   final ApiService _api = ApiService();
 
   bool _isLoading = false;
+  bool _poReceived = true;
 
   @override
   void dispose() {
@@ -26,6 +29,8 @@ class _SpareToProductionScreenState extends State<SpareToProductionScreen> {
     _receiveDateCtrl.dispose();
     _gatePassNumberCtrl.dispose();
     _gatePassDateCtrl.dispose();
+    _poNumberCtrl.dispose();
+    _poDateCtrl.dispose();
     super.dispose();
   }
 
@@ -46,6 +51,14 @@ class _SpareToProductionScreenState extends State<SpareToProductionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Returnable Gate Pass Date is required')));
       return;
     }
+    if (_poReceived && _poNumberCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Purchase Order Number is required')));
+      return;
+    }
+    if (_poReceived && _poDateCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Purchase Order Date is required')));
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
@@ -54,6 +67,9 @@ class _SpareToProductionScreenState extends State<SpareToProductionScreen> {
         'receivedDate': _receiveDateCtrl.text,
         'returnableGatePassNumber': _gatePassNumberCtrl.text.trim(),
         'returnableGatePassDate': _gatePassDateCtrl.text,
+        'poReceived': _poReceived,
+        'poNumber': _poReceived ? _poNumberCtrl.text.trim() : null,
+        'poDate': _poReceived ? _poDateCtrl.text : null,
       };
 
       await _api.createJobFromSpareToProduction(widget.spare['_id'], payload);
@@ -158,6 +174,71 @@ class _SpareToProductionScreenState extends State<SpareToProductionScreen> {
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
+                const SizedBox(height: 32),
+                
+                const Text('Purchase order received?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() => _poReceived = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _poReceived ? Colors.green : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text('Yes', style: TextStyle(
+                            color: _poReceived ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.bold,
+                          )),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() => _poReceived = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !_poReceived ? Colors.red : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text('No', style: TextStyle(
+                            color: !_poReceived ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.bold,
+                          )),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                
+                if (_poReceived) ...[
+                  TextField(
+                    controller: _poNumberCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Purchase Order Number',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _poDateCtrl,
+                    readOnly: true,
+                    onTap: () => _selectDate(_poDateCtrl),
+                    decoration: const InputDecoration(
+                      labelText: 'Purchase Order Date',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 48),
               ],
             ),
