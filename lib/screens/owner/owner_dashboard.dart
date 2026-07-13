@@ -72,7 +72,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         _productionJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).length;
         _readyForDeliveryJobs = jobs.where((j) => j.status == 'Completed').length;
 
-        _blankOrders = jobs.where((j) => j.status == 'Blank Order').length;
+        _blankOrders = jobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).length;
         _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
 
       }
@@ -238,7 +238,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                     children: [
                       _buildStatCard('Returned', _returnedJobs, Icons.assignment_return, const Color(0xFF8E24AA), () => _navToFiltered('Returned Materials', _currentJobs.where((j) => j.status == 'Returned').toList())),
                       _buildStatCard('PO Not Given', _poNotGivenCount, Icons.assignment_late, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.poNotGiven == true).toList(), title: 'PO Not Given'))).then((_) => _load())),
-                      _buildStatCard('Blank Orders', _blankOrders, Icons.note_add, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.status == 'Blank Order').toList(), title: 'Blank Orders'))).then((_) => _load())),
+                      _buildStatCard('Blank Orders', _blankOrders, Icons.note_add, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).toList(), title: 'Blank Orders'))).then((_) => _load())),
                       _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
                       _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionDashboardScreen(productionJobs: _currentJobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
                       _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, Colors.green, () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),

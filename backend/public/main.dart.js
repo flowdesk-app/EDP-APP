@@ -45856,7 +45856,7 @@ if(j.length===0)j=null
 h=B.c.aC(c.a.a)
 if(h.length===0)h=null
 s=11
-return A.n(d.pd(a9,i,j,h,m,"Re-coating",null,null),$async$oE)
+return A.n(d.pd(a9,i,j,h,m,"New",null,null),$async$oE)
 case 11:s=9
 break
 case 10:s=a9==="use"&&n.dx!=null?12:13
@@ -48293,7 +48293,7 @@ A.awg.prototype={
 $1(a){return a.ay==="Completed"},
 $S:6}
 A.awh.prototype={
-$1(a){return a.ay==="Blank Order"},
+$1(a){return a.ay==="Blank Order"&&!a.V},
 $S:6}
 A.awi.prototype={
 $1(a){return a.O},
@@ -48385,7 +48385,7 @@ s=A.V(s,s.$ti.i("t.E"))
 return new A.n3(s,"Blank Orders",null)},
 $S:154}
 A.awu.prototype={
-$1(a){return a.ay==="Blank Order"},
+$1(a){return a.ay==="Blank Order"&&!a.V},
 $S:6}
 A.awz.prototype={
 $1(a){return this.a.ff()},
