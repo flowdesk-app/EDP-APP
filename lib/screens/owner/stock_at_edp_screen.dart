@@ -250,6 +250,8 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final bool isSupplier = widget.supplierName != null;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
@@ -266,31 +268,34 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
               ],
             ),
           ),
-          Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              labelColor: const Color(0xFF29B6F6),
-              unselectedLabelColor: const Color(0xFF5F6368),
-              indicatorColor: const Color(0xFF29B6F6),
-              tabs: const [
-                Tab(text: 'Finished'),
-                Tab(text: 'Blank'),
-              ],
+          if (!isSupplier)
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: const Color(0xFF29B6F6),
+                unselectedLabelColor: const Color(0xFF5F6368),
+                indicatorColor: const Color(0xFF29B6F6),
+                tabs: const [
+                  Tab(text: 'Finished'),
+                  Tab(text: 'Blank'),
+                ],
+              ),
             ),
-          ),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildList('Finished'),
-                _buildList('Blank'),
-              ],
-            ),
+            child: isSupplier
+                ? _buildList('Blank')
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildList('Finished'),
+                      _buildList('Blank'),
+                    ],
+                  ),
           ),
         ],
       ),
-      floatingActionButton: _tabController.index == 1 ? FloatingActionButton.extended(
+      floatingActionButton: (isSupplier || _tabController.index == 1) ? FloatingActionButton.extended(
         onPressed: _showAddSpareDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Job'),
