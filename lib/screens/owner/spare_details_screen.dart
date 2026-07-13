@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
+import 'spare_to_ready_for_delivery_screen.dart';
 
 class SpareDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> spare;
@@ -183,57 +184,10 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final spare = widget.spare;
-    final isAtEdp = spare['currentSupplier'] == null || spare['currentSupplier'] == 'EDP';
-    final isFinished = spare['status'] == 'Finished';
-
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text('Spare Job: ${spare['partNumber'] ?? 'Unknown'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
-      ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Job Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                        const Divider(height: 30),
-                        _buildDetailRow('Part Number', spare['partNumber'] ?? '-'),
-                        _buildDetailRow('Quantity', '${spare['quantity'] ?? 1}'),
-                        if (spare['description'] != null && spare['description'].toString().isNotEmpty)
-                          _buildDetailRow('Description', spare['description'].toString()),
-                        if (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty)
-                          _buildDetailRow('Grit Size', spare['gritSize'].toString()),
-                        if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
-                          _buildDetailRow('Person Responsible', spare['personResponsible'].toString()),
-                        if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
-                          _buildDetailRow('Expected Completion', spare['expectedCompletionDate'].toString()),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                _buildHistoryTimeline(),
-              ],
-            ),
-          ),
-      bottomNavigationBar: (!isFinished && !_isLoading) ? Container(
+  Widget? _buildBottomBar(bool isFinished, bool isAtEdp) {
+    if (_isLoading) return null;
+    if (!isFinished) {
+      return Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -274,7 +228,94 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
             ],
           ],
         ),
-      ) : null,
+      );
+    } else if (isFinished && widget.spare['jobType'] == 'New') {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+          ]
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                   final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToReadyForDeliveryScreen(spare: widget.spare)));
+                   if (result == true && mounted) {
+                     Navigator.pop(context, true);
+                   }
+                },
+                icon: const Icon(Icons.local_shipping),
+                label: const Text('Move to Ready for Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ]
+        )
+      );
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spare = widget.spare;
+    final isFinished = spare['status'] == 'Finished';
+    final isAtEdp = spare['currentSupplier'] == null || spare['currentSupplier'] == 'EDP';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: Text(spare['partNumber'] ?? 'Spare Details', style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Job Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const Divider(height: 30),
+                        _buildDetailRow('Part Number', spare['partNumber'] ?? '-'),
+                        _buildDetailRow('Quantity', '${spare['quantity'] ?? 1}'),
+                        if (spare['description'] != null && spare['description'].toString().isNotEmpty)
+                          _buildDetailRow('Description', spare['description'].toString()),
+                        if (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty)
+                          _buildDetailRow('Grit Size', spare['gritSize'].toString()),
+                        if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
+                          _buildDetailRow('Person Responsible', spare['personResponsible'].toString()),
+                        if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
+                          _buildDetailRow('Expected Completion', spare['expectedCompletionDate'].toString()),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _buildHistoryTimeline(),
+              ],
+            ),
+          ),
+      bottomNavigationBar: _buildBottomBar(isFinished, isAtEdp),
     );
   }
 

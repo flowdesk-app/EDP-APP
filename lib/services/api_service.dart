@@ -674,6 +674,18 @@ class ApiService {
     if (res.statusCode != 200) throw Exception('Failed to delete spare');
   }
 
+  Future<void> createJobFromSpareToDelivery(String spareId, Map<String, dynamic> payload) async {
+    await _loadToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/spares/$spareId/to-ready-delivery'),
+      headers: _headers,
+      body: json.encode(payload),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to move spare to ready for delivery');
+    }
+  }
+
   Future<void> addSpareSupplier(String name) async {
     await _loadToken();
     final res = await http.post(

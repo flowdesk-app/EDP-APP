@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../models/job_model.dart';
 import '../../models/lead_model.dart';
 import 'package:intl/intl.dart';
+import 'spare_at_edp_tabs_screen.dart';
 
 enum FlowType { none, newJob, recoating }
 
@@ -361,7 +362,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.build_circle_outlined, size: 48, color: Colors.orange.shade700),
+                          Icon(Icons.build, size: 48, color: Colors.orange.shade700),
                           const SizedBox(height: 16),
                           Text('Re-coating', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
                         ],
@@ -370,6 +371,29 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 24),
+            InkWell(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareAtEdpTabsScreen()));
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  border: Border.all(color: Colors.purple.shade200, width: 2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.inventory_2, size: 48, color: Colors.purple.shade700),
+                    const SizedBox(height: 16),
+                    Text('Use from Spare', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.purple.shade700)),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

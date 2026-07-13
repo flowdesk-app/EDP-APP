@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Spare = require('../models/Spare');
 const Job = require('../models/Job');
+const JobMovement = require('../models/JobMovement');
 const auth = require('../middleware/auth');
 
 // @route   POST api/spares
@@ -134,6 +135,62 @@ router.delete('/:id', auth, async (req, res) => {
         res.json({ msg: 'Spare deleted' });
     } catch (err) {
         console.error("DELETE /spares/:id Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   POST api/spares/:id/to-ready-delivery
+// @desc    Consume a spare and create a job directly to Ready for Delivery or PO Not Given
+router.post('/:id/to-ready-delivery', auth, async (req, res) => {
+    try {
+        const spare = await Spare.findById(req.params.id);
+        if (!spare) return res.status(404).json({ msg: 'Spare not found' });
+        
+        const { customerName, expectedDeliveryDate, poReceived, poNumber, poDate } = req.body;
+        
+        // Determine status
+        const newStatus = poReceived ? 'Completed' : 'PO Not Given';
+        
+        // Create the new Job
+        const newJob = new Job({
+            partNumber: spare.partNumber,
+            quantity: spare.quantity, // consuming the entire spare
+            description: spare.description,
+            gritSize: spare.gritSize,
+            personResponsible: spare.personResponsible,
+            customerName,
+            expectedDeliveryDate,
+            poReceived,
+            poNumber,
+            poDate,
+            jobType: 'New', // As requested, this is for NEW jobs only
+            createdBy: req.user.id,
+            status: newStatus,
+            statusHistory: [{
+                status: newStatus,
+                date: new Date(),
+                location: 'EDP'
+            }]
+        });
+        
+        const job = await newJob.save();
+        
+        // Log movement
+        await JobMovement.create({
+            jobId: job.jobId,
+            fromSupplier: 'Spare Inventory',
+            toSupplier: 'EDP',
+            date: new Date(),
+            quantity: job.quantity,
+            type: 'Send'
+        });
+        
+        // Delete the spare since we consumed all of it
+        await Spare.findByIdAndDelete(req.params.id);
+        
+        res.status(201).json(job);
+    } catch (err) {
+        console.error("POST /spares/:id/to-ready-delivery Error:", err);
         res.status(500).send('Server Error');
     }
 });
