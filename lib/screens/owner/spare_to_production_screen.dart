@@ -102,10 +102,10 @@ class _SpareToProductionScreenState extends State<SpareToProductionScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Move to Production', style: TextStyle(color: Color(0xFF202124))),
+        title: const Text('Move to Ready for Delivery', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.black87)),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())

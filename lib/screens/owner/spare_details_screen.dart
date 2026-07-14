@@ -282,7 +282,7 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
                    }
                 },
                 icon: const Icon(Icons.precision_manufacturing),
-                label: const Text('Move to Production', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text('Move to Ready for Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Colors.orange.shade700,

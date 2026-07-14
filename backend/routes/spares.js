@@ -209,7 +209,8 @@ router.post('/:id/to-production', auth, async (req, res) => {
         
         const { customerName, receivedDate, returnableGatePassNumber, returnableGatePassDate, poReceived, poNumber, poDate } = req.body;
         
-        const newStatus = poReceived ? 'Production' : 'PO Not Given';
+        // Always go directly to Ready for Delivery (Completed status), like New jobs
+        const newStatus = 'Completed';
         const generatedJobId = 'JOB-' + Date.now().toString().slice(5);
         
         const newJob = new Job({
