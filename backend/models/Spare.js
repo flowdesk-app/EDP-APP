@@ -10,6 +10,11 @@ const spareSchema = new mongoose.Schema({
     jobType: { type: String }, // 'New' or 'Re-coating'
     personResponsible: { type: String },
     expectedCompletionDate: { type: String },
+    extractionSentDate: { type: String },
+    expectedExtractionDate: { type: String },
+    extractionCompletedDate: { type: String },
+    productionDate: { type: String },
+    expectedProductionDate: { type: String },
     currentSupplier: { type: String }, // Supplier name where it is currently located, or null if at EDP
     lastSentDate: { type: Date }, // Date when it was sent to currentSupplier
     history: [{

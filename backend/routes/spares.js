@@ -259,4 +259,53 @@ router.post('/:id/to-production', auth, async (req, res) => {
     }
 });
 
+// @route   PUT api/spares/:id/to-extraction
+// @desc    Update a spare to Extraction status and save dates
+router.put('/:id/to-extraction', auth, async (req, res) => {
+    try {
+        const spare = await Spare.findById(req.params.id);
+        if (!spare) return res.status(404).json({ msg: 'Spare not found' });
+        
+        const { extractionSentDate, expectedExtractionDate } = req.body;
+        
+        spare.status = 'Extraction';
+        spare.extractionSentDate = extractionSentDate;
+        spare.expectedExtractionDate = expectedExtractionDate;
+        
+        // Optionally log in history
+        spare.history.push({ supplier: 'Extraction Stage', date: new Date() });
+        
+        await spare.save();
+        res.json(spare);
+    } catch (err) {
+        console.error("PUT /spares/:id/to-extraction Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   PUT api/spares/:id/to-production-stage
+// @desc    Update a spare to Production status and save dates
+router.put('/:id/to-production-stage', auth, async (req, res) => {
+    try {
+        const spare = await Spare.findById(req.params.id);
+        if (!spare) return res.status(404).json({ msg: 'Spare not found' });
+        
+        const { extractionCompletedDate, productionDate, expectedProductionDate } = req.body;
+        
+        spare.status = 'Production';
+        spare.extractionCompletedDate = extractionCompletedDate;
+        spare.productionDate = productionDate;
+        spare.expectedProductionDate = expectedProductionDate;
+        
+        // Optionally log in history
+        spare.history.push({ supplier: 'Production Stage', date: new Date() });
+        
+        await spare.save();
+        res.json(spare);
+    } catch (err) {
+        console.error("PUT /spares/:id/to-production-stage Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

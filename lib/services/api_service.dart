@@ -708,6 +708,34 @@ class ApiService {
     if (res.statusCode != 200) throw Exception('Failed to add spare supplier');
   }
 
+  // Update Spare to Extraction
+  Future<void> updateSpareToExtraction(String spareId, Map<String, dynamic> data) async {
+    await _loadToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/spares/$spareId/to-extraction'),
+      headers: _headers,
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update spare to extraction stage');
+    }
+  }
+
+  // Update Spare to Production Stage
+  Future<void> updateSpareToProductionStage(String spareId, Map<String, dynamic> data) async {
+    await _loadToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/spares/$spareId/to-production-stage'),
+      headers: _headers,
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update spare to production stage');
+    }
+  }
+
   Future<void> deleteSpareSupplier(String id) async {
     await _loadToken();
     final res = await http.delete(Uri.parse('$baseUrl/spare-suppliers/$id'), headers: _headers);

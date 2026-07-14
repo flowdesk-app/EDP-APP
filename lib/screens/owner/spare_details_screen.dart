@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import 'spare_to_ready_for_delivery_screen.dart';
 import 'spare_to_production_screen.dart';
+import 'spare_to_extraction_screen.dart';
+import 'spare_to_production_stage_screen.dart';
 
 class SpareDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> spare;
@@ -187,115 +189,190 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
 
   Widget? _buildBottomBar(bool isFinished, bool isAtEdp) {
     if (_isLoading) return null;
-    if (!isFinished) {
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
-          ]
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _sendToSupplier,
-                icon: const Icon(Icons.local_shipping),
-                label: const Text('Next Supplier', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            ),
-            if (isAtEdp) ...[
-              const SizedBox(width: 16),
+    
+    final isRecoating = (widget.spare['jobType'] == 'Re-coating' || widget.spare['jobType'] == null);
+    final status = widget.spare['status'] ?? 'Blank';
+
+    if (isFinished) {
+      if (widget.spare['jobType'] == 'New') {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+            ]
+          ),
+          child: Row(
+            children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _updateStatus('Finished'),
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Move to Finished', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  onPressed: () async {
+                     final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToReadyForDeliveryScreen(spare: widget.spare)));
+                     if (result == true && mounted) {
+                       Navigator.pop(context, true);
+                     }
+                  },
+                  icon: const Icon(Icons.local_shipping),
+                  label: const Text('Move to Ready for Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
-            ],
-          ],
-        ),
-      );
-    } else if (isFinished && (widget.spare['jobType'] == 'New')) {
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
-          ]
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                   final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToReadyForDeliveryScreen(spare: widget.spare)));
-                   if (result == true && mounted) {
-                     Navigator.pop(context, true);
-                   }
-                },
-                icon: const Icon(Icons.local_shipping),
-                label: const Text('Move to Ready for Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ]
+          )
+        );
+      } else {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+            ]
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                     final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToProductionScreen(spare: widget.spare)));
+                     if (result == true && mounted) {
+                       Navigator.pop(context, true);
+                     }
+                  },
+                  icon: const Icon(Icons.precision_manufacturing),
+                  label: const Text('Move to Ready for Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.orange.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                 ),
               ),
-            ),
-          ]
-        )
-      );
-    } else if (isFinished && (widget.spare['jobType'] == 'Re-coating' || widget.spare['jobType'] == null)) {
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
-          ]
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                   final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToProductionScreen(spare: widget.spare)));
-                   if (result == true && mounted) {
-                     Navigator.pop(context, true);
-                   }
-                },
-                icon: const Icon(Icons.precision_manufacturing),
-                label: const Text('Move to Ready for Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.orange.shade700,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            ),
-          ]
-        )
-      );
+            ]
+          )
+        );
+      }
     }
-    return null;
+
+    // Not finished logic
+    if (isRecoating) {
+      if (status == 'Blank') {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+            ]
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                     final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToExtractionScreen(spare: widget.spare)));
+                     if (result == true && mounted) {
+                       Navigator.pop(context, true);
+                     }
+                  },
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text('Move to Extraction', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ]
+          )
+        );
+      } else if (status == 'Extraction') {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+            ]
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                     final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToProductionStageScreen(spare: widget.spare)));
+                     if (result == true && mounted) {
+                       Navigator.pop(context, true);
+                     }
+                  },
+                  icon: const Icon(Icons.build),
+                  label: const Text('Move to Production', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ]
+          )
+        );
+      }
+    }
+
+    // Default for 'New' jobs, OR 'Production' stage of 'Re-coating' jobs
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+        ]
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _sendToSupplier,
+              icon: const Icon(Icons.local_shipping),
+              label: const Text('Next Supplier', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+          if (isAtEdp) ...[
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _updateStatus('Finished'),
+                icon: const Icon(Icons.check_circle),
+                label: const Text('Move to Finished', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -339,6 +416,16 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
                           _buildDetailRow('Person Responsible', spare['personResponsible'].toString()),
                         if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
                           _buildDetailRow('Expected Completion', spare['expectedCompletionDate'].toString()),
+                        if (spare['extractionSentDate'] != null)
+                          _buildDetailRow('Extraction Sent', spare['extractionSentDate'].toString()),
+                        if (spare['expectedExtractionDate'] != null)
+                          _buildDetailRow('Expected Extraction', spare['expectedExtractionDate'].toString()),
+                        if (spare['extractionCompletedDate'] != null)
+                          _buildDetailRow('Extraction Completed', spare['extractionCompletedDate'].toString()),
+                        if (spare['productionDate'] != null)
+                          _buildDetailRow('Production Date', spare['productionDate'].toString()),
+                        if (spare['expectedProductionDate'] != null)
+                          _buildDetailRow('Expected Production', spare['expectedProductionDate'].toString()),
                       ],
                     ),
                   ),
