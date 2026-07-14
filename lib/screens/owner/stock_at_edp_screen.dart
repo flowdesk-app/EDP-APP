@@ -24,7 +24,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   void initState() {
     super.initState();
     final isRecoating = widget.jobType == 'Re-coating';
-    _tabController = TabController(length: isRecoating ? 3 : 2, vsync: this);
+    _tabController = TabController(length: isRecoating ? 4 : 2, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -279,6 +279,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                 indicatorColor: const Color(0xFF29B6F6),
                 tabs: widget.jobType == 'Re-coating' ? const [
                   Tab(text: 'Finished'),
+                  Tab(text: 'Production'),
                   Tab(text: 'Extraction'),
                   Tab(text: 'Blank'),
                 ] : const [
@@ -294,6 +295,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                     controller: _tabController,
                     children: widget.jobType == 'Re-coating' ? [
                       _buildList('Finished'),
+                      _buildList('Production'),
                       _buildList('Extraction'),
                       _buildList('Blank'),
                     ] : [
@@ -304,7 +306,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
           ),
         ],
       ),
-      floatingActionButton: (isSupplier || (_tabController.index == (widget.jobType == 'Re-coating' ? 2 : 1))) ? FloatingActionButton.extended(
+      floatingActionButton: (isSupplier || (_tabController.index == (widget.jobType == 'Re-coating' ? 3 : 1))) ? FloatingActionButton.extended(
         onPressed: _showAddSpareDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Job'),
