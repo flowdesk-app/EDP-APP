@@ -143,67 +143,7 @@ class _SpareToReadyForDeliveryScreenState extends State<SpareToReadyForDeliveryS
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
-                const SizedBox(height: 32),
-                
-                const Text('Purchase order received?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setState(() => _poReceived = true),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: _poReceived ? Colors.green : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text('Yes', style: TextStyle(color: _poReceived ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setState(() => _poReceived = false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: !_poReceived ? Colors.red : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text('No', style: TextStyle(color: !_poReceived ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                if (_poReceived) ...[
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _poNumberCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Purchase Order Number',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _poDateCtrl,
-                    readOnly: true,
-                    onTap: () => _selectDate(_poDateCtrl),
-                    decoration: const InputDecoration(
-                      labelText: 'Purchase Order Date',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                  ),
-                ],
+
                 const SizedBox(height: 48),
               ],
             ),

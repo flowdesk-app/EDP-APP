@@ -146,10 +146,10 @@ router.post('/:id/to-ready-delivery', auth, async (req, res) => {
         const spare = await Spare.findById(req.params.id);
         if (!spare) return res.status(404).json({ msg: 'Spare not found' });
         
-        const { customerName, expectedDeliveryDate, poReceived, poNumber, poDate } = req.body;
+        const { customerName, expectedDeliveryDate } = req.body;
         
-        // Determine status
-        const newStatus = poReceived ? 'Completed' : 'PO Not Given';
+        // Always go directly to Ready for Delivery (Completed status)
+        const newStatus = 'Completed';
         
         // Generate a new jobId
         const generatedJobId = 'JOB-' + Date.now().toString().slice(5);
@@ -164,10 +164,8 @@ router.post('/:id/to-ready-delivery', auth, async (req, res) => {
             assignedWorker: spare.personResponsible,
             customerName,
             deliveryDate: expectedDeliveryDate,
-            purchaseOrderReceived: poReceived,
-            purchaseOrderNumber: poNumber,
-            purchaseOrderDate: poDate,
-            poNotGiven: !poReceived,
+            purchaseOrderReceived: false, // Defaulting since this is for New only
+            poNotGiven: false,
             jobType: 'New', // As requested, this is for NEW jobs only
             createdBy: req.user.id,
             status: newStatus,
