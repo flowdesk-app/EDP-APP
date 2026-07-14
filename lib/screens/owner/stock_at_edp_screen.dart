@@ -23,7 +23,8 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    final isRecoating = widget.jobType == 'Re-coating';
+    _tabController = TabController(length: isRecoating ? 3 : 2, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -276,7 +277,11 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                 labelColor: const Color(0xFF29B6F6),
                 unselectedLabelColor: const Color(0xFF5F6368),
                 indicatorColor: const Color(0xFF29B6F6),
-                tabs: const [
+                tabs: widget.jobType == 'Re-coating' ? const [
+                  Tab(text: 'Finished'),
+                  Tab(text: 'Extraction'),
+                  Tab(text: 'Blank'),
+                ] : const [
                   Tab(text: 'Finished'),
                   Tab(text: 'Blank'),
                 ],
@@ -287,7 +292,11 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                 ? _buildList('Blank')
                 : TabBarView(
                     controller: _tabController,
-                    children: [
+                    children: widget.jobType == 'Re-coating' ? [
+                      _buildList('Finished'),
+                      _buildList('Extraction'),
+                      _buildList('Blank'),
+                    ] : [
                       _buildList('Finished'),
                       _buildList('Blank'),
                     ],
@@ -295,7 +304,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
           ),
         ],
       ),
-      floatingActionButton: (isSupplier || _tabController.index == 1) ? FloatingActionButton.extended(
+      floatingActionButton: (isSupplier || (_tabController.index == (widget.jobType == 'Re-coating' ? 2 : 1))) ? FloatingActionButton.extended(
         onPressed: _showAddSpareDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Job'),

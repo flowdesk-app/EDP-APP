@@ -5,7 +5,7 @@ const spareSchema = new mongoose.Schema({
     description: { type: String },
     gritSize: { type: String },
     quantity: { type: Number, required: true, default: 1 },
-    status: { type: String, enum: ['Blank', 'Finished'], default: 'Blank' },
+    status: { type: String, enum: ['Blank', 'Finished', 'Extraction'], default: 'Blank' },
     sourceJobId: { type: String }, // Job ID it was extracted from
     jobType: { type: String }, // 'New' or 'Re-coating'
     personResponsible: { type: String },
