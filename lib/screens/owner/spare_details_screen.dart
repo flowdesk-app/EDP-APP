@@ -396,40 +396,53 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Job Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                        const Divider(height: 30),
-                        _buildDetailRow('Part Number', spare['partNumber'] ?? '-'),
-                        _buildDetailRow('Quantity', '${spare['quantity'] ?? 1}'),
-                        if (spare['description'] != null && spare['description'].toString().isNotEmpty)
-                          _buildDetailRow('Description', spare['description'].toString()),
-                        if (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty)
-                          _buildDetailRow('Grit Size', spare['gritSize'].toString()),
-                        if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
-                          _buildDetailRow('Person Responsible', spare['personResponsible'].toString()),
-                        if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
-                          _buildDetailRow('Expected Completion', spare['expectedCompletionDate'].toString()),
-                        if (spare['extractionSentDate'] != null)
-                          _buildDetailRow('Extraction Sent', spare['extractionSentDate'].toString()),
-                        if (spare['expectedExtractionDate'] != null)
-                          _buildDetailRow('Expected Extraction', spare['expectedExtractionDate'].toString()),
-                        if (spare['extractionCompletedDate'] != null)
-                          _buildDetailRow('Extraction Completed', spare['extractionCompletedDate'].toString()),
-                        if (spare['productionDate'] != null)
-                          _buildDetailRow('Production Date', spare['productionDate'].toString()),
-                        if (spare['expectedProductionDate'] != null)
-                          _buildDetailRow('Expected Production', spare['expectedProductionDate'].toString()),
-                      ],
-                    ),
-                  ),
+                _buildSectionCard(
+                  title: 'General Information',
+                  icon: Icons.info_outline,
+                  children: [
+                    _buildDetailRow('Part Number', spare['partNumber'] ?? '-'),
+                    _buildDetailRow('Quantity', '${spare['quantity'] ?? 1} units'),
+                  ],
                 ),
+                if ((spare['description'] != null && spare['description'].toString().isNotEmpty) ||
+                    (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty) ||
+                    (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty))
+                  _buildSectionCard(
+                    title: 'Specifications & Assignment',
+                    icon: Icons.build_circle_outlined,
+                    children: [
+                      if (spare['description'] != null && spare['description'].toString().isNotEmpty)
+                        _buildDetailRow('Description', spare['description'].toString()),
+                      if (spare['gritSize'] != null && spare['gritSize'].toString().isNotEmpty)
+                        _buildDetailRow('Diamond Powder Grit Size', spare['gritSize'].toString()),
+                      if (spare['personResponsible'] != null && spare['personResponsible'].toString().isNotEmpty)
+                        _buildDetailRow('Person Responsible', spare['personResponsible'].toString()),
+                    ],
+                  ),
+                if (spare['expectedCompletionDate'] != null || 
+                    spare['extractionSentDate'] != null || 
+                    spare['expectedExtractionDate'] != null || 
+                    spare['extractionCompletedDate'] != null || 
+                    spare['productionDate'] != null || 
+                    spare['expectedProductionDate'] != null)
+                  _buildSectionCard(
+                    title: 'Timeline & Status',
+                    icon: Icons.timeline,
+                    children: [
+                      if (spare['expectedCompletionDate'] != null && spare['expectedCompletionDate'].toString().isNotEmpty)
+                        _buildDetailRow('Expected Completion', spare['expectedCompletionDate'].toString()),
+                      if (spare['extractionSentDate'] != null)
+                        _buildDetailRow('Extraction Sent', spare['extractionSentDate'].toString()),
+                      if (spare['expectedExtractionDate'] != null)
+                        _buildDetailRow('Expected Extraction', spare['expectedExtractionDate'].toString()),
+                      if (spare['extractionCompletedDate'] != null)
+                        _buildDetailRow('Extraction Completed', spare['extractionCompletedDate'].toString()),
+                      if (spare['productionDate'] != null)
+                        _buildDetailRow('Production Date', spare['productionDate'].toString()),
+                      if (spare['expectedProductionDate'] != null)
+                        _buildDetailRow('Expected Production', spare['expectedProductionDate'].toString()),
+                    ],
+                  ),
                 const SizedBox(height: 32),
                 _buildHistoryTimeline(),
               ],
@@ -439,18 +452,60 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
     );
   }
 
+  Widget _buildSectionCard({required String title, required IconData icon, required List<Widget> children}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: const Color(0xFF1976D2)),
+              const SizedBox(width: 8),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1976D2))),
+            ],
+          ),
+          const Divider(height: 24),
+          ...children,
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 140,
-            child: Text(label, style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500)),
-          ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+            flex: 1,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF5F6368)),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 1,
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF202124)),
+              textAlign: TextAlign.left,
+            ),
           ),
         ],
       ),
