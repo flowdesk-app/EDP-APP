@@ -160,17 +160,18 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildList(String status) {
+  Widget _buildList(String? status) {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     
     final filtered = _spares.where((s) {
+      if (status == null) return true;
       final sStatus = s['status'] ?? 'Blank';
       return sStatus == status;
     }).toList();
     if (filtered.isEmpty) {
       return Center(
         child: Text(
-          'No $status jobs found.',
+          status == null ? 'No jobs found.' : 'No $status jobs found.',
           style: const TextStyle(color: Color(0xFF5F6368), fontSize: 16),
         ),
       );
@@ -180,7 +181,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       padding: const EdgeInsets.all(16),
       itemCount: filtered.length,
       itemBuilder: (context, index) {
-        return _buildSpareCard(filtered[index], status == 'Blank');
+        return _buildSpareCard(filtered[index], status == 'Blank' || status == null);
       },
     );
   }
@@ -290,7 +291,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
             ),
           Expanded(
             child: isSupplier
-                ? _buildList('Blank')
+                ? _buildList(null)
                 : TabBarView(
                     controller: _tabController,
                     children: widget.jobType == 'Re-coating' ? [
