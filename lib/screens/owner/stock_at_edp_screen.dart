@@ -309,7 +309,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
           ),
         ],
       ),
-      floatingActionButton: (isSupplier || (_tabController.index == (widget.jobType == 'Re-coating' ? 3 : 1))) ? FloatingActionButton.extended(
+      floatingActionButton: (isSupplier || (_tabController.index == (widget.jobType == 'Re-coating' ? 3 : 2))) ? FloatingActionButton.extended(
         onPressed: _showAddSpareDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Job'),
