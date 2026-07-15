@@ -5,6 +5,7 @@ import 'spare_to_ready_for_delivery_screen.dart';
 import 'spare_to_production_screen.dart';
 import 'spare_to_extraction_screen.dart';
 import 'spare_to_production_stage_screen.dart';
+import 'spare_new_to_production_screen.dart';
 
 class SpareDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> spare;
@@ -262,8 +263,40 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
     }
 
     // Not finished logic
-    if (isRecoating) {
-      if (status == 'Blank') {
+    if (status == 'Blank') {
+      if (widget.spare['jobType'] == 'New') {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+            ]
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                     final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareNewToProductionScreen(spare: widget.spare)));
+                     if (result == true && mounted) {
+                       Navigator.pop(context, true);
+                     }
+                  },
+                  icon: const Icon(Icons.build),
+                  label: const Text('Move to Production', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ]
+          )
+        );
+      } else {
         return Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
@@ -295,39 +328,39 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
             ]
           )
         );
-      } else if (status == 'Extraction') {
-        return Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
-            ]
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                     final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToProductionStageScreen(spare: widget.spare)));
-                     if (result == true && mounted) {
-                       Navigator.pop(context, true);
-                     }
-                  },
-                  icon: const Icon(Icons.build),
-                  label: const Text('Move to Production', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
+      }
+    } else if (status == 'Extraction') {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+          ]
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                   final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareToProductionStageScreen(spare: widget.spare)));
+                   if (result == true && mounted) {
+                     Navigator.pop(context, true);
+                   }
+                },
+                icon: const Icon(Icons.build),
+                label: const Text('Move to Production', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
-            ]
-          )
-        );
-      }
+            ),
+          ]
+        )
+      );
     }
 
     // Default for 'New' jobs, OR 'Production' stage of 'Re-coating' jobs

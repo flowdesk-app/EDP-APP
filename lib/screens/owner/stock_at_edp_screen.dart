@@ -24,7 +24,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   void initState() {
     super.initState();
     final isRecoating = widget.jobType == 'Re-coating';
-    _tabController = TabController(length: isRecoating ? 4 : 2, vsync: this);
+    _tabController = TabController(length: isRecoating ? 4 : 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -285,6 +285,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                   Tab(text: 'Blank'),
                 ] : const [
                   Tab(text: 'Finished'),
+                  Tab(text: 'Production'),
                   Tab(text: 'Blank'),
                 ],
               ),
@@ -301,6 +302,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                       _buildList('Blank'),
                     ] : [
                       _buildList('Finished'),
+                      _buildList('Production'),
                       _buildList('Blank'),
                     ],
                   ),
