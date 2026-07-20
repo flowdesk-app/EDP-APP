@@ -41,7 +41,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
       final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
       if (mounted) {
         setState(() {
-          _currentJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
+          _currentJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && j.status != 'Blank Order' && j.sentToSpare != true && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
         });
       }
     } catch (_) {}
