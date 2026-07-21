@@ -51,14 +51,16 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
 
   Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color color, VoidCallback onTap) {
     return Card(
-      elevation: 0,
+      elevation: 2,
+      shadowColor: color.withValues(alpha: 0.3),
+      color: color,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFEBEBEB), width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.transparent),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -71,12 +73,12 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(icon, color: color, size: 24),
                   ),
-                  const Icon(Icons.chevron_right, color: Color(0xFF5F6368)),
+                  const Icon(Icons.chevron_right, color: Colors.white),
                 ],
               ),
               Column(
@@ -84,12 +86,12 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
                 children: [
                   Text(
                     count.toString(),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF5F6368)),
+                    style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),

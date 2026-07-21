@@ -131,12 +131,13 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
 
   Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color color, VoidCallback onTap, {bool isSelectable = false, bool isSelected = false}) {
     return Card(
-      elevation: 0,
+      elevation: 2,
+      shadowColor: color.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: isSelected ? BorderSide(color: Colors.red, width: 2) : BorderSide.none,
+        side: const BorderSide(color: Colors.transparent),
       ),
-      color: const Color(0xFFF1F5F9),
+      color: isSelected ? Colors.red : color,
       child: InkWell(
         onTap: isSelectable ? onTap : onTap,
         onLongPress: isSelectable ? null : () {},
@@ -155,12 +156,12 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(icon, color: color, size: 24),
+                        child: Icon(icon, color: isSelected ? Colors.red : color, size: 24),
                       ),
-                      const Icon(Icons.chevron_right, color: Colors.black54),
+                      const Icon(Icons.chevron_right, color: Colors.white),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -169,14 +170,14 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF202124),
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     title,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF5F6368),
+                      color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

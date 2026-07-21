@@ -145,13 +145,12 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
 
   Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color color, VoidCallback onTap, {bool isSelectable = false, bool isSelected = false}) {
     return Card(
-      elevation: 0,
+      elevation: 2,
+      shadowColor: color.withValues(alpha: 0.3),
+      color: isSelected ? Colors.red : color,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isSelected ? Colors.red : const Color(0xFFEBEBEB),
-          width: isSelected ? 2.0 : 1.5,
-        ),
+        side: const BorderSide(color: Colors.transparent),
       ),
       child: InkWell(
         onTap: onTap,
@@ -168,15 +167,15 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.red.withValues(alpha: 0.1) : color.withValues(alpha: 0.1),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(isSelected ? Icons.check_circle : icon, color: isSelected ? Colors.red : color, size: 24),
                   ),
                   if (!isSelectable)
-                    const Icon(Icons.chevron_right, color: Color(0xFF5F6368)),
+                    const Icon(Icons.chevron_right, color: Colors.white),
                   if (isSelectable && !isSelected)
-                    const Icon(Icons.radio_button_unchecked, color: Colors.grey),
+                    const Icon(Icons.radio_button_unchecked, color: Colors.white70),
                 ],
               ),
               Column(
@@ -184,14 +183,12 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
                 children: [
                   Text(
                     count.toString(),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF5F6368)),
+                    style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
