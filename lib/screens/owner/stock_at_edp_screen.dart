@@ -19,6 +19,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   List<Map<String, dynamic>> _spares = [];
   bool _isLoading = true;
   bool _isEditing = false;
+  final Set<String> _selectedSpareIds = {};
 
   @override
   void initState() {
@@ -74,6 +75,36 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     }
   }
 
+  Future<void> _deleteSelectedSpares() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Selected?'),
+        content: Text('Are you sure you want to delete ${_selectedSpareIds.length} item(s)?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      if (!mounted) return;
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+      await Future.wait(_selectedSpareIds.map((id) => _api.deleteSpare(id)));
+      if (!mounted) return;
+      Navigator.pop(context); // close progress
+      setState(() {
+        _selectedSpareIds.clear();
+        _isEditing = false;
+      });
+      _loadSpares();
+    }
+  }
+
   Widget _buildSpareCard(Map<String, dynamic> spare, bool isBlank) {
     final date = spare['createdAt'] != null ? DateTime.parse(spare['createdAt']) : null;
     final cardContent = Card(
@@ -95,9 +126,18 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                   ),
                 ),
                 if (_isEditing)
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteSpare(spare['_id']),
+                  Checkbox(
+                    activeColor: Colors.red,
+                    value: _selectedSpareIds.contains(spare['_id']),
+                    onChanged: (val) {
+                      setState(() {
+                        if (val == true) {
+                          _selectedSpareIds.add(spare['_id']);
+                        } else {
+                          _selectedSpareIds.remove(spare['_id']);
+                        }
+                      });
+                    },
                   )
                 else
                   Container(
@@ -151,6 +191,16 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     
     return InkWell(
       onTap: () async {
+        if (_isEditing) {
+          setState(() {
+            if (_selectedSpareIds.contains(spare['_id'])) {
+              _selectedSpareIds.remove(spare['_id']);
+            } else {
+              _selectedSpareIds.add(spare['_id']);
+            }
+          });
+          return;
+        }
         final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => SpareDetailsScreen(spare: spare)));
         if (result == true) {
           _loadSpares();
@@ -263,10 +313,48 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (_isEditing) ...[
+                  IconButton(
+                    icon: const Icon(Icons.select_all, color: Colors.blue),
+                    tooltip: 'Select All',
+                    onPressed: () {
+                      setState(() {
+                        // Current visible items based on tab
+                        String? currentStatus;
+                        if (!isSupplier) {
+                          if (widget.jobType == 'Re-coating') {
+                            const statuses = ['Finished', 'Production', 'Extraction', 'Blank'];
+                            currentStatus = statuses[_tabController.index];
+                          } else {
+                            const statuses = ['Finished', 'Production', 'Blank'];
+                            currentStatus = statuses[_tabController.index];
+                          }
+                        }
+                        
+                        final currentSpares = _spares.where((s) {
+                          if (currentStatus == null) return true;
+                          final sStatus = s['status'] ?? 'Blank';
+                          return sStatus == currentStatus;
+                        }).toList();
+
+                        if (_selectedSpareIds.length == currentSpares.length) {
+                          _selectedSpareIds.clear();
+                        } else {
+                          _selectedSpareIds.addAll(currentSpares.map((s) => s['_id'] as String));
+                        }
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    tooltip: 'Delete Selected',
+                    onPressed: _selectedSpareIds.isEmpty ? null : _deleteSelectedSpares,
+                  ),
+                ],
                 if (!_isEditing)
                   IconButton(icon: const Icon(Icons.edit, color: Color(0xFF202124)), onPressed: () => setState(() => _isEditing = true))
                 else
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _isEditing = false)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() { _isEditing = false; _selectedSpareIds.clear(); })),
               ],
             ),
           ),

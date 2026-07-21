@@ -129,6 +129,20 @@ class _RemovedJobsScreenState extends State<RemovedJobsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(Icons.select_all, color: Colors.blue),
+              tooltip: 'Select All',
+              onPressed: () {
+                setState(() {
+                  if (_selectedJobIds.length == _jobs.length) {
+                    _selectedJobIds.clear();
+                  } else {
+                    _selectedJobIds.addAll(_jobs.map((j) => j.jobId));
+                  }
+                });
+              },
+            ),
           if (_isEditing && _selectedJobIds.isNotEmpty)
             IconButton(icon: const Icon(Icons.restore, color: Colors.blue), tooltip: 'Restore', onPressed: _restoreSelectedJobs),
           if (_isEditing && _selectedJobIds.isNotEmpty)
