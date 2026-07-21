@@ -15,10 +15,14 @@ class BlankOrdersScreen extends StatefulWidget {
 
 class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
   final ApiService _api = ApiService();
+  late List<JobModel> _currentJobs;
+  bool _isEditing = false;
+  final Set<String> _selectedJobIds = {};
 
   @override
   void initState() {
     super.initState();
+    _currentJobs = List.from(widget.jobs);
   }
 
   Future<void> _pickDate(BuildContext context, DateTime? initialDate, Function(DateTime) onPicked) async {
@@ -131,6 +135,46 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
     );
   }
 
+  Future<void> _deleteSelectedJobs() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Jobs?'),
+        content: Text('Are you sure you want to delete ${_selectedJobIds.length} job(s)?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+      try {
+        for (final id in _selectedJobIds) {
+          await _api.deleteJob(id);
+        }
+        if (mounted) {
+          Navigator.pop(context); // dismiss loading
+          setState(() {
+            _currentJobs.removeWhere((j) => _selectedJobIds.contains(j.jobId));
+            _selectedJobIds.clear();
+            _isEditing = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Jobs deleted successfully')));
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+        }
+      }
+    }
+  }
+
   void _showPoNotGivenDialog(JobModel job) {
     DateTime? poDate;
     final poNumberCtrl = TextEditingController();
@@ -185,15 +229,16 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                       
                       await _api.updateJob(updatedJob);
                       
-                      if (context.mounted) {
+                      if (mounted) {
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PO Details Updated')));
-                        Navigator.pop(context); // Go back to dashboard to refresh
+                        // Update local list
+                        this.setState(() {
+                          _currentJobs.removeWhere((j) => j.jobId == job.jobId);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job updated to Blank Order')));
                       }
                     } catch (e) {
-                       if (context.mounted) {
-                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                       }
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
                     }
                   },
                   child: const Text('Confirm'),
@@ -214,25 +259,83 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
+        actions: [
+          if (_isEditing) ...[
+            IconButton(
+              icon: const Icon(Icons.select_all),
+              tooltip: 'Select All',
+              onPressed: () {
+                setState(() {
+                  if (_selectedJobIds.length == _currentJobs.length) {
+                    _selectedJobIds.clear();
+                  } else {
+                    _selectedJobIds.addAll(_currentJobs.map((j) => j.jobId));
+                  }
+                });
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Delete Selected',
+              onPressed: _selectedJobIds.isEmpty ? null : _deleteSelectedJobs,
+            ),
+          ],
+          IconButton(
+            icon: Icon(_isEditing ? Icons.close : Icons.edit),
+            onPressed: () {
+              setState(() {
+                _isEditing = !_isEditing;
+                _selectedJobIds.clear();
+              });
+            },
+          ),
+        ],
       ),
-      body: widget.jobs.isEmpty 
+      body: _currentJobs.isEmpty 
         ? const Center(child: Text('No jobs found'))
         : ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: widget.jobs.length,
+            itemCount: _currentJobs.length,
             itemBuilder: (context, index) {
-              final job = widget.jobs[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: InkWell(
-                  onTap: () {
-                    if (widget.title == 'PO Not Given') {
-                      _showPoNotGivenDialog(job);
-                    } else {
-                      _showJobDialog(job);
-                    }
-                  },
+              final job = _currentJobs[index];
+              return Row(
+                children: [
+                  if (_isEditing)
+                    Checkbox(
+                      value: _selectedJobIds.contains(job.jobId),
+                      onChanged: (val) {
+                        setState(() {
+                          if (val == true) {
+                            _selectedJobIds.add(job.jobId);
+                          } else {
+                            _selectedJobIds.remove(job.jobId);
+                          }
+                        });
+                      },
+                      activeColor: Colors.red,
+                    ),
+                  Expanded(
+                    child: Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: InkWell(
+                        onTap: () {
+                          if (_isEditing) {
+                            setState(() {
+                              if (_selectedJobIds.contains(job.jobId)) {
+                                _selectedJobIds.remove(job.jobId);
+                              } else {
+                                _selectedJobIds.add(job.jobId);
+                              }
+                            });
+                            return;
+                          }
+                          if (widget.title == 'PO Not Given') {
+                            _showPoNotGivenDialog(job);
+                          } else {
+                            _showJobDialog(job);
+                          }
+                        },
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -322,11 +425,14 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                               ],
                             ),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              );
+              ),
+            ],
+          );
             },
           ),
     );
