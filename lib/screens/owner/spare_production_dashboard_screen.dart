@@ -117,11 +117,11 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
   }
 
   int getEdpCount() {
-    return _spares.where((s) => s['currentSupplier'] == null || s['currentSupplier'] == 'EDP').length;
+    return _spares.where((s) => (s['currentSupplier'] == null || s['currentSupplier'] == 'EDP') && s['status'] == 'Production').length;
   }
 
   int getSupplierCount(String supplierName) {
-    return _spares.where((s) => s['currentSupplier'] == supplierName).length;
+    return _spares.where((s) => s['currentSupplier'] == supplierName && s['status'] == 'Production').length;
   }
 
   void _navToTabs(String? supplierName) {
