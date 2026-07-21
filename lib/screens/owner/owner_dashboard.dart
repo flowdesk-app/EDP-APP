@@ -361,29 +361,29 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: color,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
                             color: color.withValues(alpha: 0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           )
                         ],
                       ),
-                      child: Icon(icon, color: Colors.white, size: 24),
+                      child: Icon(icon, color: Colors.white, size: 36),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -394,14 +394,14 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                         )
                       ],
                     ),
-                    child: const Icon(Icons.arrow_forward_ios, color: Color(0xFF5F6368), size: 12),
+                    child: const Icon(Icons.arrow_forward_ios, color: Color(0xFF5F6368), size: 14),
                   ),
                 ],
               ),
               const Spacer(),
-              Text('$count', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF202124), letterSpacing: -0.5)),
-              const SizedBox(height: 2),
-              Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF5F6368), fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+              Text('$count', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF202124), letterSpacing: -0.5)),
+              const SizedBox(height: 4),
+              Text(title, style: const TextStyle(fontSize: 15, color: Color(0xFF5F6368), fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
