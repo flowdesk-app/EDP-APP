@@ -144,87 +144,77 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
   }
 
   Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color baseColor, VoidCallback onTap, {bool isSelectable = false, bool isSelected = false}) {
-    final HSLColor hsl = HSLColor.fromColor(baseColor);
-    final Color darkerColor = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0)).toColor();
-
     return Container(
       decoration: BoxDecoration(
+        color: isSelected ? baseColor.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: baseColor.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
-        border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-        gradient: LinearGradient(
-          colors: [baseColor, darkerColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        border: Border.all(color: isSelected ? baseColor : Colors.black.withValues(alpha: 0.05), width: isSelected ? 2 : 1),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -20,
-                bottom: -20,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
-                ),
-              ),
-              Positioned(
-                right: 40,
-                top: -20,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Stack(
+              children: [
+                if (!isSelected)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 4,
+                      color: baseColor,
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 20.0, 20.0, 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected ? baseColor : baseColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(isSelected ? Icons.check_circle : icon, color: isSelected ? Colors.white : baseColor, size: 24),
                           ),
-                          child: Icon(isSelected ? Icons.check_circle : icon, color: Colors.white, size: 24),
-                        ),
-                        if (!isSelectable)
-                          const Icon(Icons.chevron_right, color: Colors.white),
-                        if (isSelectable && !isSelected)
-                          const Icon(Icons.radio_button_unchecked, color: Colors.white70),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      count.toString(),
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    Text(
-                      title,
-                      style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
-                    ),
-                  ],
+                          if (!isSelectable)
+                            Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 16),
+                          if (isSelectable && !isSelected)
+                            Icon(Icons.radio_button_unchecked, color: Colors.grey[400], size: 24),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '$count',
+                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        title.toUpperCase(),
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w700, letterSpacing: 0.8),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
