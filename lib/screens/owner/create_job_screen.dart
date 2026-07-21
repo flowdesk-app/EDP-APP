@@ -45,8 +45,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   final TextEditingController _poNumberCtrl = TextEditingController();
   DateTime? _purchaseOrderDate;
 
-  bool _isSentToSpare = false;
-  String? _createdSpareId;
+  final bool _isSentToSpare = false;
   Map<String, dynamic>? _selectedSpareToUse;
 
   List<Map<String, dynamic>> _masterData = [];

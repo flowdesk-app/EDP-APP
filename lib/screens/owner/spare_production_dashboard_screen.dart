@@ -129,76 +129,113 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
       .then((_) => _fetchData());
   }
 
-  Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color color, VoidCallback onTap, {bool isSelectable = false, bool isSelected = false}) {
-    return Card(
-      elevation: 2,
-      shadowColor: color.withValues(alpha: 0.3),
-      shape: RoundedRectangleBorder(
+  Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color baseColor, VoidCallback onTap, {bool isSelectable = false, bool isSelected = false}) {
+    final HSLColor hsl = HSLColor.fromColor(baseColor);
+    final Color darkerColor = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0)).toColor();
+
+    return Container(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Colors.transparent),
+        boxShadow: [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+        gradient: LinearGradient(
+          colors: [baseColor, darkerColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      color: isSelected ? Colors.red : color,
-      child: InkWell(
-        onTap: isSelectable ? onTap : onTap,
-        onLongPress: isSelectable ? null : () {},
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(icon, color: isSelected ? Colors.red : color, size: 24),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.white),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    count.toString(),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelectable)
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isSelectable ? onTap : onTap,
+          onLongPress: isSelectable ? null : () {},
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
               Positioned(
-                top: 8,
-                right: 8,
-                child: Checkbox(
-                  value: isSelected,
-                  onChanged: (_) => onTap(),
-                  activeColor: Colors.red,
+                right: -20,
+                bottom: -20,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
                 ),
               ),
-          ],
+              Positioned(
+                right: 40,
+                top: -20,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 24),
+                        ),
+                        if (!isSelectable)
+                          const Icon(Icons.chevron_right, color: Colors.white),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      count.toString(),
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelectable)
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => onTap(),
+                    activeColor: Colors.white,
+                    checkColor: baseColor,
+                    side: const BorderSide(color: Colors.white70, width: 2),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

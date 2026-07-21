@@ -64,17 +64,6 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   }
 
 
-  Future<void> _deleteSpare(String id) async {
-    try {
-      await _api.deleteSpare(id);
-      _loadSpares();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
-      }
-    }
-  }
-
   Future<void> _deleteSelectedSpares() async {
     final confirm = await showDialog<bool>(
       context: context,

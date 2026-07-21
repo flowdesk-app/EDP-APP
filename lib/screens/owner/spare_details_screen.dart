@@ -191,7 +191,6 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
   Widget? _buildBottomBar(bool isFinished, bool isAtEdp) {
     if (_isLoading) return null;
     
-    final isRecoating = (widget.spare['jobType'] == 'Re-coating' || widget.spare['jobType'] == null);
     final status = widget.spare['status'] ?? 'Blank';
 
     if (isFinished) {

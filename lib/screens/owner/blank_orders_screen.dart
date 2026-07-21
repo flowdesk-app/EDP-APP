@@ -152,25 +152,24 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
     );
 
     if (confirm == true) {
+      if (!mounted) return;
       showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
       try {
         for (final id in _selectedJobIds) {
           await _api.deleteJob(id);
         }
-        if (mounted) {
-          Navigator.pop(context); // dismiss loading
-          setState(() {
-            _currentJobs.removeWhere((j) => _selectedJobIds.contains(j.jobId));
-            _selectedJobIds.clear();
-            _isEditing = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Jobs deleted successfully')));
-        }
+        if (!mounted) return;
+        Navigator.pop(context); // dismiss loading
+        setState(() {
+          _currentJobs.removeWhere((j) => _selectedJobIds.contains(j.jobId));
+          _selectedJobIds.clear();
+          _isEditing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Jobs deleted successfully')));
       } catch (e) {
-        if (mounted) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
-        }
+        if (!mounted) return;
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
       }
     }
   }
@@ -229,16 +228,16 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                       
                       await _api.updateJob(updatedJob);
                       
-                      if (mounted) {
-                        Navigator.pop(context);
-                        // Update local list
-                        this.setState(() {
-                          _currentJobs.removeWhere((j) => j.jobId == job.jobId);
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job updated to Blank Order')));
-                      }
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      // Update local list
+                      this.setState(() {
+                        _currentJobs.removeWhere((j) => j.jobId == job.jobId);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job updated to Blank Order')));
                     } catch (e) {
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
                     }
                   },
                   child: const Text('Confirm'),
