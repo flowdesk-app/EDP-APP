@@ -346,7 +346,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                color.withValues(alpha: 0.05),
+                color.withValues(alpha: 0.08),
                 Colors.white,
               ],
             ),
@@ -361,16 +361,16 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
                     ),
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: color,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: color.withValues(alpha: 0.3),
@@ -379,7 +379,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                           )
                         ],
                       ),
-                      child: Icon(icon, color: Colors.white, size: 36),
+                      child: Icon(icon, color: Colors.white, size: 42),
                     ),
                   ),
                   Container(
