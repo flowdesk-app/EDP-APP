@@ -330,10 +330,12 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
 
   Widget _buildStatCard(String title, int count, IconData icon, Color color, VoidCallback onTap) {
     return Card(
-      elevation: 0,
+      elevation: 2,
+      shadowColor: color.withValues(alpha: 0.3),
+      color: color,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE0E0E0)),
+        side: const BorderSide(color: Colors.transparent),
       ),
       child: InkWell(
         onTap: onTap,
@@ -349,15 +351,15 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-                    child: Icon(icon, color: Colors.white, size: 20),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                    child: Icon(icon, color: color, size: 20),
                   ),
-                  const Icon(Icons.chevron_right, color: Color(0xFF5F6368)),
+                  const Icon(Icons.chevron_right, color: Colors.white),
                 ],
               ),
               const Spacer(),
-              Text('$count', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
-              Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF5F6368)), overflow: TextOverflow.ellipsis),
+              Text('$count', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(title, style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
