@@ -332,25 +332,13 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: color.withValues(alpha: 0.15), width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE0E0E0)),
       ),
-      color: Colors.white,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withValues(alpha: 0.08),
-                Colors.white,
-              ],
-            ),
-          ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,50 +346,18 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Icon(icon, color: Colors.white, size: 42),
-                    ),
-                  ),
-                  Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 4,
-                        )
-                      ],
-                    ),
-                    child: const Icon(Icons.arrow_forward_ios, color: Color(0xFF5F6368), size: 14),
+                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+                    child: Icon(icon, color: Colors.white, size: 20),
                   ),
+                  const Icon(Icons.chevron_right, color: Color(0xFF5F6368)),
                 ],
               ),
               const Spacer(),
-              Text('$count', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF202124), letterSpacing: -0.5)),
-              const SizedBox(height: 4),
-              Text(title, style: const TextStyle(fontSize: 15, color: Color(0xFF5F6368), fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+              Text('$count', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+              Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF5F6368)), overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
