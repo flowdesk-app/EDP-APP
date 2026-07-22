@@ -8,6 +8,7 @@ import '../models/bin_box_balance_model.dart';
 import '../models/bin_box_return_model.dart';
 import '../models/notification_model.dart';
 import '../models/lead_model.dart';
+import '../models/raw_material_model.dart';
 import 'package:flutter/foundation.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -776,5 +777,29 @@ class ApiService {
       body: jsonEncode({'quantity': quantity, 'targetJobId': targetJobId}),
     );
     if (res.statusCode != 200) throw Exception('Failed to consume spare');
+  }
+
+  // --- Raw Materials ---
+  Future<List<RawMaterialModel>> getRawMaterials() async {
+    await _loadToken();
+    final res = await http.get(Uri.parse('$baseUrl/raw-materials'), headers: _headers);
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.map((d) => RawMaterialModel.fromJson(d)).toList();
+    }
+    return [];
+  }
+
+  Future<RawMaterialModel> addRawMaterial(RawMaterialModel rawMaterial) async {
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/raw-materials'),
+      headers: _headers,
+      body: jsonEncode(rawMaterial.toJson()),
+    );
+    if (res.statusCode == 201) {
+      return RawMaterialModel.fromJson(jsonDecode(res.body));
+    }
+    throw Exception('Failed to add raw material');
   }
 }

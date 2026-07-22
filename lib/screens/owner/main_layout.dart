@@ -10,6 +10,7 @@ import 'delivered_jobs_screen.dart';
 import 'removed_jobs_screen.dart';
 import 'part_management_screen.dart';
 import 'spare_production_dashboard_screen.dart';
+import 'raw_materials_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
@@ -41,7 +42,8 @@ class _MainLayoutState extends State<MainLayout> {
       if (_isAdmin) const PartManagementScreen(), // 4. Job Names (Parts)
       if (_isAdmin) const RemovedJobsScreen(), // 5. Edit
       if (_isAdmin) const SpareProductionDashboardScreen(), // 6. Spare at EDP
-      if (_isAdmin) const ReadyForDeliveryScreen(), // 7. Ready for Delivery
+      if (_isAdmin) const RawMaterialsScreen(), // 7. Raw Materials
+      if (_isAdmin) const ReadyForDeliveryScreen(), // 8. Ready for Delivery
     ];
 
     _destinations = [
@@ -52,6 +54,7 @@ class _MainLayoutState extends State<MainLayout> {
       if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('Job Master')),
       if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.edit_outlined), selectedIcon: Icon(Icons.edit), label: Text('Edit')),
       if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('Spare at EDP')),
+      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
       if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
     ];
   }
