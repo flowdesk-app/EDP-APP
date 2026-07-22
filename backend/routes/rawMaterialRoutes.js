@@ -41,9 +41,21 @@ router.post('/', auth, async (req, res) => {
     });
 
     if (existingMaterial) {
-      // Aggregate quantity
+      // Aggregate available quantity
       existingMaterial.availableQuantity += Number(availableQuantity);
-      // We keep the existing minimumQuantity and unit.
+      
+      // Update minimum quantity to the greater of the two
+      if (minimumQuantity != null) {
+        const incomingMin = Number(minimumQuantity);
+        const existingMin = existingMaterial.minimumQuantity || 0;
+        if (incomingMin > existingMin) {
+          existingMaterial.minimumQuantity = incomingMin;
+          if (minimumUnit) {
+            existingMaterial.minimumUnit = minimumUnit;
+          }
+        }
+      }
+      
       const updatedMaterial = await existingMaterial.save();
       return res.status(201).json(updatedMaterial);
     }
