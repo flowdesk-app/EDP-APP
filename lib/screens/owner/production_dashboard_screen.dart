@@ -305,7 +305,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
                         }),
                   for (final supplier in _suppliers.where((s) => s.supplierName.toLowerCase() != 'edp' && s.supplierName.toLowerCase() != 'edp production')) ...[
                     Builder(builder: (context) {
-                      final supplierJobs = _currentJobs.where((j) => j.currentLocation == supplier.supplierName).toList();
+                      final supplierJobs = _currentJobs.where((j) => j.currentLocation.toLowerCase() == supplier.supplierName.toLowerCase()).toList();
                       final isSelected = _selectedSupplierIds.contains(supplier.supplierId);
                       return _buildStatCard(
                         context, 

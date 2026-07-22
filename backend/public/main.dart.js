@@ -49345,7 +49345,7 @@ $1(a){var s=this.a,r=s.w,q=this.b,p=A.Z(r).i("ap<1>"),o=A.V(new A.ap(r,new A.ayz
 return s.Vo(a,q.b,o.length,B.rt,B.av,new A.ayA(s,n,q,a,o),s.e,n)},
 $S:18}
 A.ayz.prototype={
-$1(a){return a.ch===this.a.b},
+$1(a){return a.ch.toLowerCase()===this.a.b.toLowerCase()},
 $S:6}
 A.ayA.prototype={
 $0(){var s=this,r=s.a,q=s.c

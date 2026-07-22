@@ -72,7 +72,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
           _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
           
-          final isValidProductionJob = (JobModel j) {
+          bool isValidProductionJob(JobModel j) {
             if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
             if (j.currentLocation == 'EDP Spare') return false;
             if (j.jobType == 'New' && j.status == 'Blank Order') return false;
