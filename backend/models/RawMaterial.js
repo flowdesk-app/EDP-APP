@@ -24,22 +24,8 @@ const rawMaterialSchema = new mongoose.Schema({
     type: String,
     enum: ['Kg', 'Liter', 'Numbers', 'Carat'],
     required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-// Update the updatedAt field before saving
-rawMaterialSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
+  }
+}, { timestamps: true });
 
 const RawMaterial = mongoose.model('RawMaterial', rawMaterialSchema);
 
