@@ -800,6 +800,6 @@ class ApiService {
     if (res.statusCode == 201) {
       return RawMaterialModel.fromJson(jsonDecode(res.body));
     }
-    throw Exception('Failed to add raw material');
+    throw Exception('Failed to add raw material: ${res.body}');
   }
 }

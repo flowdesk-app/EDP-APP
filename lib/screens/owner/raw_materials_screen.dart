@@ -35,15 +35,14 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
   }
 
   void _showAddRawMaterialModal() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: const _AddRawMaterialForm(),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: const _AddRawMaterialForm(),
+        ),
       ),
     ).then((added) {
       if (added == true) {
