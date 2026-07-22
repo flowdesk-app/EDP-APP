@@ -330,20 +330,28 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
 
   Widget _buildStatCard(String title, int count, IconData icon, Color baseColor, VoidCallback onTap) {
     final HSLColor hsl = HSLColor.fromColor(baseColor);
-    final Color darkerColor = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0)).toColor();
+    // Deepen and slightly desaturate the colors for a richer, more premium look (less "bright")
+    final Color adjustedBaseColor = hsl
+        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.85).clamp(0.0, 1.0))
+        .toColor();
+    final Color darkerColor = hsl
+        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.65).clamp(0.0, 1.0))
+        .toColor();
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: baseColor.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: adjustedBaseColor.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
         gradient: LinearGradient(
-          colors: [baseColor, darkerColor],
+          colors: [adjustedBaseColor, darkerColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -353,51 +361,43 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, color: Colors.white, size: 24),
-                        ),
-                        const Icon(Icons.chevron_right, color: Colors.white),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: Colors.white, size: 24),
                     ),
-                    const Spacer(),
-                    Text(
-                      '$count',
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      title,
-                      style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    const Icon(Icons.chevron_right, color: Colors.white70),
                   ],
                 ),
-              ),
-            ],
+                const Spacer(),
+                Text(
+                  '$count',
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
-
 }
-
-

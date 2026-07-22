@@ -131,21 +131,28 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
 
   Widget _buildStatCard(BuildContext context, String title, int count, IconData icon, Color baseColor, VoidCallback onTap, {bool isSelectable = false, bool isSelected = false}) {
     final HSLColor hsl = HSLColor.fromColor(baseColor);
-    final Color darkerColor = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0)).toColor();
+    final Color adjustedBaseColor = hsl
+        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.85).clamp(0.0, 1.0))
+        .toColor();
+    final Color darkerColor = hsl
+        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.65).clamp(0.0, 1.0))
+        .toColor();
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: baseColor.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: adjustedBaseColor.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
         border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
         gradient: LinearGradient(
-          colors: [baseColor, darkerColor],
+          colors: [adjustedBaseColor, darkerColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -170,13 +177,13 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(icon, color: Colors.white, size: 24),
                         ),
                         if (!isSelectable)
-                          const Icon(Icons.chevron_right, color: Colors.white),
+                          const Icon(Icons.chevron_right, color: Colors.white70),
                       ],
                     ),
                     const SizedBox(height: 16),
