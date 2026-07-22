@@ -422,7 +422,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
   String _minUnit = 'Kg';
   bool _isSaving = false;
 
-  final List<String> _units = ['Kg', 'Liter', 'Numbers', 'Carat'];
+  final List<String> _units = ['Kg', 'Litre', 'Numbers', 'Carat'];
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;

@@ -49723,7 +49723,7 @@ return s.aaR(J.ex(s.f,b))},
 $S:72}
 A.Fq.prototype={
 X(){var s=$.c7(),r=$.a5()
-return new A.Fr(new A.bm(null,t.am),s,new A.b5(B.H,r),new A.b5(B.H,r),new A.b5(B.H,r),new A.b5(B.H,r),A.b(["Kg","Liter","Numbers","Carat"],t.s))}}
+return new A.Fr(new A.bm(null,t.am),s,new A.b5(B.H,r),new A.b5(B.H,r),new A.b5(B.H,r),new A.b5(B.H,r),A.b(["Kg","Litre","Numbers","Carat"],t.s))}}
 A.Fr.prototype={
 BE(){var s=0,r=A.r(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g,f,e,d
 var $async$BE=A.t(function(a,b){if(a===1){o.push(b)

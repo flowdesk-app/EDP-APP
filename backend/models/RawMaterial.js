@@ -12,7 +12,7 @@ const rawMaterialSchema = new mongoose.Schema({
   },
   availableUnit: {
     type: String,
-    enum: ['Kg', 'Liter', 'Numbers', 'Carat'],
+    enum: ['Kg', 'Litre', 'Numbers', 'Carat'],
     required: true,
   },
   gritSize: {
@@ -26,7 +26,7 @@ const rawMaterialSchema = new mongoose.Schema({
   },
   minimumUnit: {
     type: String,
-    enum: ['Kg', 'Liter', 'Numbers', 'Carat'],
+    enum: ['Kg', 'Litre', 'Numbers', 'Carat'],
     required: false,
   }
 }, { timestamps: true });
