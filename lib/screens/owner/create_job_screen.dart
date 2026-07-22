@@ -315,6 +315,55 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     );
   }
 
+  Widget _buildJobTypeCard(String title, IconData icon, Color baseColor, VoidCallback onTap) {
+    final HSLColor hsl = HSLColor.fromColor(baseColor);
+    final Color adjustedBaseColor = hsl
+        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.85).clamp(0.0, 1.0))
+        .toColor();
+    final Color darkerColor = hsl
+        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.65).clamp(0.0, 1.0))
+        .toColor();
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: adjustedBaseColor.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          gradient: LinearGradient(
+            colors: [adjustedBaseColor, darkerColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, size: 48, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInitialSelection() {
     return Center(
       child: Padding(
@@ -327,72 +376,20 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             Row(
               children: [
                 Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _flowType = FlowType.newJob),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        border: Border.all(color: Colors.blue.shade200, width: 2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(Icons.fiber_new, size: 48, color: Colors.blue.shade700),
-                          const SizedBox(height: 16),
-                          Text('New', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue.shade700)),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: _buildJobTypeCard('New', Icons.fiber_new, Colors.blue, () => setState(() => _flowType = FlowType.newJob)),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _flowType = FlowType.recoating),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        border: Border.all(color: Colors.orange.shade200, width: 2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(Icons.build, size: 48, color: Colors.orange.shade700),
-                          const SizedBox(height: 16),
-                          Text('Re-coating', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: _buildJobTypeCard('Re-coating', Icons.build, Colors.orange, () => setState(() => _flowType = FlowType.recoating)),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            InkWell(
-              onTap: () {
+            SizedBox(
+              width: double.infinity,
+              child: _buildJobTypeCard('Use from Spare', Icons.inventory_2, Colors.purple, () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareAtEdpTabsScreen()));
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
-                  border: Border.all(color: Colors.purple.shade200, width: 2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.inventory_2, size: 48, color: Colors.purple.shade700),
-                    const SizedBox(height: 16),
-                    Text('Use from Spare', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.purple.shade700)),
-                  ],
-                ),
-              ),
+              }),
             ),
           ],
         ),
