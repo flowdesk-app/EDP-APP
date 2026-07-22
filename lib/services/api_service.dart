@@ -802,4 +802,15 @@ class ApiService {
     }
     throw Exception('Failed to add raw material: ${res.body}');
   }
+
+  Future<void> deleteRawMaterial(String id) async {
+    await _loadToken();
+    final res = await http.delete(
+      Uri.parse('$baseUrl/raw-materials/$id'),
+      headers: _headers,
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to delete raw material: ${res.body}');
+    }
+  }
 }

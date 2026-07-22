@@ -37,4 +37,18 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// DELETE a raw material
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const rawMaterial = await RawMaterial.findById(req.params.id);
+    if (!rawMaterial) {
+      return res.status(404).json({ message: 'Raw material not found' });
+    }
+    await rawMaterial.deleteOne();
+    res.json({ message: 'Raw material deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

@@ -14,6 +14,9 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
   bool _isLoading = false;
   List<RawMaterialModel> _materials = [];
 
+  bool _isEditing = false;
+  final Set<String> _selectedIds = {};
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +34,45 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
       debugPrint('Error fetching raw materials: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _deleteSelected() async {
+    if (_selectedIds.isEmpty) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: Text('Are you sure you want to delete ${_selectedIds.length} raw material(s)?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      for (final id in _selectedIds) {
+        await _api.deleteRawMaterial(id);
+      }
+      _selectedIds.clear();
+      _isEditing = false;
+      await _fetchRawMaterials();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected raw materials deleted')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -52,24 +94,62 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
   }
 
   Widget _buildMaterialCard(RawMaterialModel material) {
+    final bool isSelected = _selectedIds.contains(material.id);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: isSelected ? Colors.blue : Colors.transparent, width: 2),
+      ),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    material.name,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+      child: InkWell(
+        onTap: _isEditing && material.id != null
+            ? () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedIds.remove(material.id!);
+                  } else {
+                    _selectedIds.add(material.id!);
+                  }
+                });
+              }
+            : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (_isEditing && material.id != null) ...[
+                          Checkbox(
+                            value: isSelected,
+                            onChanged: (val) {
+                              setState(() {
+                                if (val == true) {
+                                  _selectedIds.add(material.id!);
+                                } else {
+                                  _selectedIds.remove(material.id!);
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Expanded(
+                          child: Text(
+                            material.name,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -113,17 +193,53 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool allSelected = _materials.isNotEmpty && _selectedIds.length == _materials.where((m) => m.id != null).length;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Raw Materials', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (_isEditing) ...[
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  if (allSelected) {
+                    _selectedIds.clear();
+                  } else {
+                    _selectedIds.addAll(_materials.map((m) => m.id!).where((id) => id != null));
+                  }
+                });
+              },
+              child: Text(allSelected ? 'Deselect All' : 'Select All'),
+            ),
+            if (_selectedIds.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: _deleteSelected,
+                tooltip: 'Delete Selected',
+              ),
+          ],
+          IconButton(
+            icon: Icon(_isEditing ? Icons.close : Icons.edit, color: _isEditing ? Colors.red : Colors.grey[700]),
+            onPressed: () {
+              setState(() {
+                _isEditing = !_isEditing;
+                if (!_isEditing) _selectedIds.clear();
+              });
+            },
+            tooltip: _isEditing ? 'Cancel Edit' : 'Edit',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -241,7 +357,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<String>(
-                    value: _availUnit,
+                    initialValue: _availUnit,
                     decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
                     items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                     onChanged: (val) => setState(() => _availUnit = val!),
@@ -269,7 +385,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<String>(
-                    value: _minUnit,
+                    initialValue: _minUnit,
                     decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
                     items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                     onChanged: (val) => setState(() => _minUnit = val!),
