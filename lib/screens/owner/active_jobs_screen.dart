@@ -9,8 +9,9 @@ import '../../models/user_model.dart';
 
 class ActiveJobsScreen extends StatefulWidget {
   final bool showBackButton;
+  final String? initialFilterLocation;
 
-  const ActiveJobsScreen({super.key, this.showBackButton = false});
+  const ActiveJobsScreen({super.key, this.showBackButton = false, this.initialFilterLocation});
 
   @override
   State<ActiveJobsScreen> createState() => _ActiveJobsScreenState();
@@ -39,6 +40,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedSupplier = widget.initialFilterLocation;
     _isAdmin = _api.currentUser?.role == UserRole.admin;
     _loadData();
   }
@@ -429,7 +431,11 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
             DropdownButton<String>(
               hint: const Text('Supplier'),
               value: _selectedSupplier,
-              items: _suppliers.map((s) => DropdownMenuItem(value: s.supplierName, child: Text(s.supplierName))).toList(),
+              items: [
+                if (_selectedSupplier != null && !_suppliers.any((s) => s.supplierName == _selectedSupplier))
+                  DropdownMenuItem(value: _selectedSupplier, child: Text(_selectedSupplier!)),
+                ..._suppliers.map((s) => DropdownMenuItem(value: s.supplierName, child: Text(s.supplierName)))
+              ],
               onChanged: (val) {
                 setState(() => _selectedSupplier = val);
                 _fetchJobs();

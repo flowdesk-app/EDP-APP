@@ -41,7 +41,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
       final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
       if (mounted) {
         setState(() {
-          _currentJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && !(j.jobType == 'New' && j.status == 'Blank Order') && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
+          _currentJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && j.currentLocation != 'EDP Spare' && !(j.jobType == 'New' && j.status == 'Blank Order') && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
         });
       }
     } catch (_) {}
@@ -230,6 +230,18 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
     }
 
     final edpJobs = _currentJobs.where((j) => j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty).toList();
+    final skmtJobs = _currentJobs.where((j) => j.currentLocation == 'SKMT' || j.currentLocation.toLowerCase() == 'skmt').toList();
+    final transitJobs = _currentJobs.where((j) => j.currentLocation.toLowerCase().contains('transit')).toList();
+    final supplierNames = _suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
+    final otherJobs = _currentJobs.where((j) => 
+        j.currentLocation != 'EDP' && 
+        j.currentLocation.toLowerCase() != 'edp production' && 
+        j.currentLocation.isNotEmpty &&
+        j.currentLocation != 'SKMT' && 
+        j.currentLocation.toLowerCase() != 'skmt' &&
+        !j.currentLocation.toLowerCase().contains('transit') &&
+        !supplierNames.contains(j.currentLocation.toLowerCase())
+    ).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -282,7 +294,22 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => const ActiveJobsScreen(showBackButton: true)))
                               .then((_) => _fetchJobs());
                         }),
-                  
+                  _buildStatCard(context, 'SKMT', skmtJobs.length, Icons.domain, Colors.blue, () {
+                          if (_isEditing) return;
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const ActiveJobsScreen(showBackButton: true, initialFilterLocation: 'SKMT')))
+                              .then((_) => _fetchJobs());
+                        }),
+                  _buildStatCard(context, 'In Transit', transitJobs.length, Icons.local_shipping, Colors.orange, () {
+                          if (_isEditing) return;
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const ActiveJobsScreen(showBackButton: true, initialFilterLocation: 'Transit')))
+                              .then((_) => _fetchJobs());
+                        }),
+                  if (otherJobs.isNotEmpty)
+                    _buildStatCard(context, 'Other Locations', otherJobs.length, Icons.location_on, Colors.grey, () {
+                            if (_isEditing) return;
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ActiveJobsScreen(showBackButton: true)))
+                                .then((_) => _fetchJobs());
+                          }),
                   for (final supplier in _suppliers.where((s) => s.supplierName.toLowerCase() != 'edp' && s.supplierName.toLowerCase() != 'edp production')) ...[
                     Builder(builder: (context) {
                       final supplierJobs = _currentJobs.where((j) => j.currentLocation == supplier.supplierName).toList();
