@@ -171,24 +171,6 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
           borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
-              Positioned(
-                right: -20,
-                bottom: -20,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
-                ),
-              ),
-              Positioned(
-                right: 40,
-                top: -20,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
