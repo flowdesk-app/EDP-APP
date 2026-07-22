@@ -208,11 +208,11 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => _showUseMaterialDialog(material),
                 icon: const Icon(Icons.remove_circle_outline),
-                label: const Text('Use Material'),
+                label: const Text('Use Material', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade50,
-                  foregroundColor: Colors.blue.shade700,
-                  elevation: 0,
+                  backgroundColor: const Color(0xFF10B981), // Vibrant green
+                  foregroundColor: Colors.white,
+                  elevation: 2,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
