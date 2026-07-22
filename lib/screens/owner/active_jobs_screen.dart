@@ -71,10 +71,23 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
         status: _selectedStatus,
       );
       
-      // Default to showing only "Active" jobs (not Closed/Removed) and must be at EDP if no status filter is explicitly selected
       final activeJobs = _selectedStatus == null 
-          ? jobs.where((j) => j.status != 'Closed' && j.status != 'Removed' && j.status != 'Completed' && (j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty) && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList()
-          : jobs.where((j) => j.status != 'Removed' && j.status != 'Completed' && (j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty) && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
+          ? jobs.where((j) {
+              if (j.status == 'Closed' || j.status == 'Removed' || j.status == 'Completed') return false;
+              if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+              if (_selectedSupplier != null && _selectedSupplier != 'EDP Production') {
+                return j.currentLocation.toLowerCase() == _selectedSupplier!.toLowerCase();
+              }
+              return j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty;
+            }).toList()
+          : jobs.where((j) {
+              if (j.status == 'Removed' || j.status == 'Completed') return false;
+              if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+              if (_selectedSupplier != null && _selectedSupplier != 'EDP Production') {
+                return j.currentLocation.toLowerCase() == _selectedSupplier!.toLowerCase();
+              }
+              return j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty;
+            }).toList();
           
       setState(() => _jobs = activeJobs);
     } catch (e) {
@@ -189,7 +202,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
         leading: _isEditing 
             ? IconButton(icon: const Icon(Icons.close, color: Color(0xFF202124)), onPressed: () => setState(() { _isEditing = false; _selectedJobIds.clear(); }))
             : (widget.showBackButton ? const BackButton() : const DrawerMenuButton()),
-        title: Text(_isEditing ? '${_selectedJobIds.length} Selected' : 'EDP Production', style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        title: Text(_isEditing ? '${_selectedJobIds.length} Selected' : (_selectedSupplier ?? 'EDP Production'), style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
