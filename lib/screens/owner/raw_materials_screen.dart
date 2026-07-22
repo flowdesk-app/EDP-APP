@@ -215,7 +215,7 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
                   if (allSelected) {
                     _selectedIds.clear();
                   } else {
-                    _selectedIds.addAll(_materials.map((m) => m.id!).where((id) => id != null));
+                    _selectedIds.addAll(_materials.where((m) => m.id != null).map((m) => m.id!));
                   }
                 });
               },
