@@ -330,7 +330,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
@@ -350,15 +350,15 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 40, color: Colors.white),
+              child: Icon(icon, size: 48, color: Colors.white),
             ),
             const SizedBox(height: 16),
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
+            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -367,43 +367,46 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
   Widget _buildInitialSelection() {
     return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'What type of job is this?',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Select a workflow to get started.',
-                style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 48),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _buildJobTypeCard('New', Icons.fiber_new, Colors.blue, () => setState(() => _flowType = FlowType.newJob)),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: _buildJobTypeCard('Re-coating', Icons.build, Colors.orange, () => setState(() => _flowType = FlowType.recoating)),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: _buildJobTypeCard('Use from Spare', Icons.inventory_2, Colors.purple, () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareAtEdpTabsScreen()));
-                    }),
-                  ),
-                ],
-              ),
-            ],
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 120.0),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'What type of job is this?',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Select a workflow to get started.',
+                  style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 48),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _buildJobTypeCard('New', Icons.fiber_new, Colors.blue, () => setState(() => _flowType = FlowType.newJob)),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: _buildJobTypeCard('Re-coating', Icons.build, Colors.orange, () => setState(() => _flowType = FlowType.recoating)),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: _buildJobTypeCard('Use from Spare', Icons.inventory_2, Colors.purple, () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareAtEdpTabsScreen()));
+                      }),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
