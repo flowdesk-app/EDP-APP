@@ -38,10 +38,25 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
 
   Future<void> _fetchJobs() async {
     try {
+      final suppliers = await ApiService().getSuppliers();
+      final supplierNames = suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
       final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
       if (mounted) {
         setState(() {
-          _currentJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && j.currentLocation != 'EDP Spare' && !(j.jobType == 'New' && j.status == 'Blank Order') && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList();
+          _suppliers = suppliers;
+          _currentJobs = jobs.where((j) {
+            if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
+            if (j.currentLocation == 'EDP Spare') return false;
+            if (j.jobType == 'New' && j.status == 'Blank Order') return false;
+            if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+
+            final loc = j.currentLocation.toLowerCase();
+            if (loc == 'edp' || loc == 'edp production' || loc.isEmpty) return true;
+            if (loc == 'skmt') return true;
+            if (supplierNames.contains(loc)) return true;
+
+            return false;
+          }).toList();
         });
       }
     } catch (_) {}
@@ -231,17 +246,6 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
 
     final edpJobs = _currentJobs.where((j) => j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty).toList();
     final skmtJobs = _currentJobs.where((j) => j.currentLocation == 'SKMT' || j.currentLocation.toLowerCase() == 'skmt').toList();
-    final transitJobs = _currentJobs.where((j) => j.currentLocation.toLowerCase().contains('transit')).toList();
-    final supplierNames = _suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
-    final otherJobs = _currentJobs.where((j) => 
-        j.currentLocation != 'EDP' && 
-        j.currentLocation.toLowerCase() != 'edp production' && 
-        j.currentLocation.isNotEmpty &&
-        j.currentLocation != 'SKMT' && 
-        j.currentLocation.toLowerCase() != 'skmt' &&
-        !j.currentLocation.toLowerCase().contains('transit') &&
-        !supplierNames.contains(j.currentLocation.toLowerCase())
-    ).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),

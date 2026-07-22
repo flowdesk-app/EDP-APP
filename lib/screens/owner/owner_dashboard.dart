@@ -27,6 +27,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   bool _loading = true;
   List<JobModel> _currentJobs = [];
   List<NotificationModel> _alerts = [];
+  Set<String> _supplierNames = {};
 
   int _returnedJobs = 0;
   int _recoatingJobs = 0;
@@ -51,30 +52,44 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final jobs = await _api.getFilteredJobs(
-        month: _selectedMonth,
-        date: _selectedDate,
-      );
+      final jobs = await _api.getFilteredJobs(month: _selectedMonth, date: _selectedDate);
       final stats = _selectedDate != null 
         ? await _api.getDashboardDateStats(_selectedDate!) 
         : await _api.getDashboardMonthStats(_selectedMonth!);
+      final suppliers = await _api.getSuppliers();
+      final supplierNames = suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
       
       final notifications = await _api.getNotifications();
 
       if (mounted) {
-        _currentJobs = jobs;
-        _alerts = notifications.take(5).toList();
+        setState(() {
+          _currentJobs = jobs;
+          _supplierNames = supplierNames;
+          _alerts = notifications.take(5).toList();
 
-        _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
-        _poNotGivenCount = stats?['poNotGivenCount'] ?? 0;
-        final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
-        _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
-        _productionJobs = jobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && j.currentLocation != 'EDP Spare' && !(j.jobType == 'New' && j.status == 'Blank Order') && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).length;
-        _readyForDeliveryJobs = jobs.where((j) => j.status == 'Completed').length;
+          _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
+          _poNotGivenCount = stats?['poNotGivenCount'] ?? 0;
+          final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
+          _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
+          
+          final isValidProductionJob = (JobModel j) {
+            if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
+            if (j.currentLocation == 'EDP Spare') return false;
+            if (j.jobType == 'New' && j.status == 'Blank Order') return false;
+            if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
 
-        _blankOrders = jobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).length;
-        _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
+            final loc = j.currentLocation.toLowerCase();
+            if (loc == 'edp' || loc == 'edp production' || loc.isEmpty) return true;
+            if (loc == 'skmt') return true;
+            if (supplierNames.contains(loc)) return true;
 
+            return false;
+          };
+          
+          _productionJobs = jobs.where(isValidProductionJob).length;
+          _readyForDeliveryJobs = jobs.where((j) => j.status == 'Completed').length;
+          _blankOrders = jobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).length;
+        });
       }
     } catch (e) {
       debugPrint('Error loading dashboard: $e');
@@ -240,7 +255,22 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                       _buildStatCard('PO Not Given', _poNotGivenCount, Icons.assignment_late, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.poNotGiven == true).toList(), title: 'PO Not Given'))).then((_) => _load())),
                       _buildStatCard('Blank Orders', _blankOrders, Icons.note_add, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).toList(), title: 'Blank Orders'))).then((_) => _load())),
                       _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
-                      _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.blue, () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionDashboardScreen(productionJobs: _currentJobs.where((j) => j.status != 'Removed' && j.status != 'Closed' && j.status != 'Delivered' && j.status != 'Returned' && j.status != 'Completed' && j.currentLocation != 'EDP Spare' && !(j.jobType == 'New' && j.status == 'Blank Order') && !(j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted'))).toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
+                      _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.blue, () {
+                        final validJobs = _currentJobs.where((j) {
+                          if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
+                          if (j.currentLocation == 'EDP Spare') return false;
+                          if (j.jobType == 'New' && j.status == 'Blank Order') return false;
+                          if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+
+                          final loc = j.currentLocation.toLowerCase();
+                          if (loc == 'edp' || loc == 'edp production' || loc.isEmpty) return true;
+                          if (loc == 'skmt') return true;
+                          if (_supplierNames.contains(loc)) return true;
+
+                          return false;
+                        }).toList();
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionDashboardScreen(productionJobs: validJobs, month: _selectedMonth, date: _selectedDate))).then((_) => _load());
+                      }),
                       _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, Colors.green, () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),
                       _buildStatCard('EDP Spare Production', 0, Icons.settings_suggest, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareProductionDashboardScreen()))),
                     ],
