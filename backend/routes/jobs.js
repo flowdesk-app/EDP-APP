@@ -280,6 +280,7 @@ router.put('/:id/forward', auth, async (req, res) => {
         }
         
         job.supplierMovements.push({
+            senderName: job.currentLocation || 'EDP Production',
             supplierName: nextSupplier,
             sentDate: new Date(),
             forwardQuantity: forwardQuantity,

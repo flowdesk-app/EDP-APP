@@ -388,12 +388,27 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     _row('Supplier PO', _currentJob.supplierPurchaseOrderNumber!),
                   if (_currentJob.supplierPurchaseOrderDate != null)
                     _row('Supplier PO Date', DateFormat('dd-MM-yyyy').format(_currentJob.supplierPurchaseOrderDate!)),
-                  if (_currentJob.forwardQuantity != null)
+                  if (_currentJob.forwardQuantity != null && _currentJob.supplierMovements.isEmpty)
                     _row('Forward Quantity', _currentJob.forwardQuantity.toString()),
-                  if (_currentJob.deliveryChalanNumber != null && _currentJob.deliveryChalanNumber!.isNotEmpty)
+                  if (_currentJob.deliveryChalanNumber != null && _currentJob.deliveryChalanNumber!.isNotEmpty && _currentJob.supplierMovements.isEmpty)
                     _row('Delivery Chalan Number', _currentJob.deliveryChalanNumber!),
-                  if (_currentJob.deliveryChalanDate != null)
+                  if (_currentJob.deliveryChalanDate != null && _currentJob.supplierMovements.isEmpty)
                     _row('Delivery Chalan Date', DateFormat('dd-MM-yyyy').format(_currentJob.deliveryChalanDate!)),
+                  ...(_currentJob.supplierMovements.where((m) => m['deliveryChalanNumber'] != null && m['deliveryChalanNumber'].toString().isNotEmpty).expand((m) {
+                    String sender = m['senderName']?.toString() ?? 'EDP';
+                    if (sender.toLowerCase() == 'edp' || sender.toLowerCase() == 'edp production') sender = 'EDP';
+                    final chalan = m['deliveryChalanNumber'].toString();
+                    final qty = m['forwardQuantity'];
+                    final dateStr = m['deliveryChalanDate'];
+                    final date = dateStr != null ? DateTime.tryParse(dateStr.toString()) : null;
+                    return [
+                      if (qty != null)
+                        _row('$sender Forward Quantity', qty.toString()),
+                      _row('$sender Delivery Chalan Number', chalan),
+                      if (date != null)
+                        _row('$sender Delivery Chalan Date', DateFormat('dd-MM-yyyy').format(date)),
+                    ];
+                  })),
                 ],
               ),
               if ((_currentJob.wheelSize != null && _currentJob.wheelSize!.isNotEmpty) || 

@@ -84,7 +84,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
             if (supplierNames.contains(loc)) return true;
 
             return false;
-          };
+          }
           
           _productionJobs = jobs.where(isValidProductionJob).length;
           _readyForDeliveryJobs = jobs.where((j) => j.status == 'Completed').length;
