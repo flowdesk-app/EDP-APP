@@ -59,6 +59,9 @@ class JobModel {
   final bool sentToSpare;
   final String? usedSpareId;
 
+  final String? edpPurchaseOrderNumber;
+  final DateTime? edpPurchaseOrderDate;
+
   JobModel({
     this.id,
     required this.jobId,
@@ -113,6 +116,8 @@ class JobModel {
     this.invoiceNumber,
     this.sentToSpare = false,
     this.usedSpareId,
+    this.edpPurchaseOrderNumber,
+    this.edpPurchaseOrderDate,
   });
 
   JobModel copyWith({
@@ -169,6 +174,8 @@ class JobModel {
     String? invoiceNumber,
     bool? sentToSpare,
     String? usedSpareId,
+    String? edpPurchaseOrderNumber,
+    DateTime? edpPurchaseOrderDate,
   }) {
     return JobModel(
       id: id ?? this.id,
@@ -224,6 +231,8 @@ class JobModel {
       invoiceNumber: invoiceNumber ?? this.invoiceNumber,
       sentToSpare: sentToSpare ?? this.sentToSpare,
       usedSpareId: usedSpareId ?? this.usedSpareId,
+      edpPurchaseOrderNumber: edpPurchaseOrderNumber ?? this.edpPurchaseOrderNumber,
+      edpPurchaseOrderDate: edpPurchaseOrderDate ?? this.edpPurchaseOrderDate,
     );
   }
 
@@ -281,6 +290,8 @@ class JobModel {
     invoiceNumber: json['invoiceNumber'],
     sentToSpare: json['sentToSpare'] ?? false,
     usedSpareId: json['usedSpareId'],
+    edpPurchaseOrderNumber: json['edpPurchaseOrderNumber'],
+    edpPurchaseOrderDate: json['edpPurchaseOrderDate'] != null ? DateTime.parse(json['edpPurchaseOrderDate']) : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -337,5 +348,7 @@ class JobModel {
     'invoiceNumber': invoiceNumber,
     'sentToSpare': sentToSpare,
     'usedSpareId': usedSpareId,
+    'edpPurchaseOrderNumber': edpPurchaseOrderNumber,
+    'edpPurchaseOrderDate': edpPurchaseOrderDate?.toIso8601String(),
   };
 }

@@ -35,6 +35,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
   // New Flow specific states
   DateTime? _customerOrderDate;
+  final TextEditingController _edpPoNumberCtrl = TextEditingController();
+  DateTime? _edpPoDate;
 
   // Re-coating Flow specific states
   DateTime? _receivedDate;
@@ -213,6 +215,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         purchaseOrderReceived: _purchaseOrderReceived,
         purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
         purchaseOrderDate: _purchaseOrderDate,
+        edpPurchaseOrderNumber: _edpPoNumberCtrl.text.trim().isEmpty ? null : _edpPoNumberCtrl.text.trim(),
+        edpPurchaseOrderDate: _edpPoDate,
         poNotGiven: _purchaseOrderReceived == false,
         returnableGatePassNumber: _returnableGatePassNumberCtrl.text.trim().isEmpty ? null : _returnableGatePassNumberCtrl.text.trim(),
         returnableGatePassDate: _returnableGatePassDate,
@@ -461,6 +465,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         purchaseOrderReceived: _purchaseOrderReceived,
         purchaseOrderDate: _purchaseOrderDate,
         purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
+        edpPurchaseOrderNumber: _edpPoNumberCtrl.text.trim().isEmpty ? null : _edpPoNumberCtrl.text.trim(),
+        edpPurchaseOrderDate: _edpPoDate,
         poNotGiven: _purchaseOrderReceived == false,
         status: 'Blank Order',
         currentLocation: 'EDP',
@@ -568,6 +574,25 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               child: InputDecorator(
                 decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
                 child: Text(_customerOrderDate != null ? DateFormat('dd-MM-yyyy').format(_customerOrderDate!) : 'Select Date'),
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            const Text('EDP Purchase Order Number', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _edpPoNumberCtrl,
+              decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+            ),
+
+            const SizedBox(height: 24),
+            const Text('EDP Purchase Order Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: () => _pickDate(context, _edpPoDate, (d) => setState(() => _edpPoDate = d)),
+              child: InputDecorator(
+                decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+                child: Text(_edpPoDate != null ? DateFormat('dd-MM-yyyy').format(_edpPoDate!) : 'Select Date'),
               ),
             ),
 

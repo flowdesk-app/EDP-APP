@@ -349,6 +349,17 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
                                               ],
                                             ],
                                           ),
+                                          if (job.edpPurchaseOrderNumber != null && job.edpPurchaseOrderNumber!.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                const Text('EDP PO', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold, fontSize: 12)),
+                                                Text(' (No: ${job.edpPurchaseOrderNumber})', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                                if (job.edpPurchaseOrderDate != null)
+                                                  Text(' - Date: ${DateFormat('dd-MM-yyyy').format(job.edpPurchaseOrderDate!)}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                              ],
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),

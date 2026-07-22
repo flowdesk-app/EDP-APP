@@ -60,7 +60,9 @@ const jobSchema = new mongoose.Schema({
   inspectionReportNumber: { type: String },
   invoiceNumber: { type: String },
   sentToSpare: { type: Boolean, default: false },
-  usedSpareId: { type: mongoose.Schema.Types.ObjectId, ref: 'Spare' }
+  usedSpareId: { type: mongoose.Schema.Types.ObjectId, ref: 'Spare' },
+  edpPurchaseOrderNumber: { type: String },
+  edpPurchaseOrderDate: { type: Date }
 }, { timestamps: true });
 
 jobSchema.index({ jobId: 1 });

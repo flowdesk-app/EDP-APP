@@ -328,6 +328,17 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                               ],
                                             ],
                                           ),
+                                          if (job.edpPurchaseOrderNumber != null && job.edpPurchaseOrderNumber!.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                const Text('EDP PO', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold, fontSize: 12)),
+                                                Text(' (No: ${job.edpPurchaseOrderNumber})', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                                if (job.edpPurchaseOrderDate != null)
+                                                  Text(' - Date: ${DateFormat('dd-MM-yyyy').format(job.edpPurchaseOrderDate!)}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                              ],
+                                            ),
+                                          ],
                                           if ((job.receivedDate != null && job.jobType == 'New') || job.productionDate != null)
                                             Padding(
                                               padding: const EdgeInsets.only(top: 4.0),

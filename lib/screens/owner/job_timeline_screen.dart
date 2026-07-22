@@ -312,7 +312,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               ],
             ),
 
-            if (_currentJob.jobType == 'New' || _currentJob.poNotGiven == true || (_currentJob.purchaseOrderNumber != null && _currentJob.purchaseOrderNumber!.isNotEmpty)) ...[
+            if (_currentJob.jobType == 'New' || _currentJob.poNotGiven == true || (_currentJob.purchaseOrderNumber != null && _currentJob.purchaseOrderNumber!.isNotEmpty) || (_currentJob.edpPurchaseOrderNumber != null && _currentJob.edpPurchaseOrderNumber!.isNotEmpty)) ...[
               _buildSectionCard(
                 title: 'Order Details',
                 icon: Icons.receipt_long,
@@ -331,6 +331,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     _row('Purchase Order', _currentJob.purchaseOrderNumber!),
                   if (_currentJob.purchaseOrderDate != null)
                     _row('Purchase Order Date', DateFormat('dd-MM-yyyy').format(_currentJob.purchaseOrderDate!)),
+                  if (_currentJob.edpPurchaseOrderNumber != null && _currentJob.edpPurchaseOrderNumber!.isNotEmpty)
+                    _row('EDP Purchase Order', _currentJob.edpPurchaseOrderNumber!),
+                  if (_currentJob.edpPurchaseOrderDate != null)
+                    _row('EDP PO Date', DateFormat('dd-MM-yyyy').format(_currentJob.edpPurchaseOrderDate!)),
                 ],
               ),
               if ((_currentJob.wheelSize != null && _currentJob.wheelSize!.isNotEmpty) || 
