@@ -41,6 +41,8 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
     DateTime? blankReceivedDate;
     DateTime? productionDate;
     DateTime? expectedProductionDate;
+    final TextEditingController supplierPoCtrl = TextEditingController();
+    DateTime? supplierPoDate;
 
     showDialog(
       context: context,
@@ -60,6 +62,23 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                       child: InputDecorator(
                         decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
                         child: Text(blankReceivedDate != null ? DateFormat('dd-MM-yyyy').format(blankReceivedDate!) : 'Select Date'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Supplier Purchase Order Number', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: supplierPoCtrl,
+                      decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Supplier Purchase Order Date', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () => _pickDate(context, supplierPoDate, (d) => setState(() => supplierPoDate = d)),
+                      child: InputDecorator(
+                        decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+                        child: Text(supplierPoDate != null ? DateFormat('dd-MM-yyyy').format(supplierPoDate!) : 'Select Date'),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -104,11 +123,13 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                     // Update Job
                     try {
                       final updatedJob = job.copyWith(
-                        status: 'Production', // Move to production
+                        status: 'Production',
                         currentLocation: 'EDP',
                         receivedDate: blankReceivedDate,
                         productionDate: productionDate,
                         expectedProductionDate: expectedProductionDate,
+                        supplierPurchaseOrderNumber: supplierPoCtrl.text.trim().isEmpty ? null : supplierPoCtrl.text.trim(),
+                        supplierPurchaseOrderDate: supplierPoDate,
                       );
                       
                       // Call update API
@@ -420,6 +441,17 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                               Text(' (No: ${job.edpPurchaseOrderNumber})', style: const TextStyle(fontSize: 12, color: Colors.black54)),
                               if (job.edpPurchaseOrderDate != null)
                                 Text(' - Date: ${DateFormat('dd-MM-yyyy').format(job.edpPurchaseOrderDate!)}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                            ],
+                          ),
+                        ],
+                        if (job.supplierPurchaseOrderNumber != null && job.supplierPurchaseOrderNumber!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Text('Supplier PO', style: TextStyle(color: Colors.brown, fontWeight: FontWeight.bold, fontSize: 12)),
+                              Text(' (No: ${job.supplierPurchaseOrderNumber})', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                              if (job.supplierPurchaseOrderDate != null)
+                                Text(' - Date: ${DateFormat('dd-MM-yyyy').format(job.supplierPurchaseOrderDate!)}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
                             ],
                           ),
                         ],

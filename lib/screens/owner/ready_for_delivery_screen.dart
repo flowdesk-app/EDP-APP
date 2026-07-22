@@ -313,6 +313,17 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                               ],
                                             ),
                                           ],
+                                          if (job.supplierPurchaseOrderNumber != null && job.supplierPurchaseOrderNumber!.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                const Text('Supplier PO', style: TextStyle(color: Colors.brown, fontWeight: FontWeight.bold, fontSize: 12)),
+                                                Text(' (No: ${job.supplierPurchaseOrderNumber})', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                                if (job.supplierPurchaseOrderDate != null)
+                                                  Text(' - Date: ${DateFormat('dd-MM-yyyy').format(job.supplierPurchaseOrderDate!)}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                              ],
+                                            ),
+                                          ],
                                           if ((job.receivedDate != null && job.jobType == 'New') || job.productionDate != null)
                                             Padding(
                                               padding: const EdgeInsets.only(top: 4.0),

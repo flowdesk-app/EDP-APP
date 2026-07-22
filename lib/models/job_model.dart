@@ -62,6 +62,9 @@ class JobModel {
   final String? edpPurchaseOrderNumber;
   final DateTime? edpPurchaseOrderDate;
 
+  final String? supplierPurchaseOrderNumber;
+  final DateTime? supplierPurchaseOrderDate;
+
   JobModel({
     this.id,
     required this.jobId,
@@ -118,6 +121,8 @@ class JobModel {
     this.usedSpareId,
     this.edpPurchaseOrderNumber,
     this.edpPurchaseOrderDate,
+    this.supplierPurchaseOrderNumber,
+    this.supplierPurchaseOrderDate,
   });
 
   JobModel copyWith({
@@ -176,6 +181,8 @@ class JobModel {
     String? usedSpareId,
     String? edpPurchaseOrderNumber,
     DateTime? edpPurchaseOrderDate,
+    String? supplierPurchaseOrderNumber,
+    DateTime? supplierPurchaseOrderDate,
   }) {
     return JobModel(
       id: id ?? this.id,
@@ -233,6 +240,8 @@ class JobModel {
       usedSpareId: usedSpareId ?? this.usedSpareId,
       edpPurchaseOrderNumber: edpPurchaseOrderNumber ?? this.edpPurchaseOrderNumber,
       edpPurchaseOrderDate: edpPurchaseOrderDate ?? this.edpPurchaseOrderDate,
+      supplierPurchaseOrderNumber: supplierPurchaseOrderNumber ?? this.supplierPurchaseOrderNumber,
+      supplierPurchaseOrderDate: supplierPurchaseOrderDate ?? this.supplierPurchaseOrderDate,
     );
   }
 
@@ -292,6 +301,8 @@ class JobModel {
     usedSpareId: json['usedSpareId'],
     edpPurchaseOrderNumber: json['edpPurchaseOrderNumber'],
     edpPurchaseOrderDate: json['edpPurchaseOrderDate'] != null ? DateTime.parse(json['edpPurchaseOrderDate']) : null,
+    supplierPurchaseOrderNumber: json['supplierPurchaseOrderNumber'],
+    supplierPurchaseOrderDate: json['supplierPurchaseOrderDate'] != null ? DateTime.parse(json['supplierPurchaseOrderDate']) : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -350,5 +361,7 @@ class JobModel {
     'usedSpareId': usedSpareId,
     'edpPurchaseOrderNumber': edpPurchaseOrderNumber,
     'edpPurchaseOrderDate': edpPurchaseOrderDate?.toIso8601String(),
+    'supplierPurchaseOrderNumber': supplierPurchaseOrderNumber,
+    'supplierPurchaseOrderDate': supplierPurchaseOrderDate?.toIso8601String(),
   };
 }
