@@ -134,63 +134,112 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     }
     
     final ctrl = TextEditingController();
+    final qtyCtrl = TextEditingController(text: _currentJob.quantity?.toString() ?? '');
+    final chalanCtrl = TextEditingController();
+    DateTime? selectedDate = DateTime.now();
     
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Forward to Next Supplier'),
-        content: _isAdmin ? Autocomplete<String>(
-          optionsBuilder: (textEditingValue) {
-            if (textEditingValue.text.isEmpty) return _suppliers;
-            return _suppliers.where((s) => s.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-          },
-          onSelected: (selection) => ctrl.text = selection,
-          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-            controller.addListener(() => ctrl.text = controller.text);
-            return TextField(
-              controller: controller,
-              focusNode: focusNode,
-              decoration: const InputDecoration(labelText: 'Supplier Name', hintText: 'Type or select', border: OutlineInputBorder()),
-              onSubmitted: (_) => onFieldSubmitted(),
-            );
-          },
-        ) : DropdownButtonFormField<String>(
-          decoration: const InputDecoration(labelText: 'Supplier Name', border: OutlineInputBorder()),
-          items: ['EDP Production', ..._suppliers].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-          onChanged: (val) {
-            if (val != null) ctrl.text = val;
-          },
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              String val = ctrl.text.trim();
-              if (val.isEmpty) return;
-              
-              if (val.toLowerCase() == 'edp production' || val.toLowerCase() == 'edp') {
-                val = 'EDP';
-              }
-              
-              Navigator.pop(ctx);
-              setState(() => _isUpdating = true);
-              try {
-                if (_isAdmin && val != 'EDP' && !_suppliers.contains(val)) {
-                  await ApiService().addSupplier(val);
-                }
-                await ApiService().forwardJob(_currentJob.jobId, val);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $val!')));
-                _refresh();
-              } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                setState(() => _isUpdating = false);
-              }
-            },
-            child: const Text('Forward'),
-          ),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateSB) {
+          return AlertDialog(
+            title: const Text('Forward to Next Supplier'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _isAdmin ? Autocomplete<String>(
+                    optionsBuilder: (textEditingValue) {
+                      if (textEditingValue.text.isEmpty) return _suppliers;
+                      return _suppliers.where((s) => s.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                    },
+                    onSelected: (selection) => ctrl.text = selection,
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                      controller.addListener(() => ctrl.text = controller.text);
+                      return TextField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: const InputDecoration(labelText: 'Supplier Name', hintText: 'Type or select', border: OutlineInputBorder()),
+                        onSubmitted: (_) => onFieldSubmitted(),
+                      );
+                    },
+                  ) : DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Supplier Name', border: OutlineInputBorder()),
+                    items: ['EDP Production', ..._suppliers].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    onChanged: (val) {
+                      if (val != null) ctrl.text = val;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: qtyCtrl,
+                    decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: chalanCtrl,
+                    decoration: const InputDecoration(labelText: 'Delivery Chalan Number', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final dt = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (dt != null) setStateSB(() => selectedDate = dt);
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(labelText: 'Delivery Chalan Date', border: OutlineInputBorder()),
+                      child: Text(selectedDate != null ? DateFormat('dd-MM-yyyy').format(selectedDate!) : 'Select Date'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () async {
+                  String val = ctrl.text.trim();
+                  if (val.isEmpty) return;
+                  
+                  if (val.toLowerCase() == 'edp production' || val.toLowerCase() == 'edp') {
+                    val = 'EDP';
+                  }
+                  
+                  int? qty = int.tryParse(qtyCtrl.text);
+                  
+                  Navigator.pop(ctx);
+                  setState(() => _isUpdating = true);
+                  try {
+                    if (_isAdmin && val != 'EDP' && !_suppliers.contains(val)) {
+                      await ApiService().addSupplier(val);
+                    }
+                    await ApiService().forwardJob(
+                      _currentJob.jobId, 
+                      val,
+                      forwardQuantity: qty,
+                      deliveryChalanNumber: chalanCtrl.text.isEmpty ? null : chalanCtrl.text,
+                      deliveryChalanDate: selectedDate,
+                    );
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $val!')));
+                    _refresh();
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                    setState(() => _isUpdating = false);
+                  }
+                },
+                child: const Text('Forward'),
+              ),
+            ],
+          );
+        }
       ),
     );
   }
@@ -312,7 +361,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               ],
             ),
 
-            if (_currentJob.jobType == 'New' || _currentJob.poNotGiven == true || (_currentJob.purchaseOrderNumber != null && _currentJob.purchaseOrderNumber!.isNotEmpty) || (_currentJob.edpPurchaseOrderNumber != null && _currentJob.edpPurchaseOrderNumber!.isNotEmpty) || (_currentJob.supplierPurchaseOrderNumber != null && _currentJob.supplierPurchaseOrderNumber!.isNotEmpty)) ...[
+            if (_currentJob.jobType == 'New' || _currentJob.poNotGiven == true || (_currentJob.purchaseOrderNumber != null && _currentJob.purchaseOrderNumber!.isNotEmpty) || (_currentJob.edpPurchaseOrderNumber != null && _currentJob.edpPurchaseOrderNumber!.isNotEmpty) || (_currentJob.supplierPurchaseOrderNumber != null && _currentJob.supplierPurchaseOrderNumber!.isNotEmpty) || (_currentJob.deliveryChalanNumber != null && _currentJob.deliveryChalanNumber!.isNotEmpty)) ...[
               _buildSectionCard(
                 title: 'Order Details',
                 icon: Icons.receipt_long,
@@ -339,6 +388,12 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     _row('Supplier PO', _currentJob.supplierPurchaseOrderNumber!),
                   if (_currentJob.supplierPurchaseOrderDate != null)
                     _row('Supplier PO Date', DateFormat('dd-MM-yyyy').format(_currentJob.supplierPurchaseOrderDate!)),
+                  if (_currentJob.forwardQuantity != null)
+                    _row('Forward Quantity', _currentJob.forwardQuantity.toString()),
+                  if (_currentJob.deliveryChalanNumber != null && _currentJob.deliveryChalanNumber!.isNotEmpty)
+                    _row('Delivery Chalan Number', _currentJob.deliveryChalanNumber!),
+                  if (_currentJob.deliveryChalanDate != null)
+                    _row('Delivery Chalan Date', DateFormat('dd-MM-yyyy').format(_currentJob.deliveryChalanDate!)),
                 ],
               ),
               if ((_currentJob.wheelSize != null && _currentJob.wheelSize!.isNotEmpty) || 

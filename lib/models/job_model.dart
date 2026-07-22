@@ -64,6 +64,9 @@ class JobModel {
 
   final String? supplierPurchaseOrderNumber;
   final DateTime? supplierPurchaseOrderDate;
+  final int? forwardQuantity;
+  final String? deliveryChalanNumber;
+  final DateTime? deliveryChalanDate;
 
   JobModel({
     this.id,
@@ -123,6 +126,9 @@ class JobModel {
     this.edpPurchaseOrderDate,
     this.supplierPurchaseOrderNumber,
     this.supplierPurchaseOrderDate,
+    this.forwardQuantity,
+    this.deliveryChalanNumber,
+    this.deliveryChalanDate,
   });
 
   JobModel copyWith({
@@ -183,6 +189,9 @@ class JobModel {
     DateTime? edpPurchaseOrderDate,
     String? supplierPurchaseOrderNumber,
     DateTime? supplierPurchaseOrderDate,
+    int? forwardQuantity,
+    String? deliveryChalanNumber,
+    DateTime? deliveryChalanDate,
   }) {
     return JobModel(
       id: id ?? this.id,
@@ -242,6 +251,9 @@ class JobModel {
       edpPurchaseOrderDate: edpPurchaseOrderDate ?? this.edpPurchaseOrderDate,
       supplierPurchaseOrderNumber: supplierPurchaseOrderNumber ?? this.supplierPurchaseOrderNumber,
       supplierPurchaseOrderDate: supplierPurchaseOrderDate ?? this.supplierPurchaseOrderDate,
+      forwardQuantity: forwardQuantity ?? this.forwardQuantity,
+      deliveryChalanNumber: deliveryChalanNumber ?? this.deliveryChalanNumber,
+      deliveryChalanDate: deliveryChalanDate ?? this.deliveryChalanDate,
     );
   }
 
@@ -303,6 +315,9 @@ class JobModel {
     edpPurchaseOrderDate: json['edpPurchaseOrderDate'] != null ? DateTime.parse(json['edpPurchaseOrderDate']) : null,
     supplierPurchaseOrderNumber: json['supplierPurchaseOrderNumber'],
     supplierPurchaseOrderDate: json['supplierPurchaseOrderDate'] != null ? DateTime.parse(json['supplierPurchaseOrderDate']) : null,
+    forwardQuantity: json['forwardQuantity'],
+    deliveryChalanNumber: json['deliveryChalanNumber'],
+    deliveryChalanDate: json['deliveryChalanDate'] != null ? DateTime.parse(json['deliveryChalanDate']) : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -363,5 +378,8 @@ class JobModel {
     'edpPurchaseOrderDate': edpPurchaseOrderDate?.toIso8601String(),
     'supplierPurchaseOrderNumber': supplierPurchaseOrderNumber,
     'supplierPurchaseOrderDate': supplierPurchaseOrderDate?.toIso8601String(),
+    'forwardQuantity': forwardQuantity,
+    'deliveryChalanNumber': deliveryChalanNumber,
+    'deliveryChalanDate': deliveryChalanDate?.toIso8601String(),
   };
 }

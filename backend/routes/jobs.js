@@ -258,7 +258,7 @@ router.put('/:id/status', auth, async (req, res) => {
 // @route   PUT api/jobs/:id/forward
 router.put('/:id/forward', auth, async (req, res) => {
     try {
-        const { nextSupplier } = req.body;
+        const { nextSupplier, forwardQuantity, deliveryChalanNumber, deliveryChalanDate } = req.body;
         let job = await Job.findById(req.params.id).catch(() => null);
         if (!job) job = await Job.findOne({ jobId: req.params.id });
         if (!job) return res.status(404).send('Job not found');
@@ -281,12 +281,18 @@ router.put('/:id/forward', auth, async (req, res) => {
         
         job.supplierMovements.push({
             supplierName: nextSupplier,
-            sentDate: new Date()
+            sentDate: new Date(),
+            forwardQuantity: forwardQuantity,
+            deliveryChalanNumber: deliveryChalanNumber,
+            deliveryChalanDate: deliveryChalanDate
         });
 
         job.supplier = nextSupplier;
         job.destinationName = nextSupplier;
         job.destinationType = 'Supplier';
+        job.forwardQuantity = forwardQuantity;
+        job.deliveryChalanNumber = deliveryChalanNumber;
+        job.deliveryChalanDate = deliveryChalanDate;
         job.status = 'At Supplier'; // Mark it 'At Supplier' so the badge reflects where it is
         job.currentLocation = nextSupplier;
 

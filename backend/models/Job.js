@@ -64,7 +64,10 @@ const jobSchema = new mongoose.Schema({
   edpPurchaseOrderNumber: { type: String },
   edpPurchaseOrderDate: { type: Date },
   supplierPurchaseOrderNumber: { type: String },
-  supplierPurchaseOrderDate: { type: Date }
+  supplierPurchaseOrderDate: { type: Date },
+  forwardQuantity: { type: Number },
+  deliveryChalanNumber: { type: String },
+  deliveryChalanDate: { type: Date }
 }, { timestamps: true });
 
 jobSchema.index({ jobId: 1 });

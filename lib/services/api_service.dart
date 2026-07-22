@@ -330,12 +330,17 @@ class ApiService {
     }
   }
 
-  Future<void> forwardJob(String jobId, String nextSupplier) async {
+  Future<void> forwardJob(String jobId, String nextSupplier, {int? forwardQuantity, String? deliveryChalanNumber, DateTime? deliveryChalanDate}) async {
     await _loadToken();
     final res = await http.put(
       Uri.parse('$baseUrl/jobs/$jobId/forward'),
       headers: _headers,
-      body: jsonEncode({'nextSupplier': nextSupplier}),
+      body: jsonEncode({
+        'nextSupplier': nextSupplier,
+        'forwardQuantity': forwardQuantity,
+        'deliveryChalanNumber': deliveryChalanNumber,
+        'deliveryChalanDate': deliveryChalanDate?.toIso8601String(),
+      }),
     );
     if (res.statusCode >= 400) {
       throw Exception('Failed to forward job: ${res.body}');
