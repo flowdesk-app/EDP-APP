@@ -48655,7 +48655,7 @@ $S:6}
 A.awZ.prototype={
 $1(a){var s,r=a.ay,q=!1
 if(r!=="Removed")if(r!=="Closed")if(r!=="Delivered")if(r!=="Returned")if(r!=="Completed"){s=a.k1
-if(s!=="New"){if(s==="Re-coating")r=r==="Created"||r==="Arrived"||r==="Extracted"
+if(!(s==="New"&&r==="Blank Order")){if(s==="Re-coating")r=r==="Created"||r==="Arrived"||r==="Extracted"
 else r=!1
 r=!r}else r=q}else r=q
 else r=q
@@ -48792,7 +48792,7 @@ $S:330}
 A.axb.prototype={
 $1(a){var s,r=a.ay,q=!1
 if(r!=="Removed")if(r!=="Closed")if(r!=="Delivered")if(r!=="Returned")if(r!=="Completed"){s=a.k1
-if(s!=="New"){if(s==="Re-coating")r=r==="Created"||r==="Arrived"||r==="Extracted"
+if(!(s==="New"&&r==="Blank Order")){if(s==="Re-coating")r=r==="Created"||r==="Arrived"||r==="Extracted"
 else r=!1
 r=!r}else r=q}else r=q
 else r=q
@@ -49138,7 +49138,7 @@ $S:0}
 A.ayi.prototype={
 $1(a){var s,r=a.ay,q=!1
 if(r!=="Removed")if(r!=="Closed")if(r!=="Delivered")if(r!=="Returned")if(r!=="Completed"){s=a.k1
-if(s!=="New"){if(s==="Re-coating")r=r==="Created"||r==="Arrived"||r==="Extracted"
+if(!(s==="New"&&r==="Blank Order")){if(s==="Re-coating")r=r==="Created"||r==="Arrived"||r==="Extracted"
 else r=!1
 r=!r}else r=q}else r=q
 else r=q
