@@ -23,7 +23,7 @@ class RawMaterialModel {
       name: json['name'] ?? '',
       availableQuantity: (json['availableQuantity'] ?? 0).toDouble(),
       availableUnit: json['availableUnit'] ?? 'Kg',
-      minimumQuantity: json['minimumQuantity'] != null ? json['minimumQuantity'].toDouble() : null,
+      minimumQuantity: json['minimumQuantity']?.toDouble(),
       minimumUnit: json['minimumUnit'],
       gritSize: json['gritSize'],
     );
