@@ -91,4 +91,30 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// POST to use/consume a raw material
+router.post('/:id/use', auth, async (req, res) => {
+  const { quantity } = req.body;
+  if (!quantity || isNaN(quantity) || quantity <= 0) {
+    return res.status(400).json({ message: 'Invalid quantity' });
+  }
+
+  try {
+    const rawMaterial = await RawMaterial.findById(req.params.id);
+    if (!rawMaterial) {
+      return res.status(404).json({ message: 'Raw material not found' });
+    }
+
+    if (rawMaterial.availableQuantity < quantity) {
+      return res.status(400).json({ message: 'Not enough available quantity' });
+    }
+
+    rawMaterial.availableQuantity -= Number(quantity);
+    await rawMaterial.save();
+    
+    res.json(rawMaterial);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

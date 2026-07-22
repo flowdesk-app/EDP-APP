@@ -813,4 +813,16 @@ class ApiService {
       throw Exception('Failed to delete raw material: ${res.body}');
     }
   }
+
+  Future<void> useRawMaterial(String id, double quantity) async {
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/raw-materials/$id/use'),
+      headers: _headers,
+      body: jsonEncode({'quantity': quantity}),
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to use raw material: ${res.body}');
+    }
+  }
 }

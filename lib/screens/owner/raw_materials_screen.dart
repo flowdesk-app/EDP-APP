@@ -202,11 +202,129 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showUseMaterialDialog(material),
+                icon: const Icon(Icons.remove_circle_outline),
+                label: const Text('Use Material'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade50,
+                  foregroundColor: Colors.blue.shade700,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
           ],
         ),
       ),
       ),
     );
+  }
+
+  void _showUseMaterialDialog(RawMaterialModel material) {
+    if (material.id == null) return;
+    
+    final TextEditingController qtyCtrl = TextEditingController();
+    bool isSaving = false;
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Use ${material.name}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      if (material.gritSize != null && material.gritSize!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text('Grit Size: ${material.gritSize}', style: const TextStyle(color: Colors.blueGrey, fontSize: 14)),
+                      ],
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
+                        child: Text(
+                          'Available: ${material.availableQuantity} ${material.availableUnit}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: qtyCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Quantity to use (${material.availableUnit})',
+                          border: const OutlineInputBorder(),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Required';
+                          final num = double.tryParse(val);
+                          if (num == null) return 'Must be a number';
+                          if (num <= 0) return 'Must be greater than 0';
+                          if (num > material.availableQuantity) return 'Exceeds available quantity';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isSaving ? null : () async {
+                            if (!formKey.currentState!.validate()) return;
+                            
+                            setDialogState(() => isSaving = true);
+                            try {
+                              await _api.useRawMaterial(material.id!, double.parse(qtyCtrl.text));
+                              if (mounted) {
+                                Navigator.pop(context, true);
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Material used successfully')));
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                              }
+                            } finally {
+                              if (mounted) setDialogState(() => isSaving = false);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF29B6F6),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: isSaving
+                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('Confirm', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    ).then((used) {
+      if (used == true) {
+        _fetchRawMaterials();
+      }
+    });
   }
 
   @override
