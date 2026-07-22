@@ -290,12 +290,12 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
                             setDialogState(() => isSaving = true);
                             try {
                               await _api.useRawMaterial(material.id!, double.parse(qtyCtrl.text));
-                              if (mounted) {
+                              if (context.mounted) {
                                 Navigator.pop(context, true);
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Material used successfully')));
                               }
                             } catch (e) {
-                              if (mounted) {
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                               }
                             } finally {
