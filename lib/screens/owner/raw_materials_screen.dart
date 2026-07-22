@@ -142,9 +142,21 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
                           const SizedBox(width: 8),
                         ],
                         Expanded(
-                          child: Text(
-                            material.name,
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                material.name,
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                              ),
+                              if (material.gritSize != null && material.gritSize!.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Grit Size: ${material.gritSize}',
+                                  style: const TextStyle(fontSize: 14, color: Colors.blueGrey),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
@@ -183,8 +195,8 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
                     const Text('Minimum Qty', style: TextStyle(color: Colors.grey, fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(
-                      '${material.minimumQuantity} ${material.minimumUnit}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      material.minimumQuantity != null ? '${material.minimumQuantity} ${material.minimumUnit}' : 'N/A',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
                     ),
                   ],
                 ),
@@ -284,6 +296,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
   final ApiService _api = ApiService();
 
   final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _gritSizeCtrl = TextEditingController();
   final TextEditingController _availQtyCtrl = TextEditingController();
   final TextEditingController _minQtyCtrl = TextEditingController();
 
@@ -300,9 +313,10 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
     try {
       final newMaterial = RawMaterialModel(
         name: _nameCtrl.text.trim(),
+        gritSize: _gritSizeCtrl.text.trim().isEmpty ? null : _gritSizeCtrl.text.trim(),
         availableQuantity: double.parse(_availQtyCtrl.text.trim()),
         availableUnit: _availUnit,
-        minimumQuantity: double.parse(_minQtyCtrl.text.trim()),
+        minimumQuantity: _minQtyCtrl.text.trim().isEmpty ? null : double.tryParse(_minQtyCtrl.text.trim()),
         minimumUnit: _minUnit,
       );
 
@@ -336,6 +350,11 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
               controller: _nameCtrl,
               decoration: const InputDecoration(labelText: 'Raw Material Name', border: OutlineInputBorder()),
               validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _gritSizeCtrl,
+              decoration: const InputDecoration(labelText: 'Grit Size (Optional)', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 20),
             Row(
@@ -375,8 +394,9 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Minimum Quantity', border: OutlineInputBorder()),
                     validator: (val) {
-                      if (val == null || val.isEmpty) return 'Required';
-                      if (double.tryParse(val) == null) return 'Must be a number';
+                      if (val != null && val.isNotEmpty) {
+                        if (double.tryParse(val) == null) return 'Must be a number';
+                      }
                       return null;
                     },
                   ),

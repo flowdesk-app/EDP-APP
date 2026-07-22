@@ -3,20 +3,18 @@ class RawMaterialModel {
   final String name;
   final double availableQuantity;
   final String availableUnit;
-  final double minimumQuantity;
-  final String minimumUnit;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
+  final double? minimumQuantity;
+  final String? minimumUnit;
+  final String? gritSize;
 
   RawMaterialModel({
     this.id,
     required this.name,
     required this.availableQuantity,
     required this.availableUnit,
-    required this.minimumQuantity,
-    required this.minimumUnit,
-    this.createdAt,
-    this.updatedAt,
+    this.minimumQuantity,
+    this.minimumUnit,
+    this.gritSize,
   });
 
   factory RawMaterialModel.fromJson(Map<String, dynamic> json) {
@@ -25,10 +23,9 @@ class RawMaterialModel {
       name: json['name'] ?? '',
       availableQuantity: (json['availableQuantity'] ?? 0).toDouble(),
       availableUnit: json['availableUnit'] ?? 'Kg',
-      minimumQuantity: (json['minimumQuantity'] ?? 0).toDouble(),
-      minimumUnit: json['minimumUnit'] ?? 'Kg',
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      minimumQuantity: json['minimumQuantity'] != null ? json['minimumQuantity'].toDouble() : null,
+      minimumUnit: json['minimumUnit'],
+      gritSize: json['gritSize'],
     );
   }
 
@@ -37,8 +34,9 @@ class RawMaterialModel {
       'name': name,
       'availableQuantity': availableQuantity,
       'availableUnit': availableUnit,
-      'minimumQuantity': minimumQuantity,
-      'minimumUnit': minimumUnit,
+      if (minimumQuantity != null) 'minimumQuantity': minimumQuantity,
+      if (minimumUnit != null) 'minimumUnit': minimumUnit,
+      if (gritSize != null) 'gritSize': gritSize,
     };
   }
 }

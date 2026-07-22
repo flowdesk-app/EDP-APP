@@ -15,15 +15,19 @@ const rawMaterialSchema = new mongoose.Schema({
     enum: ['Kg', 'Liter', 'Numbers', 'Carat'],
     required: true,
   },
+  gritSize: {
+    type: String,
+    required: false,
+  },
   minimumQuantity: {
     type: Number,
-    required: true,
+    required: false,
     default: 0,
   },
   minimumUnit: {
     type: String,
     enum: ['Kg', 'Liter', 'Numbers', 'Carat'],
-    required: true,
+    required: false,
   }
 }, { timestamps: true });
 

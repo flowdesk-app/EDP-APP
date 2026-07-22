@@ -15,21 +15,49 @@ router.get('/', auth, async (req, res) => {
 
 // POST a new raw material
 router.post('/', auth, async (req, res) => {
-  const { name, availableQuantity, availableUnit, minimumQuantity, minimumUnit } = req.body;
+  const { name, availableQuantity, availableUnit, minimumQuantity, minimumUnit, gritSize } = req.body;
 
-  if (!name || availableQuantity == null || !availableUnit || minimumQuantity == null || !minimumUnit) {
+  if (!name || availableQuantity == null || !availableUnit) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  const rawMaterial = new RawMaterial({
-    name,
-    availableQuantity,
-    availableUnit,
-    minimumQuantity,
-    minimumUnit,
-  });
-
   try {
+    // Check if material with same name and gritSize exists
+    const query = { name: name.trim() };
+    if (gritSize) {
+      query.gritSize = gritSize.trim();
+    } else {
+      query.gritSize = { $exists: false }; // or null depending on how it's saved. Using string check:
+    }
+    
+    // Safer query for gritSize since it might be empty string or missing
+    const existingMaterial = await RawMaterial.findOne({
+      name: name.trim(),
+      $or: [
+        { gritSize: gritSize ? gritSize.trim() : { $exists: false } },
+        { gritSize: gritSize ? gritSize.trim() : "" },
+        { gritSize: gritSize ? gritSize.trim() : null }
+      ]
+    });
+
+    if (existingMaterial) {
+      // Aggregate quantity
+      existingMaterial.availableQuantity += Number(availableQuantity);
+      // We keep the existing minimumQuantity and unit.
+      const updatedMaterial = await existingMaterial.save();
+      return res.status(201).json(updatedMaterial);
+    }
+
+    // Create new
+    const rawMaterial = new RawMaterial({
+      name: name.trim(),
+      availableQuantity: Number(availableQuantity),
+      availableUnit,
+      minimumQuantity: minimumQuantity != null ? Number(minimumQuantity) : 0,
+      minimumUnit: minimumUnit || 'Kg',
+      gritSize: gritSize ? gritSize.trim() : undefined,
+    });
+
     const newRawMaterial = await rawMaterial.save();
     res.status(201).json(newRawMaterial);
   } catch (err) {
