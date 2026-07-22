@@ -141,7 +141,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setStateSB) {
+        builder: (sbContext, setStateSB) {
           return AlertDialog(
             title: const Text('Forward to Next Supplier'),
             content: SingleChildScrollView(
@@ -185,7 +185,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   InkWell(
                     onTap: () async {
                       final dt = await showDatePicker(
-                        context: context,
+                        context: sbContext,
                         initialDate: selectedDate ?? DateTime.now(),
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
