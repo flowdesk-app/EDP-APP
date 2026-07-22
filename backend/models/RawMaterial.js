@@ -17,7 +17,7 @@ const rawMaterialSchema = new mongoose.Schema({
   },
   gritSize: {
     type: String,
-    required: false,
+    required: true,
   },
   minimumQuantity: {
     type: Number,

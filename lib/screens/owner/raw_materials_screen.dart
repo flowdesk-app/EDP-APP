@@ -354,7 +354,8 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _gritSizeCtrl,
-              decoration: const InputDecoration(labelText: 'Grit Size (Optional)', border: OutlineInputBorder()),
+              decoration: const InputDecoration(labelText: 'Grit Size', border: OutlineInputBorder()),
+              validator: (val) => val == null || val.isEmpty ? 'Required' : null,
             ),
             const SizedBox(height: 20),
             Row(

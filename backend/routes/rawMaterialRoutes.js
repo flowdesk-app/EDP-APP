@@ -17,7 +17,7 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   const { name, availableQuantity, availableUnit, minimumQuantity, minimumUnit, gritSize } = req.body;
 
-  if (!name || availableQuantity == null || !availableUnit) {
+  if (!name || availableQuantity == null || !availableUnit || !gritSize) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
