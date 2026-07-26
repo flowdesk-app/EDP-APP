@@ -68,7 +68,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           _alerts = notifications.take(5).toList();
 
           _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
-          _poNotGivenCount = stats?['poNotGivenCount'] ?? 0;
+          _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
           final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
           _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
           
