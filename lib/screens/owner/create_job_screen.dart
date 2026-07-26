@@ -32,6 +32,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   final _gritSizeCtrl = TextEditingController();
   final _assignedWorkerCtrl = TextEditingController();
   DateTime? _deliveryDate;
+  DateTime _createdDate = DateTime.now();
 
   // New Flow specific states
   DateTime? _customerOrderDate;
@@ -222,7 +223,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         returnableGatePassDate: _returnableGatePassDate,
         status: 'Created',
         currentLocation: 'EDP',
-        createdDate: DateTime.now(),
+        createdDate: _createdDate,
         destinationType: 'Customer',
         destinationName: _customerNameCtrl.text.trim(),
       );
@@ -271,6 +272,81 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  Widget _buildDatePicker(String label, DateTime? selectedDate, Function(DateTime) onDateSelected) {
+    return InkWell(
+      onTap: () async {
+        final dt = await showDatePicker(
+          context: context,
+          initialDate: selectedDate ?? DateTime.now(),
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+        );
+        if (dt != null) onDateSelected(dt);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              selectedDate == null ? 'Select Date' : DateFormat('dd-MM-yyyy').format(selectedDate),
+              style: TextStyle(color: selectedDate == null ? Colors.grey.shade600 : Colors.black87, fontSize: 16),
+            ),
+            Icon(Icons.calendar_today, color: Colors.grey.shade600, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreatedDateSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Job Created Date', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        InkWell(
+          onTap: () async {
+            final now = DateTime.now();
+            final dt = await showDatePicker(
+              context: context,
+              initialDate: _createdDate,
+              firstDate: DateTime(now.year, now.month - 1, now.day),
+              lastDate: DateTime(now.year, now.month + 1, now.day),
+            );
+            if (dt != null) {
+              setState(() {
+                _createdDate = dt;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(4),
+              color: Colors.white,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormat('dd-MM-yyyy').format(_createdDate),
+                  style: const TextStyle(color: Colors.black87, fontSize: 16),
+                ),
+                Icon(Icons.calendar_today, color: Colors.grey.shade600, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _pickDate(BuildContext context, DateTime? initialDate, Function(DateTime) onPicked) async {
@@ -470,7 +546,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         poNotGiven: _purchaseOrderReceived == false,
         status: 'Blank Order',
         currentLocation: 'EDP',
-        createdDate: DateTime.now(),
+        createdDate: _createdDate,
         sentToSpare: false,
         usedSpareId: null,
       );
@@ -497,6 +573,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildCreatedDateSelector(),
+          const SizedBox(height: 16),
           _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
           const SizedBox(height: 12),
           _buildAutocomplete(_partNumberCtrl, 'Part Number', _getSuggestions('Part Number')),
@@ -616,6 +694,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         isActive: _currentStep >= 0,
         content: Column(
           children: [
+            _buildCreatedDateSelector(),
+            const SizedBox(height: 16),
             _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
             const SizedBox(height: 12),
             InkWell(

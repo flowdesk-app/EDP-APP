@@ -45,9 +45,12 @@ router.post('/', auth, async (req, res) => {
             payload.supplierChain = [];
         }
         const newJob = new Job({ ...payload, createdBy: req.user.id, initialDestinationName: payload.destinationName });
+        if (payload.createdAt) {
+            newJob.createdAt = new Date(payload.createdAt);
+        }
         newJob.statusHistory = [{
             status: 'Created',
-            date: new Date(),
+            date: newJob.createdAt || new Date(),
             location: 'EDP'
         }];
         const job = await newJob.save();
