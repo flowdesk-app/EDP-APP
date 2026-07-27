@@ -17,7 +17,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadMasterData();
   }
 
@@ -111,12 +111,17 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildSection(jobType, 'Customer Names', 'Customer Name'),
-        _buildSection(jobType, 'Part Numbers', 'Part Number'),
-        _buildSection(jobType, 'Descriptions', 'Description'),
-        if (jobType == 'New') _buildSection(jobType, 'Diamond Powder Grit Sizes', 'Grit Size'),
-        if (jobType == 'Re-coating') _buildSection(jobType, 'Grit Sizes', 'Grit Size'),
-        _buildSection(jobType, 'Persons Responsible', 'Person Responsible'),
+        if (jobType != 'Raw Material') ...[
+          _buildSection(jobType, 'Customer Names', 'Customer Name'),
+          _buildSection(jobType, 'Part Numbers', 'Part Number'),
+          _buildSection(jobType, 'Descriptions', 'Description'),
+          if (jobType == 'New') _buildSection(jobType, 'Diamond Powder Grit Sizes', 'Grit Size'),
+          if (jobType == 'Re-coating') _buildSection(jobType, 'Grit Sizes', 'Grit Size'),
+          _buildSection(jobType, 'Persons Responsible', 'Person Responsible'),
+        ] else ...[
+          _buildSection(jobType, 'Raw Material Names', 'Raw Material Name'),
+          _buildSection(jobType, 'Grit Sizes', 'Grit Size'),
+        ],
       ],
     );
   }
@@ -138,6 +143,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
           tabs: const [
             Tab(text: 'New Jobs'),
             Tab(text: 'Re-coating Jobs'),
+            Tab(text: 'Raw Materials'),
           ],
         ),
       ),
@@ -146,6 +152,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
         children: [
           _buildTabContent('New'),
           _buildTabContent('Re-coating'),
+          _buildTabContent('Raw Material'),
         ],
       ),
     );

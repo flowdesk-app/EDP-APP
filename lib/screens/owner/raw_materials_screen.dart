@@ -421,8 +421,67 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
   String _availUnit = 'Kg';
   String _minUnit = 'Kg';
   bool _isSaving = false;
+  bool _isLoadingMasterData = true;
+  List<Map<String, dynamic>> _masterData = [];
 
   final List<String> _units = ['Kg', 'Litre', 'Numbers', 'Carat'];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMasterData();
+  }
+
+  Future<void> _fetchMasterData() async {
+    try {
+      final data = await _api.getMasterData();
+      if (mounted) setState(() => _masterData = data);
+    } catch (e) {
+      debugPrint('Error fetching master data: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingMasterData = false);
+    }
+  }
+
+  List<String> _getSuggestions(String fieldKey) {
+    return _masterData
+        .where((m) => m['jobType'] == 'Raw Material' && m['field'] == fieldKey)
+        .map((m) => m['value'].toString())
+        .toSet()
+        .toList();
+  }
+
+  Widget _buildAutocomplete(TextEditingController ctrl, String label, List<String> options, {bool required = false}) {
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) return options;
+        return options.where((String option) => option.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+      },
+      onSelected: (String selection) {
+        ctrl.text = selection;
+      },
+      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+        textEditingController.addListener(() {
+          if (ctrl.text != textEditingController.text) {
+             ctrl.text = textEditingController.text;
+          }
+        });
+        if (textEditingController.text.isEmpty && ctrl.text.isNotEmpty) {
+           textEditingController.text = ctrl.text;
+        }
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+          ),
+          validator: required ? (val) => val == null || val.isEmpty ? 'Required' : null : null,
+          onFieldSubmitted: (_) => onFieldSubmitted(),
+        );
+      },
+    );
+  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -464,16 +523,12 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
           children: [
             const Text('Add Raw Material', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: 'Raw Material Name', border: OutlineInputBorder()),
-              validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-            ),
+            _isLoadingMasterData
+                ? const Center(child: CircularProgressIndicator())
+                : _buildAutocomplete(_nameCtrl, 'Raw Material Name', _getSuggestions('Raw Material Name'), required: true),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _gritSizeCtrl,
-              decoration: const InputDecoration(labelText: 'Grit Size (Optional)', border: OutlineInputBorder()),
-            ),
+            if (!_isLoadingMasterData)
+              _buildAutocomplete(_gritSizeCtrl, 'Grit Size (Optional)', _getSuggestions('Grit Size')),
             const SizedBox(height: 20),
             Row(
               children: [

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const RawMaterial = require('../models/RawMaterial');
 const Notification = require('../models/Notification');
+const MasterData = require('../models/MasterData');
 const auth = require('../middleware/auth');
 
 // GET all raw materials
@@ -58,7 +59,26 @@ router.post('/', auth, async (req, res) => {
       }
       
       const updatedMaterial = await existingMaterial.save();
-      return res.status(201).json(updatedMaterial);
+      
+      // Save Master Data for Raw Material
+      try {
+        await MasterData.updateOne(
+          { jobType: 'Raw Material', field: 'Raw Material Name', value: name.trim() },
+          { $set: { jobType: 'Raw Material', field: 'Raw Material Name', value: name.trim() } },
+          { upsert: true }
+        );
+        if (gritSize && gritSize.trim() !== '') {
+          await MasterData.updateOne(
+            { jobType: 'Raw Material', field: 'Grit Size', value: gritSize.trim() },
+            { $set: { jobType: 'Raw Material', field: 'Grit Size', value: gritSize.trim() } },
+            { upsert: true }
+          );
+        }
+      } catch (err) {
+        console.error('Error saving raw material master data:', err);
+      }
+
+      return res.status(200).json(updatedMaterial);
     }
 
     // Create new
@@ -71,8 +91,27 @@ router.post('/', auth, async (req, res) => {
       gritSize: gritSize ? gritSize.trim() : undefined,
     });
 
-    const newRawMaterial = await rawMaterial.save();
-    res.status(201).json(newRawMaterial);
+    const savedMaterial = await rawMaterial.save();
+    
+    // Save Master Data for Raw Material
+    try {
+      await MasterData.updateOne(
+        { jobType: 'Raw Material', field: 'Raw Material Name', value: name.trim() },
+        { $set: { jobType: 'Raw Material', field: 'Raw Material Name', value: name.trim() } },
+        { upsert: true }
+      );
+      if (gritSize && gritSize.trim() !== '') {
+        await MasterData.updateOne(
+          { jobType: 'Raw Material', field: 'Grit Size', value: gritSize.trim() },
+          { $set: { jobType: 'Raw Material', field: 'Grit Size', value: gritSize.trim() } },
+          { upsert: true }
+        );
+      }
+    } catch (err) {
+      console.error('Error saving raw material master data:', err);
+    }
+
+    res.status(201).json(savedMaterial);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
