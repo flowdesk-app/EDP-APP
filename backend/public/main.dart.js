@@ -48825,10 +48825,13 @@ $1(a){var s=a.ay
 return s==="Created"||s==="Arrived"||s==="Extracted"},
 $S:6}
 A.axc.prototype={
-$1(a){var s,r=a.ay
-if(r==="Removed"||r==="Closed"||r==="Delivered"||r==="Returned"||r==="Completed")return!1
+$1(a){var s,r,q=a.ay
+if(q==="Removed"||q==="Closed"||q==="Delivered"||q==="Returned"||q==="Completed")return!1
 r=a.ch
 if(r==="EDP Spare")return!1
+if(a.k1==="Re-coating")q=q==="Created"||q==="Arrived"||q==="Extracted"
+else q=!1
+if(q)return!1
 s=r.toLowerCase()
 if(J.d(s,"edp")||J.d(s,"edp production")||J.ce(s)===0)return!0
 if(J.d(s,"skmt"))return!0
@@ -48954,14 +48957,17 @@ r=A.db(new A.axC(s,q),null,t.z)
 A.ae(this.b,!1).cR(r).br(new A.axD(s),t.H)},
 $S:0}
 A.axB.prototype={
-$1(a){var s,r=a.ay
-if(r==="Removed"||r==="Closed"||r==="Delivered"||r==="Returned"||r==="Completed")return!1
-r=a.ch
-if(r==="EDP Spare")return!1
-s=r.toLowerCase()
-if(s==="edp"||s==="edp production"||s.length===0)return!0
-if(s==="skmt")return!0
-if(this.a.w.n(0,s))return!0
+$1(a){var s,r,q=a.ay
+if(q==="Removed"||q==="Closed"||q==="Delivered"||q==="Returned"||q==="Completed")return!1
+s=a.ch
+if(s==="EDP Spare")return!1
+if(a.k1==="Re-coating")q=q==="Created"||q==="Arrived"||q==="Extracted"
+else q=!1
+if(q)return!1
+r=s.toLowerCase()
+if(r==="edp"||r==="edp production"||r.length===0)return!0
+if(r==="skmt")return!0
+if(this.a.w.n(0,r))return!0
 return!1},
 $S:6}
 A.axC.prototype={

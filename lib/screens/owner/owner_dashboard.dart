@@ -75,6 +75,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           bool isValidProductionJob(JobModel j) {
             if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
             if (j.currentLocation == 'EDP Spare') return false;
+            if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
 
             final loc = j.currentLocation.toLowerCase();
             if (loc == 'edp' || loc == 'edp production' || loc.isEmpty) return true;
@@ -257,6 +258,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                         final validJobs = _currentJobs.where((j) {
                           if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
                           if (j.currentLocation == 'EDP Spare') return false;
+                          if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
 
                           final loc = j.currentLocation.toLowerCase();
                           if (loc == 'edp' || loc == 'edp production' || loc.isEmpty) return true;
