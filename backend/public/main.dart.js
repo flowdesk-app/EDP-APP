@@ -49318,15 +49318,13 @@ s=A.V(s,s.$ti.i("y.E"))
 q.w=s},
 $S:0}
 A.ays.prototype={
-$1(a){var s,r,q,p=a.ay
-if(p==="Removed"||p==="Closed"||p==="Delivered"||p==="Returned"||p==="Completed")return!1
+$1(a){var s,r,q=a.ay
+if(q==="Removed"||q==="Closed"||q==="Delivered"||q==="Returned"||q==="Completed")return!1
 r=a.ch
 if(r==="EDP Spare")return!1
-q=a.k1
-if(q==="New"&&p==="Blank Order")return!1
-if(q==="Re-coating")p=p==="Created"||p==="Arrived"||p==="Extracted"
-else p=!1
-if(p)return!1
+if(a.k1==="Re-coating")q=q==="Created"||q==="Arrived"||q==="Extracted"
+else q=!1
+if(q)return!1
 s=r.toLowerCase()
 if(J.d(s,"edp")||J.d(s,"edp production")||J.ce(s)===0)return!0
 if(J.d(s,"skmt"))return!0
