@@ -159,7 +159,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       return;
     }
     if (_deliveryDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Delivery Date is required')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expected Delivery Date is required')));
       return;
     }
 
@@ -750,7 +750,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             InkWell(
               onTap: () => _pickDate(context, _deliveryDate, (d) => setState(() => _deliveryDate = d)),
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Delivery Date', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Expected Delivery Date', border: OutlineInputBorder()),
                 child: Text(_deliveryDate != null ? DateFormat('dd-MM-yyyy').format(_deliveryDate!) : 'Select Date'),
               ),
             ),
@@ -816,7 +816,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               const SizedBox(height: 8),
               Text('Person Responsible: ${_assignedWorkerCtrl.text}'),
               const SizedBox(height: 8),
-              Text('Delivery Date: ${_deliveryDate != null ? DateFormat('dd-MM-yyyy').format(_deliveryDate!) : "Not Set"}'),
+              Text('Expected Delivery Date: ${_deliveryDate != null ? DateFormat('dd-MM-yyyy').format(_deliveryDate!) : "Not Set"}'),
             ],
           ),
         ),
