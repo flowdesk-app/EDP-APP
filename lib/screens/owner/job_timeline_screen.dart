@@ -142,6 +142,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (sbContext, setStateSB) {
+          final isExternal = ctrl.text.trim().toLowerCase() != 'edp production' && ctrl.text.trim().toLowerCase() != 'edp';
           return AlertDialog(
             title: const Text('Forward to Next Supplier'),
             content: SingleChildScrollView(
@@ -153,21 +154,34 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                       if (textEditingValue.text.isEmpty) return _suppliers;
                       return _suppliers.where((s) => s.toLowerCase().contains(textEditingValue.text.toLowerCase()));
                     },
-                    onSelected: (selection) => ctrl.text = selection,
+                    onSelected: (selection) {
+                      ctrl.text = selection;
+                      setStateSB(() {});
+                    },
                     fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                      controller.addListener(() => ctrl.text = controller.text);
                       return TextField(
                         controller: controller,
                         focusNode: focusNode,
                         decoration: const InputDecoration(labelText: 'Supplier Name', hintText: 'Type or select', border: OutlineInputBorder()),
-                        onSubmitted: (_) => onFieldSubmitted(),
+                        onChanged: (val) {
+                          ctrl.text = val;
+                          setStateSB(() {});
+                        },
+                        onSubmitted: (_) {
+                          ctrl.text = controller.text;
+                          setStateSB(() {});
+                          onFieldSubmitted();
+                        },
                       );
                     },
                   ) : DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Supplier Name', border: OutlineInputBorder()),
                     items: ['EDP Production', ..._suppliers].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                     onChanged: (val) {
-                      if (val != null) ctrl.text = val;
+                      if (val != null) {
+                        ctrl.text = val;
+                        setStateSB(() {});
+                      }
                     },
                   ),
                   const SizedBox(height: 12),
@@ -176,27 +190,29 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: chalanCtrl,
-                    decoration: const InputDecoration(labelText: 'Delivery Chalan Number', border: OutlineInputBorder()),
-                  ),
-                  const SizedBox(height: 12),
-                  InkWell(
-                    onTap: () async {
-                      final dt = await showDatePicker(
-                        context: sbContext,
-                        initialDate: selectedDate ?? DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (dt != null) setStateSB(() => selectedDate = dt);
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(labelText: 'Delivery Chalan Date', border: OutlineInputBorder()),
-                      child: Text(selectedDate != null ? DateFormat('dd-MM-yyyy').format(selectedDate!) : 'Select Date'),
+                  if (isExternal) ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: chalanCtrl,
+                      decoration: const InputDecoration(labelText: 'Delivery Chalan Number', border: OutlineInputBorder()),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final dt = await showDatePicker(
+                          context: sbContext,
+                          initialDate: selectedDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (dt != null) setStateSB(() => selectedDate = dt);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(labelText: 'Delivery Chalan Date', border: OutlineInputBorder()),
+                        child: Text(selectedDate != null ? DateFormat('dd-MM-yyyy').format(selectedDate!) : 'Select Date'),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
