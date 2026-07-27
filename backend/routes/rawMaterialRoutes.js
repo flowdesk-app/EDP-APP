@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const RawMaterial = require('../models/RawMaterial');
+const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 
 // GET all raw materials
@@ -110,6 +111,19 @@ router.post('/:id/use', auth, async (req, res) => {
 
     rawMaterial.availableQuantity -= Number(quantity);
     await rawMaterial.save();
+    
+    // Create Low Stock Alert if applicable
+    if (rawMaterial.minimumQuantity != null && rawMaterial.availableQuantity < rawMaterial.minimumQuantity) {
+      const alertKey = `rawMaterial_low_${rawMaterial._id}`;
+      const existingAlert = await Notification.findOne({ alertKey, read: false, isDeleted: false });
+      if (!existingAlert) {
+        await Notification.create({
+          message: `Low Stock Alert: ${rawMaterial.name} is running low (${rawMaterial.availableQuantity} ${rawMaterial.availableUnit} remaining, minimum is ${rawMaterial.minimumQuantity} ${rawMaterial.minimumUnit}).`,
+          type: 'info',
+          alertKey
+        });
+      }
+    }
     
     res.json(rawMaterial);
   } catch (err) {
