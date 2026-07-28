@@ -31,7 +31,7 @@ class _SpareToExtractionScreenState extends State<SpareToExtractionScreen> {
       return;
     }
     if (_expectedExtractionDateCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expected Extraction Date is required')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expected Extraction Completion Date is required')));
       return;
     }
 
@@ -123,7 +123,7 @@ class _SpareToExtractionScreenState extends State<SpareToExtractionScreen> {
                   readOnly: true,
                   onTap: () => _selectDate(_expectedExtractionDateCtrl),
                   decoration: const InputDecoration(
-                    labelText: 'Expected Extraction Date',
+                    labelText: 'Expected Extraction Completion Date',
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),

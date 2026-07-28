@@ -483,7 +483,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 icon: Icons.event,
                 children: [
                   if (_currentJob.expectedExtractionDate != null)
-                    _row('Expected Extraction Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedExtractionDate!)),
+                    _row('Expected Extraction Completion Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedExtractionDate!)),
                   if (_currentJob.expectedProductionDate != null)
                     _row('Expected Production Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedProductionDate!)),
                 ],
@@ -587,7 +587,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       return;
     }
     if (_expectedExtractionDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Extraction Date')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Extraction Completion Date')));
       return;
     }
     setState(() => _isUpdating = true);
@@ -682,7 +682,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Expected Extraction Date', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Expected Extraction Completion Date', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () async {
