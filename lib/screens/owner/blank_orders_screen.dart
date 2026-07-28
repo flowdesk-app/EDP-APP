@@ -65,14 +65,14 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Supplier Purchase Order Number', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Supplier Invoice Number', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     TextField(
                       controller: supplierPoCtrl,
                       decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Supplier Purchase Order Date', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Supplier Invoice Date', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () => _pickDate(context, supplierPoDate, (d) => setState(() => supplierPoDate = d)),
