@@ -92,7 +92,7 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Expected Production Date', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Expected Production Completion Date', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () => _pickDate(context, expectedProductionDate, (d) => setState(() => expectedProductionDate = d)),

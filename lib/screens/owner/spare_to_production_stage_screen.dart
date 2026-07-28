@@ -37,7 +37,7 @@ class _SpareToProductionStageScreenState extends State<SpareToProductionStageScr
       return;
     }
     if (_expectedProductionDateCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expected Production Date is required')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expected Production Completion Date is required')));
       return;
     }
 
@@ -145,7 +145,7 @@ class _SpareToProductionStageScreenState extends State<SpareToProductionStageScr
                   readOnly: true,
                   onTap: () => _selectDate(_expectedProductionDateCtrl),
                   decoration: const InputDecoration(
-                    labelText: 'Expected Production Date',
+                    labelText: 'Expected Production Completion Date',
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),

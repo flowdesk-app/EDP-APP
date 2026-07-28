@@ -389,7 +389,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   if (_currentJob.jobType == 'New' && _currentJob.productionDate != null)
                     _row('Production Date', DateFormat('dd-MM-yyyy').format(_currentJob.productionDate!)),
                   if (_currentJob.jobType == 'New' && _currentJob.expectedProductionDate != null)
-                    _row('Expected Production Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedProductionDate!)),
+                    _row('Expected Production Completion Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedProductionDate!)),
                   if (_currentJob.poNotGiven == true)
                     _row('Purchase Order', 'Not Given')
                   else if (_currentJob.purchaseOrderNumber != null && _currentJob.purchaseOrderNumber!.isNotEmpty)
@@ -485,7 +485,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   if (_currentJob.expectedExtractionDate != null)
                     _row('Expected Extraction Completion Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedExtractionDate!)),
                   if (_currentJob.expectedProductionDate != null)
-                    _row('Expected Production Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedProductionDate!)),
+                    _row('Expected Production Completion Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedProductionDate!)),
                 ],
               ),
             if (_currentJob.status == 'Delivered' || _currentJob.status == 'Closed')
@@ -742,7 +742,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       return;
     }
     if (_expectedProductionDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Production Date')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Production Completion Date')));
       return;
     }
     setState(() => _isUpdating = true);
@@ -1086,7 +1086,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(_expectedProductionDate == null ? 'Select Expected Production Date' : DateFormat('dd-MM-yyyy').format(_expectedProductionDate!)),
+                          Text(_expectedProductionDate == null ? 'Select Expected Production Completion Date' : DateFormat('dd-MM-yyyy').format(_expectedProductionDate!)),
                           const Icon(Icons.calendar_today, size: 16),
                         ],
                       ),
