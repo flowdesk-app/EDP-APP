@@ -439,22 +439,6 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
               onPressed: _selectDate,
             ),
             const SizedBox(width: 12),
-            
-            // Supplier Filter
-            DropdownButton<String>(
-              hint: const Text('Supplier'),
-              value: _selectedSupplier,
-              items: [
-                if (_selectedSupplier != null && !_suppliers.any((s) => s.supplierName == _selectedSupplier))
-                  DropdownMenuItem(value: _selectedSupplier, child: Text(_selectedSupplier!)),
-                ..._suppliers.map((s) => DropdownMenuItem(value: s.supplierName, child: Text(s.supplierName)))
-              ],
-              onChanged: (val) {
-                setState(() => _selectedSupplier = val);
-                _fetchJobs();
-              },
-            ),
-            const SizedBox(width: 12),
 
             // Status Filter
             DropdownButton<String>(
@@ -474,7 +458,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
               child: TextField(
                 controller: _partNumberCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Part #',
+                  hintText: 'Part # / Customer',
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),

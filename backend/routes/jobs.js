@@ -544,7 +544,12 @@ router.get('/filter', auth, async (req, res) => {
             query.createdAt = { $gte: start, $lte: end };
         }
         if (supplier) query.supplier = supplier;
-        if (partNumber) query.partNumber = partNumber;
+        if (partNumber) {
+            query.$or = [
+                { partNumber: { $regex: partNumber, $options: 'i' } },
+                { customerName: { $regex: partNumber, $options: 'i' } }
+            ];
+        }
         if (status) {
             query.status = status;
         } else {
@@ -568,7 +573,8 @@ router.get('/search', auth, async (req, res) => {
         const jobs = await Job.find({
             $or: [
                 { jobId: { $regex: q, $options: 'i' } },
-                { partNumber: { $regex: q, $options: 'i' } }
+                { partNumber: { $regex: q, $options: 'i' } },
+                { customerName: { $regex: q, $options: 'i' } }
             ]
         }).sort({ createdAt: -1 });
         res.json(jobs);
