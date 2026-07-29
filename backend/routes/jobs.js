@@ -215,13 +215,13 @@ router.put('/:id/status', auth, async (req, res) => {
                 // Automatically determine current location based on status mapping
                 if (status === 'Dispatched' || status === 'At Supplier') {
                     job.currentLocation = job.destinationName;
-                } else if (status === 'Returned') {
+                } else if (status === 'Returned' || status === 'Extracted' || status === 'Production' || status === 'Delivery') {
                     job.currentLocation = 'EDP';
                 } else if (status === 'Delivered') {
                     job.currentLocation = job.destinationName;
                 } else if (status === 'Closed') {
                     job.currentLocation = 'Delivered';
-                } else if (status === 'Created') {
+                } else if (status === 'Created' || status === 'Blank Order' || status === 'PO Not Given') {
                     job.currentLocation = 'EDP';
                 }
             }
@@ -234,6 +234,76 @@ router.put('/:id/status', auth, async (req, res) => {
                 date: new Date(),
                 location: job.currentLocation
             });
+        }
+
+        // Job Merge Logic: if returning/staying at EDP, find sibling and merge
+        if (job.currentLocation === 'EDP' && (job.originalJobId || job.jobId)) {
+            const baseJobId = job.originalJobId || job.jobId;
+            let matchingJob = await Job.findOne({
+                _id: { $ne: job._id },
+                $or: [{ jobId: baseJobId }, { originalJobId: baseJobId }],
+                currentLocation: 'EDP',
+                partNumber: job.partNumber // ensure it's actually the same part
+            });
+
+            if (matchingJob) {
+                // Determine survivor and victim to try preserving the original jobId
+                let survivor = matchingJob;
+                let victim = job;
+
+                // if 'job' is the original, it should be the survivor
+                if (!job.originalJobId || job.jobId === job.originalJobId) {
+                    survivor = job;
+                    victim = matchingJob;
+                }
+
+                // If survivor is the one already in DB, we need to apply 'job' changes to it?
+                // Actually, if 'job' is returning, it's just arriving. 'survivor' might already be there.
+                // We just add quantity.
+                survivor.quantity += victim.quantity;
+
+                if (victim.supplierMovements && victim.supplierMovements.length > 0) {
+                    if (!survivor.supplierMovements) survivor.supplierMovements = [];
+                    survivor.supplierMovements.push(...victim.supplierMovements);
+                    survivor.supplierMovements.sort((a, b) => new Date(a.sentDate) - new Date(b.sentDate));
+                }
+
+                if (victim.statusHistory && victim.statusHistory.length > 0) {
+                    if (!survivor.statusHistory) survivor.statusHistory = [];
+                    survivor.statusHistory.push(...victim.statusHistory);
+                    survivor.statusHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+
+                // Apply the incoming status updates to the survivor as well
+                survivor.status = job.status;
+                if (extractionDate) survivor.extractionDate = extractionDate;
+                if (expectedExtractionDate) survivor.expectedExtractionDate = expectedExtractionDate;
+                if (extractionCompletedDate) survivor.extractionCompletedDate = extractionCompletedDate;
+                if (productionDate) survivor.productionDate = productionDate;
+                if (expectedProductionDate) survivor.expectedProductionDate = expectedProductionDate;
+                survivor.currentLocation = job.currentLocation;
+
+                await Job.findByIdAndDelete(victim._id);
+                
+                // If survivor is the incoming 'job', we just continue and it will save below.
+                // If survivor is the 'matchingJob', we save it and return it now.
+                if (survivor._id.toString() === matchingJob._id.toString()) {
+                    await survivor.save();
+                    await AuditLog.create({
+                        userId: req.user.id,
+                        action: 'Job Merged',
+                        details: { mergedJobId: victim.jobId, intoJobId: survivor.jobId, newQuantity: survivor.quantity }
+                    });
+                    return res.json(survivor);
+                } else {
+                    // 'job' is the survivor, we updated its quantity, it will save below.
+                    await AuditLog.create({
+                        userId: req.user.id,
+                        action: 'Job Merged',
+                        details: { mergedJobId: victim.jobId, intoJobId: survivor.jobId, newQuantity: survivor.quantity }
+                    });
+                }
+            }
         }
 
         await job.save();
@@ -266,58 +336,82 @@ router.put('/:id/forward', auth, async (req, res) => {
         if (!job) job = await Job.findOne({ jobId: req.params.id });
         if (!job) return res.status(404).send('Job not found');
 
-        if (!job.supplierChain || job.supplierChain.length === 0) {
-            job.supplierChain = job.supplier ? [job.supplier] : [];
+        const fwdQty = parseInt(forwardQuantity, 10);
+        let activeJob = job;
+
+        // Split logic if forwarding partial quantity
+        if (fwdQty > 0 && fwdQty < job.quantity) {
+            // Reduce original job quantity and save it
+            job.quantity -= fwdQty;
+            await job.save();
+
+            // Clone to create activeJob
+            const jobObj = job.toObject();
+            delete jobObj._id;
+            delete jobObj.createdAt;
+            delete jobObj.updatedAt;
+            delete jobObj.__v;
+            
+            // Give it a unique jobId suffix
+            jobObj.originalJobId = job.originalJobId || job.jobId;
+            jobObj.jobId = jobObj.jobId + '-' + Math.floor(1000 + Math.random() * 9000);
+            jobObj.quantity = fwdQty;
+            
+            activeJob = new Job(jobObj);
+        }
+
+        if (!activeJob.supplierChain || activeJob.supplierChain.length === 0) {
+            activeJob.supplierChain = activeJob.supplier ? [activeJob.supplier] : [];
         }
         // Filter out empty strings if any, then push
-        job.supplierChain = job.supplierChain.filter(s => s);
-        job.supplierChain.push(nextSupplier);
+        activeJob.supplierChain = activeJob.supplierChain.filter(s => s);
+        activeJob.supplierChain.push(nextSupplier);
 
         // Track Supplier Movements
-        if (!job.supplierMovements) job.supplierMovements = [];
-        if (job.supplierMovements.length > 0) {
-            const lastMovement = job.supplierMovements[job.supplierMovements.length - 1];
+        if (!activeJob.supplierMovements) activeJob.supplierMovements = [];
+        if (activeJob.supplierMovements.length > 0) {
+            const lastMovement = activeJob.supplierMovements[activeJob.supplierMovements.length - 1];
             if (!lastMovement.receivedDate) {
                 lastMovement.receivedDate = new Date();
             }
         }
         
-        job.supplierMovements.push({
-            senderName: job.currentLocation || 'EDP Production',
+        activeJob.supplierMovements.push({
+            senderName: activeJob.currentLocation || 'EDP Production',
             supplierName: nextSupplier,
             sentDate: new Date(),
-            forwardQuantity: forwardQuantity,
+            forwardQuantity: fwdQty,
             deliveryChalanNumber: deliveryChalanNumber,
             deliveryChalanDate: deliveryChalanDate
         });
 
-        job.supplier = nextSupplier;
-        job.destinationName = nextSupplier;
-        job.destinationType = 'Supplier';
-        job.forwardQuantity = forwardQuantity;
-        job.deliveryChalanNumber = deliveryChalanNumber;
-        job.deliveryChalanDate = deliveryChalanDate;
-        job.status = 'At Supplier'; // Mark it 'At Supplier' so the badge reflects where it is
-        job.currentLocation = nextSupplier;
+        activeJob.supplier = nextSupplier;
+        activeJob.destinationName = nextSupplier;
+        activeJob.destinationType = 'Supplier';
+        activeJob.forwardQuantity = fwdQty;
+        activeJob.deliveryChalanNumber = deliveryChalanNumber;
+        activeJob.deliveryChalanDate = deliveryChalanDate;
+        activeJob.status = 'At Supplier'; // Mark it 'At Supplier' so the badge reflects where it is
+        activeJob.currentLocation = nextSupplier;
 
-        if (!job.statusHistory) {
-            job.statusHistory = [];
+        if (!activeJob.statusHistory) {
+            activeJob.statusHistory = [];
         }
-        job.statusHistory.push({
+        activeJob.statusHistory.push({
             status: 'Forwarded to ' + nextSupplier,
             date: new Date(),
-            location: job.currentLocation
+            location: activeJob.currentLocation
         });
 
-        await job.save();
+        await activeJob.save();
 
         await AuditLog.create({
             userId: req.user.id,
             action: 'Job Forwarded',
-            details: { jobId: job.jobId, nextSupplier }
+            details: { jobId: activeJob.jobId, nextSupplier, forwardedQty: fwdQty }
         });
 
-        res.json(job);
+        res.json(activeJob);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
