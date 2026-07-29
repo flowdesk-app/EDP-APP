@@ -528,6 +528,59 @@ router.put('/:id/undo', auth, async (req, res) => {
             }
         }
 
+        // Job Merge Logic on Undo: if returning to EDP, find sibling and merge
+        if (job.currentLocation === 'EDP' && (job.originalJobId || job.jobId)) {
+            const baseJobId = job.originalJobId || job.jobId;
+            let matchingJob = await Job.findOne({
+                _id: { $ne: job._id },
+                $or: [{ jobId: baseJobId }, { originalJobId: baseJobId }],
+                currentLocation: 'EDP',
+                partNumber: job.partNumber
+            });
+
+            if (matchingJob) {
+                let survivor = matchingJob;
+                let victim = job;
+
+                if (!job.originalJobId || job.jobId === job.originalJobId) {
+                    survivor = job;
+                    victim = matchingJob;
+                }
+
+                survivor.quantity += victim.quantity;
+
+                if (victim.supplierMovements && victim.supplierMovements.length > 0) {
+                    if (!survivor.supplierMovements) survivor.supplierMovements = [];
+                    survivor.supplierMovements.push(...victim.supplierMovements);
+                    survivor.supplierMovements.sort((a, b) => new Date(a.sentDate) - new Date(b.sentDate));
+                }
+
+                if (victim.statusHistory && victim.statusHistory.length > 0) {
+                    if (!survivor.statusHistory) survivor.statusHistory = [];
+                    survivor.statusHistory.push(...victim.statusHistory);
+                    survivor.statusHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+
+                // Apply reverted status to survivor if victim was the incoming 'job'
+                survivor.status = job.status;
+                survivor.currentLocation = job.currentLocation;
+                if (job.supplierChain) survivor.supplierChain = job.supplierChain;
+                if (job.supplier) survivor.supplier = job.supplier;
+
+                await Job.findByIdAndDelete(victim._id);
+
+                if (survivor._id.toString() === matchingJob._id.toString()) {
+                    await survivor.save();
+                    await AuditLog.create({
+                        userId: req.user.id,
+                        action: 'Job Undo & Merged',
+                        details: { mergedJobId: victim.jobId, intoJobId: survivor.jobId, newQuantity: survivor.quantity }
+                    });
+                    return res.json(survivor);
+                }
+            }
+        }
+
         await job.save();
 
         await AuditLog.create({

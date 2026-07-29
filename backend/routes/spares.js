@@ -147,6 +147,40 @@ router.put('/:id/consume', auth, async (req, res) => {
     }
 });
 
+// @route   PUT api/spares/:id/undo
+// @desc    Undo last status/supplier update
+router.put('/:id/undo', auth, async (req, res) => {
+    try {
+        const spare = await Spare.findById(req.params.id);
+        if (!spare) return res.status(404).json({ msg: 'Spare not found' });
+        
+        if (!spare.history || spare.history.length <= 1) {
+            return res.status(400).json({ msg: 'No previous state to revert to' });
+        }
+        
+        spare.history.pop();
+        const previousState = spare.history[spare.history.length - 1];
+        
+        // previousState.supplier usually stores 'EDP Spare Production' or 'SKMT' etc
+        if (previousState.supplier === 'EDP Spare Production') {
+            spare.currentSupplier = 'EDP';
+        } else {
+            spare.currentSupplier = previousState.supplier;
+        }
+        
+        // What about status? We didn't track status in history explicitly, 
+        // but 'currentSupplier' update is the main thing they want to undo.
+        // If status was changed, we might need to revert it based on some logic,
+        // but for now, reverting currentSupplier is what they asked for ("accidentally send to SKMT").
+        
+        await spare.save();
+        res.json(spare);
+    } catch (err) {
+        console.error("PUT /spares/:id/undo Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   DELETE api/spares/:id
 // @desc    Delete a spare entirely
 router.delete('/:id', auth, async (req, res) => {

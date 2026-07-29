@@ -132,6 +132,36 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
     }
   }
 
+  Future<void> _undoJob(JobModel job) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Undo Last Action'),
+        content: const Text('Are you sure you want to revert this job to its previous state?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('Undo', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isRefreshing = true);
+      try {
+        await _api.undoJobStatus(job.jobId);
+        await _refreshJobs();
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isRefreshing = false);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to undo: $e')));
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -310,6 +340,16 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           _buildInfo('Date', DateFormat('dd-MMM-yyyy').format(job.createdDate)),
+                                          if (job.status != 'Created') ...[
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              icon: const Icon(Icons.undo, color: Colors.blueGrey, size: 20),
+                                              onPressed: () => _undoJob(job),
+                                              tooltip: 'Undo Last Action',
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                       const SizedBox(height: 12),

@@ -774,6 +774,17 @@ class ApiService {
     }
   }
 
+  Future<void> undoSpareStatus(String spareId) async {
+    await _loadToken();
+    final res = await http.put(
+      Uri.parse('$baseUrl/spares/$spareId/undo'),
+      headers: {'x-auth-token': _token!},
+    );
+    if (res.statusCode != 200) {
+      throw Exception('Failed to undo spare: ${res.body}');
+    }
+  }
+
   Future<void> consumeSpare(String spareId, int quantity, String targetJobId) async {
     await _loadToken();
     final res = await http.put(

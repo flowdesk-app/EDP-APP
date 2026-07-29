@@ -116,6 +116,36 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     }
   }
 
+  Future<void> _undoSpare(Map<String, dynamic> spare) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Undo Last Action'),
+        content: const Text('Are you sure you want to revert this spare to its previous state?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('Undo', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      try {
+        await _api.undoSpareStatus(spare['_id']);
+        await _loadSpares();
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to undo: $e')));
+        }
+      }
+    }
+  }
+
   Widget _buildSpareCard(Map<String, dynamic> spare, bool isBlank) {
     final date = spare['createdAt'] != null ? DateTime.parse(spare['createdAt']) : null;
     final cardContent = Card(
@@ -193,7 +223,21 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
             if (date != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text('Added: ${DateFormat('dd-MM-yyyy').format(date)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                child: Row(
+                  children: [
+                    Text('Added: ${DateFormat('dd-MM-yyyy').format(date)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    if (spare['history'] != null && (spare['history'] as List).length > 1) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.undo, color: Colors.blueGrey, size: 20),
+                        onPressed: () => _undoSpare(spare),
+                        tooltip: 'Undo Last Action',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ],
+                ),
               ),
           ],
         ),
