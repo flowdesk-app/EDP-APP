@@ -21,6 +21,7 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
   final TextEditingController _partNumberCtrl = TextEditingController();
   final TextEditingController _invoiceCtrl = TextEditingController();
   final TextEditingController _inspectionCtrl = TextEditingController();
+  final TextEditingController _customerCtrl = TextEditingController();
   bool _isEditing = false;
   final Set<String> _selectedJobIds = {};
 
@@ -41,18 +42,21 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
       final queryPart = _partNumberCtrl.text.trim().toLowerCase();
       final queryInv = _invoiceCtrl.text.trim().toLowerCase();
       final queryIns = _inspectionCtrl.text.trim().toLowerCase();
+      final queryCust = _customerCtrl.text.trim().toLowerCase();
       final deliveredJobs = jobs.where((j) {
         if (j.status != 'Delivered' && j.status != 'Closed') return false;
         
         final partNo = j.partNumber?.toLowerCase() ?? '';
         final invNo = j.invoiceNumber?.toLowerCase() ?? '';
         final insNo = j.inspectionReportNumber?.toLowerCase() ?? '';
+        final custName = j.customerName?.toLowerCase() ?? '';
         
         bool matchesPart = queryPart.isEmpty || partNo.contains(queryPart);
         bool matchesInv = queryInv.isEmpty || invNo.contains(queryInv);
         bool matchesIns = queryIns.isEmpty || insNo.contains(queryIns);
+        bool matchesCust = queryCust.isEmpty || custName.contains(queryCust);
         
-        return matchesPart && matchesInv && matchesIns;
+        return matchesPart && matchesInv && matchesIns && matchesCust;
       }).toList();
           
       setState(() => _jobs = deliveredJobs);
@@ -181,6 +185,21 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                     controller: _inspectionCtrl,
                     decoration: InputDecoration(
                       hintText: 'Inspection Report...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      filled: true,
+                      fillColor: const Color(0xFFF8F9FA),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    ),
+                    onSubmitted: (_) => _fetchJobs(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _customerCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Customer Name...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       filled: true,
                       fillColor: const Color(0xFFF8F9FA),
@@ -343,6 +362,7 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
     _partNumberCtrl.dispose();
     _invoiceCtrl.dispose();
     _inspectionCtrl.dispose();
+    _customerCtrl.dispose();
     super.dispose();
   }
 }
