@@ -107,7 +107,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
     );
     if (picked != null) {
       setState(() {
-        _selectedDate = DateFormat('dd-MM-yyyy').format(picked);
+        _selectedDate = DateFormat('yyyy-MM-dd').format(picked);
         _selectedMonth = null; // Clear month if date is selected
       });
       _fetchJobs();

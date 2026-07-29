@@ -106,7 +106,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     );
     if (picked != null) {
       setState(() {
-        _selectedDate = DateFormat('dd-MM-yyyy').format(picked);
+        _selectedDate = DateFormat('yyyy-MM-dd').format(picked);
         _selectedMonth = null;
       });
       _load();
