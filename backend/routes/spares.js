@@ -3,6 +3,7 @@ const router = express.Router();
 const Spare = require('../models/Spare');
 const Job = require('../models/Job');
 const JobMovement = require('../models/JobMovement');
+const MasterData = require('../models/MasterData');
 const auth = require('../middleware/auth');
 
 // @route   POST api/spares
@@ -30,6 +31,25 @@ router.post('/', auth, async (req, res) => {
         // If it came from a job, mark it as sentToSpare
         if (sourceJobId) {
             await Job.findOneAndUpdate({ jobId: sourceJobId }, { sentToSpare: true });
+        }
+        
+        // Save to MasterData for suggestions
+        const type = jobType || 'Re-coating';
+        const fieldsToSave = [
+            { field: 'Part Number', value: partNumber },
+            { field: 'Description', value: description },
+            { field: 'Grit Size', value: gritSize },
+            { field: 'Person Responsible', value: personResponsible }
+        ];
+
+        for (let f of fieldsToSave) {
+            if (f.value && f.value.trim() !== '') {
+                await MasterData.updateOne(
+                    { jobType: type, field: f.field, value: f.value.trim() },
+                    { $set: { jobType: type, field: f.field, value: f.value.trim() } },
+                    { upsert: true }
+                ).catch(e => console.error('Error saving master data for spare:', e));
+            }
         }
         
         res.json(savedSpare);

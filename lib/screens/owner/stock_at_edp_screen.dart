@@ -21,6 +21,11 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
   bool _isEditing = false;
   final Set<String> _selectedSpareIds = {};
 
+  List<String> _partNumbers = [];
+  List<String> _descriptions = [];
+  List<String> _gritSizes = [];
+  List<String> _persons = [];
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +35,23 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       setState(() {});
     });
     _loadSpares();
+    _loadMasterData();
+  }
+
+  Future<void> _loadMasterData() async {
+    try {
+      final data = await _api.getMasterData();
+      if (mounted) {
+        setState(() {
+          _partNumbers = data.where((m) => m['jobType'] == widget.jobType && m['field'] == 'Part Number').map((m) => m['value'].toString()).toList();
+          _descriptions = data.where((m) => m['jobType'] == widget.jobType && m['field'] == 'Description').map((m) => m['value'].toString()).toList();
+          _gritSizes = data.where((m) => m['jobType'] == widget.jobType && m['field'] == 'Grit Size').map((m) => m['value'].toString()).toList();
+          _persons = data.where((m) => m['jobType'] == widget.jobType && m['field'] == 'Person Responsible').map((m) => m['value'].toString()).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading master data: $e');
+    }
   }
 
   Future<void> _loadSpares() async {
@@ -242,11 +264,43 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: partCtrl, decoration: const InputDecoration(labelText: 'Part Number')),
+              Autocomplete<String>(
+                optionsBuilder: (v) => _partNumbers.where((p) => p.toLowerCase().contains(v.text.toLowerCase())),
+                onSelected: (sel) => partCtrl.text = sel,
+                fieldViewBuilder: (ctx, ctrl, node, onSub) {
+                  ctrl.text = partCtrl.text;
+                  ctrl.addListener(() { partCtrl.text = ctrl.text; });
+                  return TextField(controller: ctrl, focusNode: node, decoration: const InputDecoration(labelText: 'Part Number'));
+                },
+              ),
               TextField(controller: qtyCtrl, decoration: const InputDecoration(labelText: 'Quantity'), keyboardType: TextInputType.number),
-              TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
-              TextField(controller: gritCtrl, decoration: const InputDecoration(labelText: 'Grit Size')),
-              TextField(controller: personCtrl, decoration: const InputDecoration(labelText: 'Person Responsible')),
+              Autocomplete<String>(
+                optionsBuilder: (v) => _descriptions.where((p) => p.toLowerCase().contains(v.text.toLowerCase())),
+                onSelected: (sel) => descCtrl.text = sel,
+                fieldViewBuilder: (ctx, ctrl, node, onSub) {
+                  ctrl.text = descCtrl.text;
+                  ctrl.addListener(() { descCtrl.text = ctrl.text; });
+                  return TextField(controller: ctrl, focusNode: node, decoration: const InputDecoration(labelText: 'Description'));
+                },
+              ),
+              Autocomplete<String>(
+                optionsBuilder: (v) => _gritSizes.where((p) => p.toLowerCase().contains(v.text.toLowerCase())),
+                onSelected: (sel) => gritCtrl.text = sel,
+                fieldViewBuilder: (ctx, ctrl, node, onSub) {
+                  ctrl.text = gritCtrl.text;
+                  ctrl.addListener(() { gritCtrl.text = ctrl.text; });
+                  return TextField(controller: ctrl, focusNode: node, decoration: const InputDecoration(labelText: 'Grit Size'));
+                },
+              ),
+              Autocomplete<String>(
+                optionsBuilder: (v) => _persons.where((p) => p.toLowerCase().contains(v.text.toLowerCase())),
+                onSelected: (sel) => personCtrl.text = sel,
+                fieldViewBuilder: (ctx, ctrl, node, onSub) {
+                  ctrl.text = personCtrl.text;
+                  ctrl.addListener(() { personCtrl.text = ctrl.text; });
+                  return TextField(controller: ctrl, focusNode: node, decoration: const InputDecoration(labelText: 'Person Responsible'));
+                },
+              ),
               TextField(
                 controller: dateCtrl,
                 decoration: const InputDecoration(labelText: 'Expected Completion Date', suffixIcon: Icon(Icons.calendar_today)),
