@@ -6,7 +6,7 @@ import '../../models/lead_model.dart';
 import 'package:intl/intl.dart';
 import 'spare_at_edp_tabs_screen.dart';
 
-enum FlowType { none, newJob, recoating }
+enum FlowType { none, newJob, recoating, strip, lappingCompound }
 
 class CreateJobScreen extends StatefulWidget {
   final String? initialCustomerName;
@@ -77,7 +77,10 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   }
 
   List<String> _getSuggestions(String field) {
-    final jobType = _flowType == FlowType.newJob ? 'New' : 'Re-coating';
+    String jobType = 'Re-coating';
+    if (_flowType == FlowType.newJob) jobType = 'New';
+    else if (_flowType == FlowType.strip) jobType = 'Strip';
+    else if (_flowType == FlowType.lappingCompound) jobType = 'Lapping Compound';
     return _masterData
         .where((m) => m['jobType'] == jobType && m['field'] == field)
         .map((m) => m['value'].toString())
@@ -172,8 +175,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       return;
     }
     
-    // Additional fields for recoating
-    if (_flowType == FlowType.recoating || widget.initialCustomerName != null) {
+    // Returnable gate pass fields only required for Re-coating, Strip, Lapping Compound
+    if (_flowType != FlowType.newJob || widget.initialCustomerName != null) {
       if (_receivedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Received Date is required')));
         return;
@@ -200,11 +203,16 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     try {
       final generatedJobId = 'JOB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
       
+      String jobType = 'Re-coating';
+      if (_flowType == FlowType.newJob) jobType = 'New';
+      else if (_flowType == FlowType.strip) jobType = 'Strip';
+      else if (_flowType == FlowType.lappingCompound) jobType = 'Lapping Compound';
+      
       final job = JobModel(
         jobId: generatedJobId,
         partNumber: _partNumberCtrl.text.trim(),
         quantity: int.tryParse(_quantityCtrl.text.trim()),
-        jobType: widget.initialCustomerName != null ? 'New' : (_flowType == FlowType.newJob ? 'New' : 'Re-coating'),
+        jobType: jobType,
         customerName: _customerNameCtrl.text.trim(),
         wheelSize: _wheelSizeCtrl.text.trim(),
         diamondPowderGritSize: _gritSizeCtrl.text.trim(),
@@ -467,18 +475,29 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 48),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Wrap(
+                  spacing: 24,
+                  runSpacing: 24,
+                  alignment: WrapAlignment.center,
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: 200,
                       child: _buildJobTypeCard('New', Icons.fiber_new, Colors.blue, () => setState(() => _flowType = FlowType.newJob)),
                     ),
-                    const SizedBox(width: 24),
-                    Expanded(
+                    SizedBox(
+                      width: 200,
                       child: _buildJobTypeCard('Re-coating', Icons.build, Colors.orange, () => setState(() => _flowType = FlowType.recoating)),
                     ),
-                    const SizedBox(width: 24),
-                    Expanded(
+                    SizedBox(
+                      width: 200,
+                      child: _buildJobTypeCard('Strip', Icons.layers_clear, Colors.red, () => setState(() => _flowType = FlowType.strip)),
+                    ),
+                    SizedBox(
+                      width: 200,
+                      child: _buildJobTypeCard('Lapping Compound', Icons.science, Colors.teal, () => setState(() => _flowType = FlowType.lappingCompound)),
+                    ),
+                    SizedBox(
+                      width: 200,
                       child: _buildJobTypeCard('Use from Spare', Icons.inventory_2, Colors.purple, () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareAtEdpTabsScreen()));
                       }),
