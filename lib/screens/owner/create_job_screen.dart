@@ -418,6 +418,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
+        height: 220,
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -481,23 +482,23 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   alignment: WrapAlignment.center,
                   children: [
                     SizedBox(
-                      width: 200,
+                      width: 220,
                       child: _buildJobTypeCard('New', Icons.fiber_new, Colors.blue, () => setState(() => _flowType = FlowType.newJob)),
                     ),
                     SizedBox(
-                      width: 200,
+                      width: 220,
                       child: _buildJobTypeCard('Re-coating', Icons.build, Colors.orange, () => setState(() => _flowType = FlowType.recoating)),
                     ),
                     SizedBox(
-                      width: 200,
+                      width: 220,
                       child: _buildJobTypeCard('Strip', Icons.layers_clear, Colors.red, () => setState(() => _flowType = FlowType.strip)),
                     ),
                     SizedBox(
-                      width: 200,
+                      width: 220,
                       child: _buildJobTypeCard('Lapping Compound', Icons.science, Colors.teal, () => setState(() => _flowType = FlowType.lappingCompound)),
                     ),
                     SizedBox(
-                      width: 200,
+                      width: 220,
                       child: _buildJobTypeCard('Use from Spare', Icons.inventory_2, Colors.purple, () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareAtEdpTabsScreen()));
                       }),
