@@ -6,7 +6,7 @@ import '../../models/lead_model.dart';
 import 'package:intl/intl.dart';
 import 'spare_at_edp_tabs_screen.dart';
 
-enum FlowType { none, newJob, recoating, strip, lappingCompound }
+enum FlowType { none, newJob, recoating, coating, lappingCompound }
 
 class CreateJobScreen extends StatefulWidget {
   final String? initialCustomerName;
@@ -79,7 +79,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   List<String> _getSuggestions(String field) {
     String jobType = 'Re-coating';
     if (_flowType == FlowType.newJob) jobType = 'New';
-    else if (_flowType == FlowType.strip) jobType = 'Strip';
+    else if (_flowType == FlowType.coating) jobType = 'Coating';
     else if (_flowType == FlowType.lappingCompound) jobType = 'Lapping Compound';
     return _masterData
         .where((m) => m['jobType'] == jobType && m['field'] == field)
@@ -175,7 +175,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       return;
     }
     
-    // Returnable gate pass fields only required for Re-coating, Strip, Lapping Compound
+    // Returnable gate pass fields only required for Re-coating, Coating, Lapping Compound
     if (_flowType != FlowType.newJob || widget.initialCustomerName != null) {
       if (_receivedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Received Date is required')));
@@ -205,7 +205,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       
       String jobType = 'Re-coating';
       if (_flowType == FlowType.newJob) jobType = 'New';
-      else if (_flowType == FlowType.strip) jobType = 'Strip';
+      else if (_flowType == FlowType.coating) jobType = 'Coating';
       else if (_flowType == FlowType.lappingCompound) jobType = 'Lapping Compound';
       
       final job = JobModel(
@@ -491,7 +491,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                     ),
                     SizedBox(
                       width: 220,
-                      child: _buildJobTypeCard('Strip', Icons.layers_clear, Colors.red, () => setState(() => _flowType = FlowType.strip)),
+                      child: _buildJobTypeCard('Coating', Icons.layers_clear, Colors.red, () => setState(() => _flowType = FlowType.coating)),
                     ),
                     SizedBox(
                       width: 220,
