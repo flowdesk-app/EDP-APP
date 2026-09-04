@@ -33,6 +33,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   int _recoatingJobs = 0;
   int _productionJobs = 0;
   int _readyForDeliveryJobs = 0;
+  int _coatingArrivedCount = 0;
   int _blankOrders = 0;
   int _poNotGivenCount = 0;
 
@@ -69,6 +70,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
           final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
           _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
+          _coatingArrivedCount = jobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).length;
           
           bool isValidProductionJob(JobModel j) {
             if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
@@ -257,6 +259,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                           if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
                           if (j.currentLocation == 'EDP Spare') return false;
                           if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+                          if (j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')) return false;
 
                           final loc = j.currentLocation.toLowerCase();
                           if (loc == 'edp' || loc == 'edp production' || loc.isEmpty) return true;
@@ -269,6 +272,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                       }),
                       _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, Colors.green, () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),
                       _buildStatCard('EDP Spare Production', 0, Icons.settings_suggest, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareProductionDashboardScreen()))),
+                      _buildStatCard('Coating Arrived', _coatingArrivedCount, Icons.layers, Colors.brown, () => _navToFiltered('Coating Arrived', _currentJobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).toList())),
                     ],
                   ),
                 ],
