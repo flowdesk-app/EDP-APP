@@ -48982,13 +48982,17 @@ s=s==="Created"||s==="Arrived"}else s=!1
 return s},
 $S:6}
 A.axw.prototype={
-$1(a){var s,r,q=a.ay
-if(q==="Removed"||q==="Closed"||q==="Delivered"||q==="Returned"||q==="Completed")return!1
+$1(a){var s,r,q,p,o=a.ay
+if(o==="Removed"||o==="Closed"||o==="Delivered"||o==="Returned"||o==="Completed")return!1
 r=a.ch
 if(r==="EDP Spare")return!1
-if(a.k1==="Re-coating")q=q==="Created"||q==="Arrived"||q==="Extracted"
-else q=!1
-if(q)return!1
+q=a.k1
+if(q==="Re-coating")p=o==="Created"||o==="Arrived"||o==="Extracted"
+else p=!1
+if(p)return!1
+if(q==="Coating")o=o==="Created"||o==="Arrived"
+else o=!1
+if(o)return!1
 s=r.toLowerCase()
 if(J.d(s,"edp")||J.d(s,"edp production")||J.cb(s)===0)return!0
 if(J.d(s,"skmt"))return!0
