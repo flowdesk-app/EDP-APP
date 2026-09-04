@@ -282,36 +282,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     }
   }
 
-  Widget _buildDatePicker(String label, DateTime? selectedDate, Function(DateTime) onDateSelected) {
-    return InkWell(
-      onTap: () async {
-        final dt = await showDatePicker(
-          context: context,
-          initialDate: selectedDate ?? DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
-        );
-        if (dt != null) onDateSelected(dt);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              selectedDate == null ? 'Select Date' : DateFormat('dd-MM-yyyy').format(selectedDate),
-              style: TextStyle(color: selectedDate == null ? Colors.grey.shade600 : Colors.black87, fontSize: 16),
-            ),
-            Icon(Icons.calendar_today, color: Colors.grey.shade600, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildCreatedDateSelector() {
     return Column(

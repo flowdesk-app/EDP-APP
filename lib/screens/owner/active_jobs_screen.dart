@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
-import '../../models/supplier_model.dart';
+
 import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../models/user_model.dart';
