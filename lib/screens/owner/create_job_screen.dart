@@ -78,9 +78,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
   List<String> _getSuggestions(String field) {
     String jobType = 'Re-coating';
-    if (_flowType == FlowType.newJob) jobType = 'New';
-    else if (_flowType == FlowType.coating) jobType = 'Coating';
-    else if (_flowType == FlowType.lappingCompound) jobType = 'Lapping Compound';
+    if (_flowType == FlowType.newJob) { jobType = 'New'; }
+    else if (_flowType == FlowType.coating) { jobType = 'Coating'; }
+    else if (_flowType == FlowType.lappingCompound) { jobType = 'Lapping Compound'; }
     return _masterData
         .where((m) => m['jobType'] == jobType && m['field'] == field)
         .map((m) => m['value'].toString())
@@ -204,9 +204,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       final generatedJobId = 'JOB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
       
       String jobType = 'Re-coating';
-      if (_flowType == FlowType.newJob) jobType = 'New';
-      else if (_flowType == FlowType.coating) jobType = 'Coating';
-      else if (_flowType == FlowType.lappingCompound) jobType = 'Lapping Compound';
+      if (_flowType == FlowType.newJob) { jobType = 'New'; }
+      else if (_flowType == FlowType.coating) { jobType = 'Coating'; }
+      else if (_flowType == FlowType.lappingCompound) { jobType = 'Lapping Compound'; }
       
       final job = JobModel(
         jobId: generatedJobId,

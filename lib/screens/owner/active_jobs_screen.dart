@@ -22,7 +22,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<JobModel> _jobs = [];
-  List<SupplierModel> _suppliers = [];
+
 
   bool _isEditing = false;
   final Set<String> _selectedJobIds = {};
@@ -48,8 +48,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      final suppliers = await _api.getSuppliers();
-      setState(() => _suppliers = suppliers);
+
       await _fetchJobs();
     } catch (e) {
       debugPrint('Error loading data: $e');

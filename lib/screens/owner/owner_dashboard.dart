@@ -53,9 +53,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     setState(() => _loading = true);
     try {
       final jobs = await _api.getFilteredJobs(month: _selectedMonth, date: _selectedDate);
-      final stats = _selectedDate != null 
-        ? await _api.getDashboardDateStats(_selectedDate!) 
-        : await _api.getDashboardMonthStats(_selectedMonth!);
+
       final suppliers = await _api.getSuppliers();
       final supplierNames = suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
       
