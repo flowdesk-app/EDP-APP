@@ -41,7 +41,7 @@ const jobSchema = new mongoose.Schema({
     deliveryChalanDate: { type: Date }
   }],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  jobType: { type: String, enum: ['New', 'Re-coating'] },
+  jobType: { type: String, enum: ['New', 'Re-coating', 'Coating', 'Lapping Compound'] },
   customerName: { type: String },
   wheelSize: { type: String },
   diamondPowderGritSize: { type: String },
