@@ -370,9 +370,9 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 _row('Part Number', _currentJob.partNumber ?? _currentJob.customerName ?? 'N/A'),
                 _row('Customer Name', _currentJob.customerName ?? 'N/A'),
                 _row('Quantity', '${_currentJob.quantity ?? 0} units'),
-                _row('Status', (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status),
+                _row('Status', ((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status),
                 _row('Location', _currentJob.currentLocation),
-                if (_currentJob.negotiationDone != null && _currentJob.jobType != 'Re-coating')
+                if (_currentJob.negotiationDone != null && _currentJob.jobType == 'New')
                   _row('Negotiation', _currentJob.negotiationDone! ? 'Yes' : 'No'),
               ],
             ),
@@ -502,9 +502,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               ),
             if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Created')
               _buildExtractionProcessUI(),
-            if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Extracted')
+            if ((_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Extracted') ||
+                (_currentJob.jobType == 'Coating' && (_currentJob.status == 'Created' || _currentJob.status == 'Arrived')))
               _buildExtractionCompletedUI(),
-            if ((_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && _currentJob.status != 'Delivered' && _currentJob.status != 'Closed' && _currentJob.status != 'Completed' && (_currentJob.status != 'Returned' || ((_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) - (_currentJob.returnedQuantity ?? 0) > 0)))
+            if ((_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && (_currentJob.jobType != 'Coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Arrived')) && _currentJob.status != 'Delivered' && _currentJob.status != 'Closed' && _currentJob.status != 'Completed' && (_currentJob.status != 'Returned' || ((_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) - (_currentJob.returnedQuantity ?? 0) > 0)))
               Padding(
                 padding: const EdgeInsets.only(top: 24),
                 child: Row(
@@ -873,7 +874,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_currentJob.jobType != 'Re-coating') ...[
+            if (_currentJob.jobType == 'New') ...[
               const Text('Extraction Complete Options', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 16),
               Row(
@@ -938,7 +939,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 child: Divider(thickness: 1),
               ),
             ],
-            if (_currentJob.jobType != 'Re-coating' && _currentJob.sentToSpare && _currentJob.usedSpareId == null)
+            if (_currentJob.jobType == 'New' && _currentJob.sentToSpare && _currentJob.usedSpareId == null)
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(8)),

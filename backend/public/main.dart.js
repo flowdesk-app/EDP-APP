@@ -47686,10 +47686,11 @@ p=r.k2
 p=m.cr("Customer Name",p==null?"N/A":p)
 o=r.d
 o=m.cr("Quantity",""+(o==null?0:o)+" units")
-r=A.b([q,p,o,m.cr("Status",r.k1==="Re-coating"&&r.ay==="Created"?"Arrived":r.ay),m.cr("Location",r.ch)],s)
+n=r.k1
+r=A.b([q,p,o,m.cr("Status",(n==="Re-coating"||n==="Coating")&&r.ay==="Created"?"Arrived":r.ay),m.cr("Location",r.ch)],s)
 q=m.e
 p=q.R8
-if(p!=null&&q.k1!=="Re-coating")r.push(m.cr("Negotiation",p?"Yes":"No"))
+if(p!=null&&q.k1==="New")r.push(m.cr("Negotiation",p?"Yes":"No"))
 r=A.b([m.oL(r,B.jE,"General Information")],s)
 q=m.e
 p=!0
@@ -47800,11 +47801,18 @@ q.push(m.cr("Delivered Quantity",""+(p==null?0:p)+" units"))
 r.push(m.oL(q,B.e8,"Delivery Information"))}q=m.e
 if(q.k1==="Re-coating"&&q.ay==="Created")r.push(m.aaO())
 q=m.e
-if(q.k1==="Re-coating"&&q.ay==="Extracted")r.push(m.aaN())
+p=q.k1
+if(!(p==="Re-coating"&&q.ay==="Extracted"))if(p==="Coating"){q=q.ay
+q=q==="Created"||q==="Arrived"}else q=!1
+else q=!0
+if(q)r.push(m.aaN())
 q=m.e
-if(q.k1==="Re-coating"){p=q.ay
-p=p!=="Created"&&p!=="Extracted"}else p=!0
-o=!1
+p=q.k1
+if(p==="Re-coating"){o=q.ay
+o=o!=="Created"&&o!=="Extracted"}else o=!0
+n=!1
+if(o){if(p==="Coating"){p=q.ay
+p=p!=="Created"&&p!=="Arrived"}else p=!0
 if(p){p=q.ay
 if(p!=="Delivered")if(p!=="Closed")if(p!=="Completed")if(p==="Returned"){p=q.d
 if(p==null)p=0
@@ -47813,9 +47821,9 @@ if(o==null)o=0
 q=q.x
 if(q==null)q=0
 q=p-o-q>0}else q=!0
-else q=o
-else q=o
-else q=o}else q=o
+else q=n
+else q=n
+else q=n}else q=n}else q=n
 if(q){q=A.cB(l,l,B.dv,l,l,l,l,l,l,B.f,l,l,B.bs,l,new A.aU(A.af(8),B.q),l,l,l,l,l)
 p=m.d
 o=p?B.fF:B.na
@@ -48020,7 +48028,7 @@ case 2:return A.o(o.at(-1),r)}})
 return A.q($async$Bu,r)},
 aaN(){var s,r,q,p,o,n,m,l=this,k=null,j="dd-MM-yyyy",i=A.af(12),h=A.fx(B.dx,1),g=t.p,f=A.b([],g),e=l.e
 e===$&&A.a()
-if(e.k1!=="Re-coating"){e=l.d||e.Y
+if(e.k1==="New"){e=l.d||e.Y
 s=t.t_
 e=e?A.b([B.e_,B.j_],s):A.b([B.Jt,B.Ko],s)
 r=A.af(14)
@@ -48035,7 +48043,7 @@ r=A.af(14)
 q=l.d||l.e.a3!=null?A.b([],p):A.b([new A.b1(0,B.N,B.el.cH(0.4),B.fr,10)],p)
 p=A.cB(k,k,B.B,k,k,k,k,k,k,k,k,k,k,B.B,new A.aU(A.af(14),B.q),k,k,k,k,k)
 B.b.M(f,A.b([B.a5I,B.R,A.ad(A.b([e,B.bE,A.av(A.b2(k,A.i2(B.NJ,B.a6G,l.d||l.e.a3!=null?k:l.gapb(),p),B.o,k,k,new A.aR(k,k,k,r,q,new A.iS(B.h6,B.ln,B.cg,s,k,k),B.A),k,52,k,k,k,k,k),1)],g),B.m,B.i,B.h,0),B.Vk],g))}e=l.e
-if(e.k1!=="Re-coating"&&e.Y&&e.a3==null){e=A.af(8)
+if(e.k1==="New"&&e.Y&&e.a3==null){e=A.af(8)
 g=A.b([B.NC,B.bE,B.Ms],g)
 if(l.d)g.push(B.Z5)
 else g.push(A.bS(B.a7a,l.gaqd(),A.RL(k,k,B.qx,k,k,k,k,k,k,k,k,k,B.hE,k,new A.aU(A.af(8),B.q),k,k,k,k,k)))
