@@ -212,22 +212,24 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> with SingleTick
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _showUseMaterialDialog(material),
-                  icon: const Icon(Icons.remove_circle_outline),
-                  label: const Text('Use Material', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    elevation: 2,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              if (material.category != 'Lapping Compound') ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showUseMaterialDialog(material),
+                    icon: const Icon(Icons.remove_circle_outline),
+                    label: const Text('Use Material', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
