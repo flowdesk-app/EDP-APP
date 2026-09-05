@@ -268,13 +268,22 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                         ],
                                       ),
                                       const Divider(height: 24),
-                                      Row(
-                                        children: [
-                                          Expanded(child: _buildInfo('Part Number', job.partNumber ?? 'N/A')),
-                                          Expanded(child: _buildInfo('Quantity', '${job.quantity ?? 0}')),
-                                          Expanded(child: _buildInfo('Available', '${(job.status == 'Delivered' || job.status == 'Closed') && job.deliveredQuantity == null ? 0 : (job.quantity ?? 0) - (job.deliveredQuantity ?? 0) - (job.returnedQuantity ?? 0)}')),
-                                        ],
-                                      ),
+                                      if (job.jobType == 'Lapping Compound')
+                                        Row(
+                                          children: [
+                                            Expanded(child: _buildInfo('Concentration', job.highConcentration ?? 'N/A')),
+                                            Expanded(child: _buildInfo('Syringe Qty', '${job.syringeQuantity ?? 0}')),
+                                            Expanded(child: _buildInfo('Base Type', job.baseType ?? 'N/A')),
+                                          ],
+                                        )
+                                      else
+                                        Row(
+                                          children: [
+                                            Expanded(child: _buildInfo('Part Number', job.partNumber ?? 'N/A')),
+                                            Expanded(child: _buildInfo('Quantity', '${job.quantity ?? 0}')),
+                                            Expanded(child: _buildInfo('Available', '${(job.status == 'Delivered' || job.status == 'Closed') && job.deliveredQuantity == null ? 0 : (job.quantity ?? 0) - (job.deliveredQuantity ?? 0) - (job.returnedQuantity ?? 0)}')),
+                                          ],
+                                        ),
                                       const SizedBox(height: 12),
                                       Row(
                                         crossAxisAlignment: CrossAxisAlignment.end,

@@ -337,7 +337,7 @@ class JobModel {
     microns: json['microns'],
     micronColor: json['micronColor'],
     micronSize: json['micronSize'],
-    syringeQuantity: json['syringeQuantity'],
+    syringeQuantity: (json['syringeQuantity'] as num?)?.toInt(),
     baseType: json['baseType'],
     purchaseOrderReceived: json['purchaseOrderReceived'],
     purchaseOrderNumber: json['purchaseOrderNumber'],
