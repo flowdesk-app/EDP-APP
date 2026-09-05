@@ -98,6 +98,46 @@ router.post('/', auth, async (req, res) => {
             }
         }
 
+        // --- Lapping Compound Raw Material Deduction ---
+        if (job.jobType === 'Lapping Compound' && job.syringeQuantity) {
+            const RawMaterial = require('../models/RawMaterial');
+            const Notification = require('../models/Notification');
+            
+            const deductRawMaterial = async (name, quantity) => {
+                try {
+                    const rm = await RawMaterial.findOne({ name: name, category: 'Lapping Compound' });
+                    if (rm) {
+                        rm.availableQuantity -= quantity;
+                        if (rm.availableQuantity < 0) rm.availableQuantity = 0;
+                        await rm.save();
+                        
+                        if (rm.minimumQuantity != null && rm.availableQuantity < rm.minimumQuantity) {
+                          const alertKey = `rawMaterial_low_${rm._id}`;
+                          const existingAlert = await Notification.findOne({ alertKey, read: false, isDeleted: false });
+                          if (!existingAlert) {
+                            await Notification.create({
+                              message: `Low Stock Alert: ${rm.name} is running low (${rm.availableQuantity} ${rm.availableUnit} remaining, minimum is ${rm.minimumQuantity} ${rm.minimumUnit}).`,
+                              type: 'info',
+                              alertKey
+                            });
+                          }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error deducting raw material:', e);
+                }
+            };
+            
+            // Deduct Syringe
+            await deductRawMaterial('Syringe', job.syringeQuantity);
+            
+            // Deduct Base Type (5 grams per syringe)
+            if (job.baseType === 'Petroleum Jelly' || job.baseType === 'Grease') {
+                const gramsToDeduct = job.syringeQuantity * 5;
+                await deductRawMaterial(job.baseType, gramsToDeduct);
+            }
+        }
+
         res.json(job);
     } catch (err) {
         console.error("POST /jobs Error:", err.stack || err);
