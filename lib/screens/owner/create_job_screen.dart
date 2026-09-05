@@ -26,13 +26,21 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
   // Shared controllers
   final _customerNameCtrl = TextEditingController();
-  final _partNumberCtrl = TextEditingController();
-  final _quantityCtrl = TextEditingController();
+
+  // Lapping Compound Fields
+  String? _concentrationType;
+  final _micronsCtrl = TextEditingController();
+  final _micronColorCtrl = TextEditingController();
+  final _micronSizeCtrl = TextEditingController();
+  final _syringeQuantityCtrl = TextEditingController();
+  String? _baseType;
   final _wheelSizeCtrl = TextEditingController();
   final _gritSizeCtrl = TextEditingController();
   final _assignedWorkerCtrl = TextEditingController();
   DateTime? _deliveryDate;
   DateTime _createdDate = DateTime.now();
+  final _partNumberCtrl = TextEditingController();
+  final _quantityCtrl = TextEditingController();
 
   // New Flow specific states
   DateTime? _customerOrderDate;
@@ -678,6 +686,204 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     );
   }
 
+  Widget _buildLappingCompoundFlow() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Module 1
+          _buildCreatedDateSelector(),
+          const SizedBox(height: 16),
+          const Text('Concentration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: const Text('High Concentration'),
+                  selected: _concentrationType == 'High Concentration',
+                  onSelected: (val) => setState(() => _concentrationType = val ? 'High Concentration' : null),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Text('Standard Concentration'),
+                  selected: _concentrationType == 'Standard Concentration',
+                  onSelected: (val) => setState(() => _concentrationType = val ? 'Standard Concentration' : null),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Module 2
+          TextField(
+            controller: _micronsCtrl,
+            decoration: const InputDecoration(labelText: 'Microns', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 12),
+          _buildAutocomplete(_micronColorCtrl, 'Micron Color', _getSuggestions('Micron Color')),
+          const SizedBox(height: 12),
+          _buildAutocomplete(_micronSizeCtrl, 'Micron Size', _getSuggestions('Micron Size')),
+          const SizedBox(height: 24),
+
+          // Module 3
+          TextField(
+            controller: _syringeQuantityCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Syringe Quantity', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 12),
+          const Text('Base Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: const Text('Petroleum Jelly'),
+                  selected: _baseType == 'Petroleum Jelly',
+                  onSelected: (val) => setState(() => _baseType = val ? 'Petroleum Jelly' : null),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Text('Grease'),
+                  selected: _baseType == 'Grease',
+                  onSelected: (val) => setState(() => _baseType = val ? 'Grease' : null),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Module 4
+          _buildAutocomplete(_assignedWorkerCtrl, 'Person Responsible', _getSuggestions('Person Responsible')),
+          const SizedBox(height: 12),
+          _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () => _pickDate(context, _deliveryDate, (d) => setState(() => _deliveryDate = d)),
+            child: InputDecorator(
+              decoration: const InputDecoration(labelText: 'Expected Delivery Date', border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+              child: Text(_deliveryDate != null ? DateFormat('dd-MM-yyyy').format(_deliveryDate!) : 'Select Date'),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          const Text('Purchase order received?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade400, 
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: _purchaseOrderReceived == true ? 4 : 0,
+                ),
+                onPressed: () => setState(() => _purchaseOrderReceived = true),
+                child: const Text('Yes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              )),
+              const SizedBox(width: 16),
+              Expanded(child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade400, 
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: _purchaseOrderReceived == false ? 4 : 0,
+                ),
+                onPressed: () => setState(() => _purchaseOrderReceived = false),
+                child: const Text('No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              )),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          if (_purchaseOrderReceived == true) ...[
+            const Text('Purchase Order Number', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            TextField(controller: _poNumberCtrl, decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true)),
+            const SizedBox(height: 24),
+            const Text('Purchase Order Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: () => _pickDate(context, _purchaseOrderDate, (d) => setState(() => _purchaseOrderDate = d)),
+              child: InputDecorator(
+                decoration: const InputDecoration(border: OutlineInputBorder(), fillColor: Colors.white, filled: true),
+                child: Text(_purchaseOrderDate != null ? DateFormat('dd-MM-yyyy').format(_purchaseOrderDate!) : 'Select Date'),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+          
+          if (_purchaseOrderReceived != null)
+            ElevatedButton(
+              onPressed: _createLappingCompoundJob,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF29B6F6), padding: const EdgeInsets.symmetric(vertical: 16)),
+              child: const Text('Confirm Job', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createLappingCompoundJob() async {
+    if (_concentrationType == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select Concentration'))); return; }
+    if (_micronsCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Microns required'))); return; }
+    if (_micronColorCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Micron Color required'))); return; }
+    if (_micronSizeCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Micron Size required'))); return; }
+    if (_syringeQuantityCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syringe Quantity required'))); return; }
+    if (_baseType == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select Base Type'))); return; }
+    if (_assignedWorkerCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Person Responsible required'))); return; }
+    if (_customerNameCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Name required'))); return; }
+    if (_deliveryDate == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expected Delivery Date required'))); return; }
+
+    if (_purchaseOrderReceived == true && (_poNumberCtrl.text.trim().isEmpty || _purchaseOrderDate == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all PO fields')));
+      return;
+    }
+
+    _showLoadingDialog();
+    try {
+      final generatedJobId = 'JOB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+      
+      final job = JobModel(
+        jobId: generatedJobId,
+        jobType: 'Lapping Compound',
+        customerName: _customerNameCtrl.text.trim(),
+        assignedWorker: _assignedWorkerCtrl.text.trim(),
+        deliveryDate: _deliveryDate,
+        concentrationType: _concentrationType,
+        microns: _micronsCtrl.text.trim(),
+        micronColor: _micronColorCtrl.text.trim(),
+        micronSize: _micronSizeCtrl.text.trim(),
+        syringeQuantity: int.tryParse(_syringeQuantityCtrl.text.trim()) ?? 0,
+        baseType: _baseType,
+        purchaseOrderReceived: _purchaseOrderReceived,
+        purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
+        purchaseOrderDate: _purchaseOrderDate,
+        poNotGiven: _purchaseOrderReceived == false,
+        status: _purchaseOrderReceived == true ? 'Completed' : 'PO Not Given',
+        currentLocation: 'EDP',
+        createdDate: _createdDate,
+      );
+
+      await _api.createJob(job);
+      if (mounted) {
+        Navigator.pop(context); // loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job created successfully')));
+        Navigator.pop(context); // form screen
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      }
+    }
+  }
+
+
   List<Step> _getRecoatingSteps() {
     return [
       Step(
@@ -837,6 +1043,12 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                 _wheelSizeCtrl.clear();
                 _gritSizeCtrl.clear();
                 _assignedWorkerCtrl.clear();
+                _micronsCtrl.clear();
+                _micronColorCtrl.clear();
+                _micronSizeCtrl.clear();
+                _syringeQuantityCtrl.clear();
+                _concentrationType = null;
+                _baseType = null;
                 _deliveryDate = null;
               }),
             )
@@ -846,6 +1058,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         ? _buildInitialSelection()
         : _flowType == FlowType.newJob 
             ? _buildNewFlow()
+            : _flowType == FlowType.lappingCompound
+                ? _buildLappingCompoundFlow()
             : Stepper(
                 type: StepperType.vertical,
                 currentStep: _currentStep,

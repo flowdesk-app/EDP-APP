@@ -376,6 +376,19 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Negotiation', _currentJob.negotiationDone! ? 'Yes' : 'No'),
               ],
             ),
+            if (_currentJob.jobType == 'Lapping Compound')
+              _buildSectionCard(
+                title: 'Lapping Compound Info',
+                icon: Icons.science,
+                children: [
+                  _row('Concentration', _currentJob.concentrationType ?? 'N/A'),
+                  _row('Microns', _currentJob.microns ?? 'N/A'),
+                  _row('Micron Color', _currentJob.micronColor ?? 'N/A'),
+                  _row('Micron Size', _currentJob.micronSize ?? 'N/A'),
+                  _row('Syringe Quantity', '${_currentJob.syringeQuantity ?? 0}'),
+                  _row('Base Type', _currentJob.baseType ?? 'N/A'),
+                ],
+              ),
 
             if (_currentJob.jobType == 'New' || _currentJob.poNotGiven == true || (_currentJob.purchaseOrderNumber != null && _currentJob.purchaseOrderNumber!.isNotEmpty) || (_currentJob.edpPurchaseOrderNumber != null && _currentJob.edpPurchaseOrderNumber!.isNotEmpty) || (_currentJob.supplierPurchaseOrderNumber != null && _currentJob.supplierPurchaseOrderNumber!.isNotEmpty) || (_currentJob.deliveryChalanNumber != null && _currentJob.deliveryChalanNumber!.isNotEmpty)) ...[
               _buildSectionCard(

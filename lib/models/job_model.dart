@@ -47,6 +47,13 @@ class JobModel {
   final DateTime? extractionCompletedDate;
   final DateTime? productionDate;
   final DateTime? expectedProductionDate;
+  
+  final String? concentrationType;
+  final String? microns;
+  final String? micronColor;
+  final String? micronSize;
+  final int? syringeQuantity;
+  final String? baseType;
 
   final bool? purchaseOrderReceived;
   final String? purchaseOrderNumber;
@@ -114,6 +121,12 @@ class JobModel {
     this.extractionCompletedDate,
     this.productionDate,
     this.expectedProductionDate,
+    this.concentrationType,
+    this.microns,
+    this.micronColor,
+    this.micronSize,
+    this.syringeQuantity,
+    this.baseType,
     this.purchaseOrderReceived,
     this.purchaseOrderNumber,
     this.purchaseOrderDate,
@@ -171,6 +184,12 @@ class JobModel {
     DateTime? extractionCompletedDate,
     DateTime? productionDate,
     DateTime? expectedProductionDate,
+    String? concentrationType,
+    String? microns,
+    String? micronColor,
+    String? micronSize,
+    int? syringeQuantity,
+    String? baseType,
     bool? purchaseOrderReceived,
     String? purchaseOrderNumber,
     DateTime? purchaseOrderDate,
@@ -239,6 +258,12 @@ class JobModel {
       extractionCompletedDate: extractionCompletedDate ?? this.extractionCompletedDate,
       productionDate: productionDate ?? this.productionDate,
       expectedProductionDate: expectedProductionDate ?? this.expectedProductionDate,
+      concentrationType: concentrationType ?? this.concentrationType,
+      microns: microns ?? this.microns,
+      micronColor: micronColor ?? this.micronColor,
+      micronSize: micronSize ?? this.micronSize,
+      syringeQuantity: syringeQuantity ?? this.syringeQuantity,
+      baseType: baseType ?? this.baseType,
       purchaseOrderReceived: purchaseOrderReceived ?? this.purchaseOrderReceived,
       purchaseOrderNumber: purchaseOrderNumber ?? this.purchaseOrderNumber,
       purchaseOrderDate: purchaseOrderDate ?? this.purchaseOrderDate,
@@ -303,6 +328,12 @@ class JobModel {
     extractionCompletedDate: json['extractionCompletedDate'] != null ? DateTime.parse(json['extractionCompletedDate']) : null,
     productionDate: json['productionDate'] != null ? DateTime.parse(json['productionDate']) : null,
     expectedProductionDate: json['expectedProductionDate'] != null ? DateTime.parse(json['expectedProductionDate']) : null,
+    concentrationType: json['concentrationType'],
+    microns: json['microns'],
+    micronColor: json['micronColor'],
+    micronSize: json['micronSize'],
+    syringeQuantity: json['syringeQuantity'],
+    baseType: json['baseType'],
     purchaseOrderReceived: json['purchaseOrderReceived'],
     purchaseOrderNumber: json['purchaseOrderNumber'],
     purchaseOrderDate: json['purchaseOrderDate'] != null ? DateTime.parse(json['purchaseOrderDate']) : null,
@@ -366,6 +397,12 @@ class JobModel {
     'extractionCompletedDate': extractionCompletedDate?.toIso8601String(),
     'productionDate': productionDate?.toIso8601String(),
     'expectedProductionDate': expectedProductionDate?.toIso8601String(),
+    'concentrationType': concentrationType,
+    'microns': microns,
+    'micronColor': micronColor,
+    'micronSize': micronSize,
+    'syringeQuantity': syringeQuantity,
+    'baseType': baseType,
     'purchaseOrderReceived': purchaseOrderReceived,
     'purchaseOrderNumber': purchaseOrderNumber,
     'purchaseOrderDate': purchaseOrderDate?.toIso8601String(),
