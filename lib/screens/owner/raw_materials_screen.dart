@@ -9,18 +9,26 @@ class RawMaterialsScreen extends StatefulWidget {
   State<RawMaterialsScreen> createState() => _RawMaterialsScreenState();
 }
 
-class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
+class _RawMaterialsScreenState extends State<RawMaterialsScreen> with SingleTickerProviderStateMixin {
   final ApiService _api = ApiService();
   bool _isLoading = false;
   List<RawMaterialModel> _materials = [];
 
   bool _isEditing = false;
   final Set<String> _selectedIds = {};
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _fetchRawMaterials();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchRawMaterials() async {
@@ -43,7 +51,7 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Deletion'),
-        content: Text('Are you sure you want to delete ${_selectedIds.length} raw material(s)?'),
+        content: Text('Are you sure you want to delete ${_selectedIds.length} item(s)?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           ElevatedButton(
@@ -66,7 +74,7 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
       _isEditing = false;
       await _fetchRawMaterials();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected raw materials deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected items deleted')));
       }
     } catch (e) {
       if (mounted) {
@@ -77,13 +85,15 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
   }
 
   void _showAddRawMaterialModal() {
+    final isLapping = _tabController.index == 1;
+    final category = isLapping ? 'Lapping Compound' : 'Raw Material';
     showDialog(
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
-          child: const _AddRawMaterialForm(),
+          child: _AddRawMaterialForm(category: category),
         ),
       ),
     ).then((added) {
@@ -162,65 +172,65 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
                       ],
                     ),
                   ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(material.category ?? 'Raw Material', style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                   ),
-                  child: const Text('Raw Material', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Available Qty', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${material.availableQuantity} ${material.availableUnit}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('Minimum Qty', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(
-                      material.minimumQuantity != null ? '${material.minimumQuantity} ${material.minimumUnit}' : 'N/A',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _showUseMaterialDialog(material),
-                icon: const Icon(Icons.remove_circle_outline),
-                label: const Text('Use Material', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981), // Vibrant green
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Available Qty', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${material.availableQuantity} ${material.availableUnit}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text('Minimum Qty', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Text(
+                        material.minimumQuantity != null ? '${material.minimumQuantity} ${material.minimumUnit}' : 'N/A',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showUseMaterialDialog(material),
+                  icon: const Icon(Icons.remove_circle_outline),
+                  label: const Text('Use Material', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -327,14 +337,31 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
     });
   }
 
+  Widget _buildList(List<RawMaterialModel> items) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (items.isEmpty) {
+      return const Center(
+        child: Text('No items found.', style: TextStyle(color: Colors.grey, fontSize: 18)),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(24),
+      itemCount: items.length,
+      itemBuilder: (context, index) => _buildMaterialCard(items[index]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool allSelected = _materials.isNotEmpty && _selectedIds.length == _materials.where((m) => m.id != null).length;
-    
+    final rawMaterials = _materials.where((m) => m.category == 'Raw Material' || m.category == null).toList();
+    final lappingCompounds = _materials.where((m) => m.category == 'Lapping Compound').toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Raw Materials', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        title: const Text('Inventory', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -342,14 +369,16 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
             TextButton(
               onPressed: () {
                 setState(() {
+                  final currentList = _tabController.index == 0 ? rawMaterials : lappingCompounds;
+                  final allSelected = currentList.isNotEmpty && _selectedIds.length == currentList.where((m) => m.id != null).length;
                   if (allSelected) {
                     _selectedIds.clear();
                   } else {
-                    _selectedIds.addAll(_materials.where((m) => m.id != null).map((m) => m.id!));
+                    _selectedIds.addAll(currentList.where((m) => m.id != null).map((m) => m.id!));
                   }
                 });
               },
-              child: Text(allSelected ? 'Deselect All' : 'Select All'),
+              child: const Text('Select All'),
             ),
             if (_selectedIds.isNotEmpty)
               IconButton(
@@ -370,40 +399,61 @@ class _RawMaterialsScreenState extends State<RawMaterialsScreen> {
           ),
           const SizedBox(width: 8),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.blue,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: Colors.blue,
+          onTap: (index) {
+            setState(() {
+              _isEditing = false;
+              _selectedIds.clear();
+            });
+          },
+          tabs: const [
+            Tab(text: 'Diamond Powder'),
+            Tab(text: 'Lapping Compound'),
+          ],
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _materials.isEmpty
-              ? const Center(
-                  child: Text('No raw materials found.', style: TextStyle(color: Colors.grey, fontSize: 18)),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: _materials.length,
-                  itemBuilder: (context, index) => _buildMaterialCard(_materials[index]),
-                ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
-        ),
-        child: ElevatedButton(
-          onPressed: _showAddRawMaterialModal,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF29B6F6),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: const Text('Add Raw Material', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-        ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildList(rawMaterials),
+          _buildList(lappingCompounds),
+        ],
+      ),
+      bottomNavigationBar: AnimatedBuilder(
+        animation: _tabController,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
+            ),
+            child: ElevatedButton(
+              onPressed: _showAddRawMaterialModal,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF29B6F6),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(
+                _tabController.index == 0 ? 'Add Diamond Powder' : 'Add Lapping Compound',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          );
+        }
       ),
     );
   }
 }
 
 class _AddRawMaterialForm extends StatefulWidget {
-  const _AddRawMaterialForm();
+  final String category;
+  const _AddRawMaterialForm({required this.category});
 
   @override
   State<_AddRawMaterialForm> createState() => _AddRawMaterialFormState();
@@ -418,17 +468,24 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
   final TextEditingController _availQtyCtrl = TextEditingController();
   final TextEditingController _minQtyCtrl = TextEditingController();
 
-  String _availUnit = 'Kg';
-  String _minUnit = 'Kg';
+  late String _availUnit;
+  late String _minUnit;
   bool _isSaving = false;
   bool _isLoadingMasterData = true;
   List<Map<String, dynamic>> _masterData = [];
 
-  final List<String> _units = ['Kg', 'Litre', 'Numbers', 'Carat'];
+  final List<String> _units = ['Kg', 'Litre', 'Numbers', 'Carat', 'Grams'];
 
   @override
   void initState() {
     super.initState();
+    if (widget.category == 'Lapping Compound') {
+      _availUnit = 'Numbers';
+      _minUnit = 'Numbers';
+    } else {
+      _availUnit = 'Kg';
+      _minUnit = 'Kg';
+    }
     _fetchMasterData();
   }
 
@@ -444,6 +501,9 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
   }
 
   List<String> _getSuggestions(String fieldKey) {
+    if (widget.category == 'Lapping Compound' && fieldKey == 'Raw Material Name') {
+      return ['Syringe Quantity', 'Petroleum Jelly', 'Grease'];
+    }
     return _masterData
         .where((m) => m['jobType'] == 'Raw Material' && m['field'] == fieldKey)
         .map((m) => m['value'].toString())
@@ -459,6 +519,17 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
       },
       onSelected: (String selection) {
         ctrl.text = selection;
+        if (widget.category == 'Lapping Compound') {
+          setState(() {
+            if (selection == 'Syringe Quantity') {
+              _availUnit = 'Numbers';
+              _minUnit = 'Numbers';
+            } else if (selection == 'Petroleum Jelly' || selection == 'Grease') {
+              _availUnit = 'Grams';
+              _minUnit = 'Grams';
+            }
+          });
+        }
       },
       fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
         textEditingController.addListener(() {
@@ -495,12 +566,13 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
         availableUnit: _availUnit,
         minimumQuantity: _minQtyCtrl.text.trim().isEmpty ? null : double.tryParse(_minQtyCtrl.text.trim()),
         minimumUnit: _minUnit,
+        category: widget.category,
       );
 
       await _api.addRawMaterial(newMaterial);
       if (mounted) {
-        Navigator.pop(context, true); // Return true to indicate success
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Raw material added successfully!')));
+        Navigator.pop(context, true); 
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${widget.category} added successfully!')));
       }
     } catch (e) {
       if (mounted) {
@@ -513,6 +585,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isLapping = widget.category == 'Lapping Compound';
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Form(
@@ -521,15 +594,15 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Add Raw Material', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text('Add ${widget.category}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             _isLoadingMasterData
                 ? const Center(child: CircularProgressIndicator())
-                : _buildAutocomplete(_nameCtrl, 'Raw Material Name', _getSuggestions('Raw Material Name'), required: true),
+                : _buildAutocomplete(_nameCtrl, 'Item Name', _getSuggestions('Raw Material Name'), required: true),
             const SizedBox(height: 16),
-            if (!_isLoadingMasterData)
+            if (!_isLoadingMasterData && !isLapping)
               _buildAutocomplete(_gritSizeCtrl, 'Grit Size (Optional)', _getSuggestions('Grit Size')),
-            const SizedBox(height: 20),
+            if (!isLapping) const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -537,7 +610,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                   child: TextFormField(
                     controller: _availQtyCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Available Quantity', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(labelText: 'Quantity to Add', border: OutlineInputBorder()),
                     validator: (val) {
                       if (val == null || val.isEmpty) return 'Required';
                       if (double.tryParse(val) == null) return 'Must be a number';
@@ -549,7 +622,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<String>(
-                    initialValue: _availUnit,
+                    value: _availUnit,
                     decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
                     items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                     onChanged: (val) => setState(() => _availUnit = val!),
@@ -578,7 +651,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<String>(
-                    initialValue: _minUnit,
+                    value: _minUnit,
                     decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
                     items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                     onChanged: (val) => setState(() => _minUnit = val!),

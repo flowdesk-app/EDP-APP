@@ -17,9 +17,9 @@ router.get('/', auth, async (req, res) => {
 
 // POST a new raw material
 router.post('/', auth, async (req, res) => {
-  const { name, availableQuantity, availableUnit, minimumQuantity, minimumUnit, gritSize } = req.body;
+  const { name, availableQuantity, availableUnit, minimumQuantity, minimumUnit, gritSize, category } = req.body;
 
-  if (!name || availableQuantity == null || !availableUnit || !gritSize) {
+  if (!name || availableQuantity == null || !availableUnit) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
@@ -89,6 +89,7 @@ router.post('/', auth, async (req, res) => {
       minimumQuantity: minimumQuantity != null ? Number(minimumQuantity) : 0,
       minimumUnit: minimumUnit || 'Kg',
       gritSize: gritSize ? gritSize.trim() : undefined,
+      category: category || 'Raw Material',
     });
 
     const savedMaterial = await rawMaterial.save();

@@ -6,6 +6,7 @@ class RawMaterialModel {
   final double? minimumQuantity;
   final String? minimumUnit;
   final String? gritSize;
+  final String? category;
 
   RawMaterialModel({
     this.id,
@@ -15,6 +16,7 @@ class RawMaterialModel {
     this.minimumQuantity,
     this.minimumUnit,
     this.gritSize,
+    this.category,
   });
 
   factory RawMaterialModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class RawMaterialModel {
       minimumQuantity: json['minimumQuantity']?.toDouble(),
       minimumUnit: json['minimumUnit'],
       gritSize: json['gritSize'],
+      category: json['category'] ?? 'Raw Material',
     );
   }
 
@@ -37,6 +40,7 @@ class RawMaterialModel {
       if (minimumQuantity != null) 'minimumQuantity': minimumQuantity,
       if (minimumUnit != null) 'minimumUnit': minimumUnit,
       if (gritSize != null) 'gritSize': gritSize,
+      if (category != null) 'category': category,
     };
   }
 }

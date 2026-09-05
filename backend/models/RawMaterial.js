@@ -12,12 +12,12 @@ const rawMaterialSchema = new mongoose.Schema({
   },
   availableUnit: {
     type: String,
-    enum: ['Kg', 'Litre', 'Numbers', 'Carat'],
+    enum: ['Kg', 'Litre', 'Numbers', 'Carat', 'Grams'],
     required: true,
   },
   gritSize: {
     type: String,
-    required: true,
+    required: false,
   },
   minimumQuantity: {
     type: Number,
@@ -26,8 +26,13 @@ const rawMaterialSchema = new mongoose.Schema({
   },
   minimumUnit: {
     type: String,
-    enum: ['Kg', 'Litre', 'Numbers', 'Carat'],
+    enum: ['Kg', 'Litre', 'Numbers', 'Carat', 'Grams'],
     required: false,
+  },
+  category: {
+    type: String,
+    enum: ['Raw Material', 'Lapping Compound'],
+    default: 'Raw Material',
   }
 }, { timestamps: true });
 
