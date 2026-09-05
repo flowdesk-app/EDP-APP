@@ -606,22 +606,24 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             children: [
               Expanded(child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade400, 
+                  backgroundColor: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade50, 
+                  side: BorderSide(color: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade200, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: _purchaseOrderReceived == true ? 4 : 0,
                 ),
                 onPressed: () => setState(() => _purchaseOrderReceived = true),
-                child: const Text('Yes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text('Yes', style: TextStyle(color: _purchaseOrderReceived == true ? Colors.white : Colors.green.shade700, fontWeight: FontWeight.bold)),
               )),
               const SizedBox(width: 16),
               Expanded(child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade400, 
+                  backgroundColor: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade50, 
+                  side: BorderSide(color: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade200, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: _purchaseOrderReceived == false ? 4 : 0,
                 ),
                 onPressed: () => setState(() => _purchaseOrderReceived = false),
-                child: const Text('No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text('No', style: TextStyle(color: _purchaseOrderReceived == false ? Colors.white : Colors.red.shade700, fontWeight: FontWeight.bold)),
               )),
             ],
           ),
@@ -725,10 +727,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.water_drop, color: Colors.white),
-                  label: const Text('Petroleum Jelly', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  icon: Icon(Icons.water_drop, color: _baseType == 'Petroleum Jelly' ? Colors.white : Colors.blue.shade700),
+                  label: Text('Petroleum Jelly', style: TextStyle(color: _baseType == 'Petroleum Jelly' ? Colors.white : Colors.blue.shade700, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _baseType == 'Petroleum Jelly' ? Colors.blue.shade700 : Colors.blue.shade300,
+                    backgroundColor: _baseType == 'Petroleum Jelly' ? Colors.blue.shade700 : Colors.blue.shade50,
+                    side: BorderSide(color: _baseType == 'Petroleum Jelly' ? Colors.blue.shade700 : Colors.blue.shade200, width: 2),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: _baseType == 'Petroleum Jelly' ? 4 : 0,
                   ),
@@ -738,10 +741,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.build, color: Colors.white),
-                  label: const Text('Grease', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  icon: Icon(Icons.build, color: _baseType == 'Grease' ? Colors.white : Colors.orange.shade700),
+                  label: Text('Grease', style: TextStyle(color: _baseType == 'Grease' ? Colors.white : Colors.orange.shade700, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _baseType == 'Grease' ? Colors.orange.shade700 : Colors.orange.shade300,
+                    backgroundColor: _baseType == 'Grease' ? Colors.orange.shade700 : Colors.orange.shade50,
+                    side: BorderSide(color: _baseType == 'Grease' ? Colors.orange.shade700 : Colors.orange.shade200, width: 2),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: _baseType == 'Grease' ? 4 : 0,
                   ),
@@ -772,22 +776,24 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             children: [
               Expanded(child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade400, 
+                  backgroundColor: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade50, 
+                  side: BorderSide(color: _purchaseOrderReceived == true ? Colors.green.shade700 : Colors.green.shade200, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: _purchaseOrderReceived == true ? 4 : 0,
                 ),
                 onPressed: () => setState(() => _purchaseOrderReceived = true),
-                child: const Text('Yes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text('Yes', style: TextStyle(color: _purchaseOrderReceived == true ? Colors.white : Colors.green.shade700, fontWeight: FontWeight.bold)),
               )),
               const SizedBox(width: 16),
               Expanded(child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade400, 
+                  backgroundColor: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade50, 
+                  side: BorderSide(color: _purchaseOrderReceived == false ? Colors.red.shade700 : Colors.red.shade200, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: _purchaseOrderReceived == false ? 4 : 0,
                 ),
                 onPressed: () => setState(() => _purchaseOrderReceived = false),
-                child: const Text('No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text('No', style: TextStyle(color: _purchaseOrderReceived == false ? Colors.white : Colors.red.shade700, fontWeight: FontWeight.bold)),
               )),
             ],
           ),
