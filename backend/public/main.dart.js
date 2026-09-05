@@ -50249,7 +50249,7 @@ case 5:return A.p(null,r)
 case 1:return A.o(p.at(-1),r)}})
 return A.q($async$Aa,r)},
 Tm(a){var s,r
-if(this.a.c==="Lapping Compound"&&a==="Raw Material Name")return A.b(["Syringe Quantity","Petroleum Jelly","Grease"],t.s)
+if(this.a.c==="Lapping Compound"&&a==="Raw Material Name")return A.b(["Syringe","Petroleum Jelly","Grease"],t.s)
 s=J.dc(this.at,new A.aml(a))
 r=s.$ti.i("cV<1,u>")
 r=A.er(new A.cV(s,new A.amm(),r),r.i("w.E"))
@@ -50352,7 +50352,7 @@ if(s.a.c==="Lapping Compound")s.v(new A.amc(s,a))},
 $S:10}
 A.amc.prototype={
 $0(){var s=this.b
-if(s==="Syringe Quantity"){s=this.a
+if(s==="Syringe"){s=this.a
 s.z=s.y="Numbers"}else if(s==="Petroleum Jelly"||s==="Grease"){s=this.a
 s.z=s.y="Grams"}},
 $S:0}
@@ -53298,7 +53298,8 @@ n=p.gcD()
 s=4
 return A.k(A.ji(o,B.a6.fa(a.ft(),null),n),$async$wf)
 case 4:m=c
-if(m.b===201){q=A.aQS(B.a6.i2(A.iA(A.ix(m.e)).dm(m.w),null))
+o=m.b
+if(o===201||o===200){q=A.aQS(B.a6.i2(A.iA(A.ix(m.e)).dm(m.w),null))
 s=1
 break}throw A.i(A.bX("Failed to add raw material: "+m.ghF()))
 case 1:return A.p(q,r)}})

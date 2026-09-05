@@ -502,7 +502,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
 
   List<String> _getSuggestions(String fieldKey) {
     if (widget.category == 'Lapping Compound' && fieldKey == 'Raw Material Name') {
-      return ['Syringe Quantity', 'Petroleum Jelly', 'Grease'];
+      return ['Syringe', 'Petroleum Jelly', 'Grease'];
     }
     return _masterData
         .where((m) => m['jobType'] == 'Raw Material' && m['field'] == fieldKey)
@@ -521,7 +521,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
         ctrl.text = selection;
         if (widget.category == 'Lapping Compound') {
           setState(() {
-            if (selection == 'Syringe Quantity') {
+            if (selection == 'Syringe') {
               _availUnit = 'Numbers';
               _minUnit = 'Numbers';
             } else if (selection == 'Petroleum Jelly' || selection == 'Grease') {

@@ -813,7 +813,7 @@ class ApiService {
       headers: _headers,
       body: jsonEncode(rawMaterial.toJson()),
     );
-    if (res.statusCode == 201) {
+    if (res.statusCode == 201 || res.statusCode == 200) {
       return RawMaterialModel.fromJson(jsonDecode(res.body));
     }
     throw Exception('Failed to add raw material: ${res.body}');
