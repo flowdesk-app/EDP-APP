@@ -872,7 +872,27 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       if (mounted) {
         Navigator.pop(context); // loading dialog
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job created successfully')));
-        Navigator.pop(context); // form screen
+        if (widget.onNavigateToDashboard != null) {
+          widget.onNavigateToDashboard!();
+          setState(() {
+            _flowType = FlowType.none;
+            _customerNameCtrl.clear();
+            _assignedWorkerCtrl.clear();
+            _deliveryDate = null;
+            _highConcentrationCtrl.clear();
+            _standardConcentrationCtrl.clear();
+            _micronsCtrl.clear();
+            _micronColorCtrl.clear();
+            _micronSizeCtrl.clear();
+            _syringeQuantityCtrl.clear();
+            _baseType = null;
+            _purchaseOrderReceived = null;
+            _poNumberCtrl.clear();
+            _purchaseOrderDate = null;
+          });
+        } else {
+          Navigator.pop(context); // form screen
+        }
       }
     } catch (e) {
       if (mounted) {
