@@ -367,9 +367,11 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               title: 'General Information',
               icon: Icons.info_outline,
               children: [
-                _row('Part Number', _currentJob.partNumber ?? _currentJob.customerName ?? 'N/A'),
+                if (_currentJob.jobType != 'Lapping Compound')
+                  _row('Part Number', _currentJob.partNumber ?? _currentJob.customerName ?? 'N/A'),
                 _row('Customer Name', _currentJob.customerName ?? 'N/A'),
-                _row('Quantity', '${_currentJob.quantity ?? 0} units'),
+                if (_currentJob.jobType != 'Lapping Compound')
+                  _row('Quantity', '${_currentJob.quantity ?? 0} units'),
                 _row('Status', ((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status),
                 _row('Location', _currentJob.currentLocation),
                 if (_currentJob.negotiationDone != null && _currentJob.jobType == 'New')

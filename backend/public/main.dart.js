@@ -47887,42 +47887,44 @@ s=2
 return A.k(A.cm(null,null,!0,null,new A.avp(q,new A.aP(B.D,m),p-o-l,new A.aP(B.D,m),new A.aP(B.D,m)),n,null,!0,t.z),$async$Br)
 case 2:return A.p(null,r)}})
 return A.q($async$Br,r)},
-G(a){var s,r,q,p,o,n,m,l,k,j=this,i=null,h="N/A",g="dd-MM-yyyy",f="Production Date",e="Expected Production Completion Date",d="Purchase Order",c=j.e
-c===$&&A.a()
-s=c.b
-c=s==null?c.k2:s
-c=A.B(c==null?"Job Details":c,i,i,i,i,B.bl,i,i,i)
+G(a){var s,r,q,p,o,n,m,l,k,j=this,i=null,h="Lapping Compound",g="N/A",f="dd-MM-yyyy",e="Production Date",d="Expected Production Completion Date",c="Purchase Order",b=j.e
+b===$&&A.a()
+s=b.b
+b=s==null?b.k2:s
+b=A.B(b==null?"Job Details":b,i,i,i,i,B.bl,i,i,i)
 s=t.p
-c=A.e8(A.b([A.bi(i,i,B.ne,i,i,j.d?i:j.ganf(),i,i,i)],s),i,i,i,i,i,i,c)
-r=j.e
-q=r.b
-if(q==null)q=r.k2
-q=j.bV("Part Number",q==null?h:q)
-p=r.k2
-p=j.bV("Customer Name",p==null?h:p)
-o=r.d
-o=j.bV("Quantity",""+(o==null?0:o)+" units")
-n=r.k1
-r=A.b([q,p,o,j.bV("Status",(n==="Re-coating"||n==="Coating")&&r.ay==="Created"?"Arrived":r.ay),j.bV("Location",r.ch)],s)
+b=A.e8(A.b([A.bi(i,i,B.ne,i,i,j.d?i:j.ganf(),i,i,i)],s),i,i,i,i,i,i,b)
+r=A.b([],s)
+q=j.e
+if(q.k1!==h){p=q.b
+q=p==null?q.k2:p
+r.push(j.bV("Part Number",q==null?g:q))}q=j.e.k2
+r.push(j.bV("Customer Name",q==null?g:q))
+q=j.e
+if(q.k1!==h){q=q.d
+r.push(j.bV("Quantity",""+(q==null?0:q)+" units"))}q=j.e
+p=q.k1
+r.push(j.bV("Status",(p==="Re-coating"||p==="Coating")&&q.ay==="Created"?"Arrived":q.ay))
+r.push(j.bV("Location",j.e.ch))
 q=j.e
 p=q.R8
 if(p!=null&&q.k1==="New")r.push(j.bV("Negotiation",p?"Yes":"No"))
 r=A.b([j.mV(r,B.jJ,"General Information")],s)
 q=j.e
-if(q.k1==="Lapping Compound"){p=q.y1
-p=j.bV("High Concentration",p==null?h:p)
+if(q.k1===h){p=q.y1
+p=j.bV("High Concentration",p==null?g:p)
 o=q.y2
-o=j.bV("Standard Concentration",o==null?h:o)
+o=j.bV("Standard Concentration",o==null?g:o)
 n=q.O
-n=j.bV("Microns",n==null?h:n)
+n=j.bV("Microns",n==null?g:n)
 m=q.P
-m=j.bV("Micron Color",m==null?h:m)
+m=j.bV("Micron Color",m==null?g:m)
 l=q.q
-l=j.bV("Micron Size",l==null?h:l)
+l=j.bV("Micron Size",l==null?g:l)
 k=q.N
 k=j.bV("Syringe Quantity",""+(k==null?0:k))
 q=q.a0
-r.push(j.mV(A.b([p,o,n,m,l,k,j.bV("Base Type",q==null?h:q)],s),B.rK,"Lapping Compound Info"))}q=j.e
+r.push(j.mV(A.b([p,o,n,m,l,k,j.bV("Base Type",q==null?g:q)],s),B.rK,"Lapping Compound Info"))}q=j.e
 p=!0
 if(q.k1!=="New")if(!q.W){o=q.V
 if(!(o!=null&&o.length!==0)){o=q.bk
@@ -47932,35 +47934,35 @@ q=q!=null&&q.length!==0}else q=p}else q=p}else q=p}else q=p
 else q=p
 if(q){q=A.b([],s)
 p=j.e
-if(p.k1==="New"&&p.p2!=null){p=A.aB(g)
+if(p.k1==="New"&&p.p2!=null){p=A.aB(f)
 o=j.e.p2
 o.toString
 q.push(j.bV("Order Date",p.aH(o)))}p=j.e
-if(p.k1==="New"&&p.p4!=null){p=A.aB(g)
+if(p.k1==="New"&&p.p4!=null){p=A.aB(f)
 o=j.e.p4
 o.toString
 q.push(j.bV("Blank Order Received Date",p.aH(o)))}p=j.e
-if(p.k1==="New"&&p.x2!=null){p=A.aB(g)
+if(p.k1==="New"&&p.x2!=null){p=A.aB(f)
 o=j.e.x2
 o.toString
-q.push(j.bV(f,p.aH(o)))}p=j.e
-if(p.k1==="New"&&p.xr!=null){p=A.aB(g)
+q.push(j.bV(e,p.aH(o)))}p=j.e
+if(p.k1==="New"&&p.xr!=null){p=A.aB(f)
 o=j.e.xr
 o.toString
-q.push(j.bV(e,p.aH(o)))}p=j.e
-if(p.W)q.push(j.bV(d,"Not Given"))
+q.push(j.bV(d,p.aH(o)))}p=j.e
+if(p.W)q.push(j.bV(c,"Not Given"))
 else{p=p.V
-if(p!=null&&p.length!==0)q.push(j.bV(d,p))}if(j.e.a8!=null){p=A.aB(g)
+if(p!=null&&p.length!==0)q.push(j.bV(c,p))}if(j.e.a8!=null){p=A.aB(f)
 o=j.e.a8
 o.toString
 q.push(j.bV("Purchase Order Date",p.aH(o)))}p=j.e.bk
 if(p!=null&&p.length!==0)q.push(j.bV("EDP Purchase Order",p))
-if(j.e.bs!=null){p=A.aB(g)
+if(j.e.bs!=null){p=A.aB(f)
 o=j.e.bs
 o.toString
 q.push(j.bV("EDP PO Date",p.aH(o)))}p=j.e.bv
 if(p!=null&&p.length!==0)q.push(j.bV("Supplier PO",p))
-if(j.e.bp!=null){p=A.aB(g)
+if(j.e.bp!=null){p=A.aB(f)
 o=j.e.bp
 o.toString
 q.push(j.bV("Supplier PO Date",p.aH(o)))}p=j.e
@@ -47970,7 +47972,7 @@ p=j.e
 o=p.az
 if(o!=null&&o.length!==0&&p.id.length===0)q.push(j.bV("Delivery Chalan Number",o))
 p=j.e
-if(p.cd!=null&&p.id.length===0){p=A.aB(g)
+if(p.cd!=null&&p.id.length===0){p=A.aB(f)
 o=j.e.cd
 o.toString
 q.push(j.bV("Delivery Chalan Date",p.aH(o)))}p=j.e.id
@@ -47994,33 +47996,33 @@ q.push(j.mV(p,B.nc,"Specifications & Assignment"))}B.b.L(r,q)}q=j.e
 if(q.k1==="Re-coating"||q.RG!=null){q=A.b([],s)
 p=j.e.RG
 if(p!=null)q.push(j.bV("Returnable Gate Pass No.",p))
-if(j.e.rx!=null){p=A.aB(g)
+if(j.e.rx!=null){p=A.aB(f)
 o=j.e.rx
 o.toString
-q.push(j.bV("Returnable Gate Pass Date",p.aH(o)))}if(j.e.p4!=null){p=A.aB(g)
+q.push(j.bV("Returnable Gate Pass Date",p.aH(o)))}if(j.e.p4!=null){p=A.aB(f)
 o=j.e.p4
 o.toString
-q.push(j.bV("Received Date",p.aH(o)))}if(j.e.ry!=null){p=A.aB(g)
+q.push(j.bV("Received Date",p.aH(o)))}if(j.e.ry!=null){p=A.aB(f)
 o=j.e.ry
 o.toString
-q.push(j.bV("Extraction Date",p.aH(o)))}if(j.e.x1!=null){p=A.aB(g)
+q.push(j.bV("Extraction Date",p.aH(o)))}if(j.e.x1!=null){p=A.aB(f)
 o=j.e.x1
 o.toString
-q.push(j.bV("Extraction Completed Date",p.aH(o)))}if(j.e.x2!=null){p=A.aB(g)
+q.push(j.bV("Extraction Completed Date",p.aH(o)))}if(j.e.x2!=null){p=A.aB(f)
 o=j.e.x2
 o.toString
-q.push(j.bV(f,p.aH(o)))}r.push(j.mV(q,B.rL,"Timeline & Gate Pass"))}q=j.e.id
+q.push(j.bV(e,p.aH(o)))}r.push(j.mV(q,B.rL,"Timeline & Gate Pass"))}q=j.e.id
 if(q.length!==0){p=A.X(q).i("ep<1,e>")
 q=A.U(new A.ep(q,new A.aw4(j),p),p.i("w.E"))
 r.push(j.mV(q,B.Nk,"Supplier Tracking"))}q=j.e
 if(q.to!=null||q.xr!=null){q=A.b([],s)
-if(j.e.to!=null){p=A.aB(g)
+if(j.e.to!=null){p=A.aB(f)
 o=j.e.to
 o.toString
-q.push(j.bV("Expected Extraction Completion Date",p.aH(o)))}if(j.e.xr!=null){p=A.aB(g)
+q.push(j.bV("Expected Extraction Completion Date",p.aH(o)))}if(j.e.xr!=null){p=A.aB(f)
 o=j.e.xr
 o.toString
-q.push(j.bV(e,p.aH(o)))}r.push(j.mV(q,B.N0,"Expected"))}q=j.e.ay
+q.push(j.bV(d,p.aH(o)))}r.push(j.mV(q,B.N0,"Expected"))}q=j.e.ay
 if(q==="Delivered"||q==="Closed"){q=A.b([],s)
 p=j.e.aW
 if(p!=null&&p.length!==0)q.push(j.bV("Invoice Number",p))
@@ -48076,7 +48078,7 @@ s=(s==null?0:s)>0}else s=!0}else s=!1
 if(s){s=A.ch(i,i,B.lS,i,i,i,i,i,i,B.f,i,i,B.bc,i,new A.aV(A.af(8),B.q),i,i,i,i,i)
 q=j.d
 p=q?B.fI:B.NG
-r.push(new A.a2(B.hE,A.be(A.fX(p,B.a7J,q?i:j.gapb(),s),i,1/0),i))}return A.dE(c,B.b0,A.h8(A.as(r,B.z,i,B.j,B.h),i,B.r,B.K,i,B.ae),i,i,i,i)},
+r.push(new A.a2(B.hE,A.be(A.fX(p,B.a7J,q?i:j.gapb(),s),i,1/0),i))}return A.dE(b,B.b0,A.h8(A.as(r,B.z,i,B.j,B.h),i,B.r,B.K,i,B.ae),i,i,i,i)},
 BT(){var s=0,r=A.r(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h
 var $async$BT=A.t(function(a,b){if(a===1){o.push(b)
 s=p}for(;;)switch(s){case 0:if(n.x==null){n.c.I(t.q).f.ah(B.ZV)
