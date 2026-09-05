@@ -381,7 +381,8 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 title: 'Lapping Compound Info',
                 icon: Icons.science,
                 children: [
-                  _row('Concentration', _currentJob.concentrationType ?? 'N/A'),
+                  _row('High Concentration', _currentJob.highConcentration ?? 'N/A'),
+                  _row('Standard Concentration', _currentJob.standardConcentration ?? 'N/A'),
                   _row('Microns', _currentJob.microns ?? 'N/A'),
                   _row('Micron Color', _currentJob.micronColor ?? 'N/A'),
                   _row('Micron Size', _currentJob.micronSize ?? 'N/A'),

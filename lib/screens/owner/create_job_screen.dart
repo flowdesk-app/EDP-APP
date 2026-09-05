@@ -28,7 +28,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   final _customerNameCtrl = TextEditingController();
 
   // Lapping Compound Fields
-  String? _concentrationType;
+  final _highConcentrationCtrl = TextEditingController();
+  final _standardConcentrationCtrl = TextEditingController();
   final _micronsCtrl = TextEditingController();
   final _micronColorCtrl = TextEditingController();
   final _micronSizeCtrl = TextEditingController();
@@ -695,27 +696,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           // Module 1
           _buildCreatedDateSelector(),
           const SizedBox(height: 16),
-          const Text('Concentration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('High Concentration'),
-                  selected: _concentrationType == 'High Concentration',
-                  onSelected: (val) => setState(() => _concentrationType = val ? 'High Concentration' : null),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('Standard Concentration'),
-                  selected: _concentrationType == 'Standard Concentration',
-                  onSelected: (val) => setState(() => _concentrationType = val ? 'Standard Concentration' : null),
-                ),
-              ),
-            ],
-          ),
+          _buildAutocomplete(_highConcentrationCtrl, 'High Concentration', _getSuggestions('High Concentration')),
+          const SizedBox(height: 12),
+          _buildAutocomplete(_standardConcentrationCtrl, 'Standard Concentration', _getSuggestions('Standard Concentration')),
           const SizedBox(height: 24),
 
           // Module 2
@@ -741,18 +724,28 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           Row(
             children: [
               Expanded(
-                child: ChoiceChip(
-                  label: const Text('Petroleum Jelly'),
-                  selected: _baseType == 'Petroleum Jelly',
-                  onSelected: (val) => setState(() => _baseType = val ? 'Petroleum Jelly' : null),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.water_drop, color: Colors.white),
+                  label: const Text('Petroleum Jelly', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _baseType == 'Petroleum Jelly' ? Colors.blue.shade700 : Colors.blue.shade300,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: _baseType == 'Petroleum Jelly' ? 4 : 0,
+                  ),
+                  onPressed: () => setState(() => _baseType = 'Petroleum Jelly'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ChoiceChip(
-                  label: const Text('Grease'),
-                  selected: _baseType == 'Grease',
-                  onSelected: (val) => setState(() => _baseType = val ? 'Grease' : null),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.build, color: Colors.white),
+                  label: const Text('Grease', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _baseType == 'Grease' ? Colors.orange.shade700 : Colors.orange.shade300,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: _baseType == 'Grease' ? 4 : 0,
+                  ),
+                  onPressed: () => setState(() => _baseType = 'Grease'),
                 ),
               ),
             ],
@@ -829,7 +822,6 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   }
 
   Future<void> _createLappingCompoundJob() async {
-    if (_concentrationType == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select Concentration'))); return; }
     if (_micronsCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Microns required'))); return; }
     if (_micronColorCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Micron Color required'))); return; }
     if (_micronSizeCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Micron Size required'))); return; }
@@ -854,7 +846,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         customerName: _customerNameCtrl.text.trim(),
         assignedWorker: _assignedWorkerCtrl.text.trim(),
         deliveryDate: _deliveryDate,
-        concentrationType: _concentrationType,
+        highConcentration: _highConcentrationCtrl.text.trim(),
+        standardConcentration: _standardConcentrationCtrl.text.trim(),
         microns: _micronsCtrl.text.trim(),
         micronColor: _micronColorCtrl.text.trim(),
         micronSize: _micronSizeCtrl.text.trim(),
@@ -1047,7 +1040,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                 _micronColorCtrl.clear();
                 _micronSizeCtrl.clear();
                 _syringeQuantityCtrl.clear();
-                _concentrationType = null;
+                _highConcentrationCtrl.clear();
+                _standardConcentrationCtrl.clear();
                 _baseType = null;
                 _deliveryDate = null;
               }),

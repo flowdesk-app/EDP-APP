@@ -48,7 +48,8 @@ class JobModel {
   final DateTime? productionDate;
   final DateTime? expectedProductionDate;
   
-  final String? concentrationType;
+  final String? highConcentration;
+  final String? standardConcentration;
   final String? microns;
   final String? micronColor;
   final String? micronSize;
@@ -121,7 +122,8 @@ class JobModel {
     this.extractionCompletedDate,
     this.productionDate,
     this.expectedProductionDate,
-    this.concentrationType,
+    this.highConcentration,
+    this.standardConcentration,
     this.microns,
     this.micronColor,
     this.micronSize,
@@ -184,7 +186,8 @@ class JobModel {
     DateTime? extractionCompletedDate,
     DateTime? productionDate,
     DateTime? expectedProductionDate,
-    String? concentrationType,
+    String? highConcentration,
+    String? standardConcentration,
     String? microns,
     String? micronColor,
     String? micronSize,
@@ -258,7 +261,8 @@ class JobModel {
       extractionCompletedDate: extractionCompletedDate ?? this.extractionCompletedDate,
       productionDate: productionDate ?? this.productionDate,
       expectedProductionDate: expectedProductionDate ?? this.expectedProductionDate,
-      concentrationType: concentrationType ?? this.concentrationType,
+      highConcentration: highConcentration ?? this.highConcentration,
+      standardConcentration: standardConcentration ?? this.standardConcentration,
       microns: microns ?? this.microns,
       micronColor: micronColor ?? this.micronColor,
       micronSize: micronSize ?? this.micronSize,
@@ -328,7 +332,8 @@ class JobModel {
     extractionCompletedDate: json['extractionCompletedDate'] != null ? DateTime.parse(json['extractionCompletedDate']) : null,
     productionDate: json['productionDate'] != null ? DateTime.parse(json['productionDate']) : null,
     expectedProductionDate: json['expectedProductionDate'] != null ? DateTime.parse(json['expectedProductionDate']) : null,
-    concentrationType: json['concentrationType'],
+    highConcentration: json['highConcentration'],
+    standardConcentration: json['standardConcentration'],
     microns: json['microns'],
     micronColor: json['micronColor'],
     micronSize: json['micronSize'],
@@ -397,7 +402,8 @@ class JobModel {
     'extractionCompletedDate': extractionCompletedDate?.toIso8601String(),
     'productionDate': productionDate?.toIso8601String(),
     'expectedProductionDate': expectedProductionDate?.toIso8601String(),
-    'concentrationType': concentrationType,
+    'highConcentration': highConcentration,
+    'standardConcentration': standardConcentration,
     'microns': microns,
     'micronColor': micronColor,
     'micronSize': micronSize,

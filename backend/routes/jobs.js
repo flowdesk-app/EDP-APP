@@ -83,7 +83,9 @@ router.post('/', auth, async (req, res) => {
             { field: 'Grit Size', value: job.diamondPowderGritSize },
             { field: 'Person Responsible', value: job.assignedWorker },
             { field: 'Micron Color', value: job.micronColor },
-            { field: 'Micron Size', value: job.micronSize }
+            { field: 'Micron Size', value: job.micronSize },
+            { field: 'High Concentration', value: job.highConcentration },
+            { field: 'Standard Concentration', value: job.standardConcentration }
         ];
 
         for (let f of fieldsToSave) {
