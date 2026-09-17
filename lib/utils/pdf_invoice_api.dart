@@ -232,8 +232,6 @@ class PdfInvoiceApi {
     final taxAmount = subTotal * (data.taxPercentage / 100);
     final total = subTotal + taxAmount;
     
-    final f = NumberFormat.currency(locale: 'en_IN', symbol: 'Rs. ');
-
     return pw.Container(
       alignment: pw.Alignment.centerRight,
       child: pw.Row(
@@ -252,7 +250,7 @@ class PdfInvoiceApi {
                 pw.Container(
                   color: PdfColors.grey200,
                   padding: const pw.EdgeInsets.all(8),
-                  child: _buildTotalRow('Total', f.format(total), isBold: true),
+                  child: _buildTotalRow('Total', 'Rs. ${total.toStringAsFixed(2)}', isBold: true),
                 ),
               ],
             ),
