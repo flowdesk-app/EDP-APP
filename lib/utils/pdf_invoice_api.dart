@@ -232,7 +232,7 @@ class PdfInvoiceApi {
     final taxAmount = subTotal * (data.taxPercentage / 100);
     final total = subTotal + taxAmount;
     
-    final f = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    final f = NumberFormat.currency(locale: 'en_IN', symbol: 'Rs. ');
 
     return pw.Container(
       alignment: pw.Alignment.centerRight,

@@ -9708,7 +9708,7 @@ return A.q($async$aSS,r)},
 b9u(a){var s=null,r=A.b(["#","Item & Description","HSN/SAC","Qty","Rate","Amount"],t.s),q=a.ax,p=new A.rN(q,A.X(q).i("rN<1>")).gi5().iH(0,new A.aja(),t.yp).eQ(0)
 q=A.lJ(s,B.J5,s,s,s,s,s,s,s,B.dD,s,s,10,s,B.cG,s,!0,s,s,s,s)
 return A.bbq(s,A.ah([0,B.vf,1,B.vg,2,B.vf,3,B.p0,4,B.p0,5,B.p0],t.S,t.WL),30,B.x1,B.cB,p,B.R0,B.XC,q,r)},
-b9v(a){var s=null,r=B.l.lL(a.ax,0,new A.ajb()),q=r*(a.ay/100),p=A.b9i("en_IN","\u20b9"),o=t.n_
+b9v(a){var s=null,r=B.l.lL(a.ax,0,new A.ajb()),q=r*(a.ay/100),p=A.b9i("en_IN","Rs. "),o=t.n_
 return A.BH(B.Q8,A.xH(A.b([new A.UV(3,B.hv,new A.eT(0,0,s)),new A.ov(2,B.hv,A.OZ(A.b([new A.PJ(),A.aSR("Sub Total",B.o.af(r,2),!1),new A.eT(s,8,s),A.aSR(a.ch,B.o.af(q,2),!1),new A.eT(s,8,s),A.BH(s,A.aSR("Total",p.aH(r+q),!0),B.aMH,s,s,s,s,B.x1,s)],o),B.fe))],o),B.l3,B.no),s,s,s,s,s,s,s)},
 aSR(a,b,c){var s=null,r=A.ei(a,A.lJ(s,s,s,s,s,s,s,s,s,B.dD,s,s,10,s,c?B.cG:B.qH,s,!0,s,s,s,s),s,s)
 return A.xH(A.b([r,A.ei(b,A.lJ(s,s,s,s,s,s,s,s,s,B.dD,s,s,10,s,c?B.cG:B.qH,s,!0,s,s,s,s),s,s)],t.n_),B.l3,B.Iy)},
