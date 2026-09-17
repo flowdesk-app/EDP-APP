@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -67,13 +68,15 @@ class PdfInvoiceApi {
   static Future<Uint8List> generate(InvoiceData data) async {
     try {
       final pdf = pw.Document();
+      
+      final logoImage = pw.MemoryImage((await rootBundle.load('assets/images/logo.png')).buffer.asUint8List());
 
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(32),
           build: (context) => [
-            _buildHeader(data),
+            _buildHeader(data, logoImage),
             pw.SizedBox(height: 24),
             _buildAddresses(data),
             pw.SizedBox(height: 24),
@@ -96,7 +99,7 @@ class PdfInvoiceApi {
     }
   }
 
-  static pw.Widget _buildHeader(InvoiceData data) {
+  static pw.Widget _buildHeader(InvoiceData data, pw.MemoryImage logoImage) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -106,18 +109,7 @@ class PdfInvoiceApi {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Row(
-                children: [
-                  pw.Container(
-                    width: 30,
-                    height: 30,
-                    decoration: const pw.BoxDecoration(color: PdfColors.red900, shape: pw.BoxShape.circle),
-                    child: pw.Center(child: pw.Text('EDP', style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold))),
-                  ),
-                  pw.SizedBox(width: 8),
-                  pw.Text('Exclusive Diamond Products', style: pw.TextStyle(color: PdfColors.blue, fontSize: 16, fontStyle: pw.FontStyle.italic, fontWeight: pw.FontWeight.bold)),
-                ],
-              ),
+              pw.Image(logoImage, height: 40),
               pw.SizedBox(height: 4),
               pw.Text('Exclusive Diamond Products', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
               pw.Text('No.62, Easwaran Koil Street, Porur,\n(Entry from Balamuragn Koil 2nd St & Behind RABS Engg\nWorks),\nChennai - 600116, India,', style: const pw.TextStyle(fontSize: 10)),
