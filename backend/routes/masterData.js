@@ -34,4 +34,25 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 
+// @route   POST api/master-data
+// @desc    Add or update master data entry
+router.post('/', auth, async (req, res) => {
+    try {
+        const { jobType, field, value } = req.body;
+        if (!jobType || !field || !value) {
+            return res.status(400).json({ msg: 'Please provide jobType, field, and value' });
+        }
+        
+        const updated = await MasterData.findOneAndUpdate(
+            { jobType, field, value: value.trim() },
+            { $set: { jobType, field, value: value.trim() } },
+            { upsert: true, new: true }
+        );
+        res.json(updated);
+    } catch (err) {
+        console.error('Error saving master data:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

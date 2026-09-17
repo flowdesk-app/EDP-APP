@@ -633,8 +633,24 @@ class ApiService {
   Future<void> deleteMasterData(String id) async {
     await _loadToken();
     final res = await http.delete(Uri.parse('$baseUrl/master-data/$id'), headers: _headers);
-    if (res.statusCode != 200) {
-      throw Exception('Failed to delete master data');
+    if (res.statusCode >= 400) {
+      throw Exception('Failed to delete master data: ${res.body}');
+    }
+  }
+
+  Future<void> saveMasterData(String jobType, String field, String value) async {
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/master-data'),
+      headers: _headers,
+      body: jsonEncode({
+        'jobType': jobType,
+        'field': field,
+        'value': value,
+      }),
+    );
+    if (res.statusCode >= 400) {
+      throw Exception('Failed to save master data: ${res.body}');
     }
   }
 

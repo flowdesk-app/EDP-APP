@@ -17,7 +17,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadMasterData();
   }
 
@@ -111,7 +111,14 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (jobType != 'Raw Material') ...[
+        if (jobType == 'Invoice') ...[
+          _buildSection(jobType, 'Customer / Company Names', 'Customer Name'),
+          _buildSection(jobType, 'Billing Addresses', 'Billing Address'),
+          _buildSection(jobType, 'Shipping Addresses', 'Shipping Address'),
+          _buildSection(jobType, 'GSTIN', 'GSTIN'),
+          _buildSection(jobType, 'Item Descriptions', 'Item Description'),
+          _buildSection(jobType, 'HSN / SAC Codes', 'HSN Code'),
+        ] else if (jobType != 'Raw Material') ...[
           _buildSection(jobType, 'Customer Names', 'Customer Name'),
           _buildSection(jobType, 'Part Numbers', 'Part Number'),
           _buildSection(jobType, 'Descriptions', 'Description'),
@@ -144,6 +151,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
             Tab(text: 'New Jobs'),
             Tab(text: 'Re-coating Jobs'),
             Tab(text: 'Raw Materials'),
+            Tab(text: 'Invoices'),
           ],
         ),
       ),
@@ -153,6 +161,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
           _buildTabContent('New'),
           _buildTabContent('Re-coating'),
           _buildTabContent('Raw Material'),
+          _buildTabContent('Invoice'),
         ],
       ),
     );
