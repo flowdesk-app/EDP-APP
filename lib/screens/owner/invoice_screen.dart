@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
-import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
 import '../../services/api_service.dart';
 import '../../utils/pdf_invoice_api.dart';
 
@@ -18,7 +18,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   // Controllers
   final _invoiceTitleCtrl = TextEditingController(text: 'SALES ORDER');
   final _salesOrderNoCtrl = TextEditingController();
-  DateTime _salesOrderDate = DateTime.now();
+  final DateTime _salesOrderDate = DateTime.now();
   
   final _billToNameCtrl = TextEditingController();
   final _billToAddressCtrl = TextEditingController();
@@ -31,13 +31,13 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   final _shipToVendorCodeCtrl = TextEditingController();
 
   final _placeOfSupplyCtrl = TextEditingController();
-  DateTime? _orderDate = DateTime.now();
+  final DateTime _orderDate = DateTime.now();
   final _referenceCtrl = TextEditingController();
   
   final _taxPercentageCtrl = TextEditingController(text: '18');
   final _taxLabelCtrl = TextEditingController(text: 'IGST (18%)');
 
-  List<InvoiceItem> _items = [];
+  final List<InvoiceItem> _items = [];
 
   @override
   void initState() {
@@ -293,13 +293,18 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       onPressed: () async {
                         try {
                           final pdfBytes = await PdfInvoiceApi.generate(_buildInvoiceData());
-                          await Printing.sharePdf(bytes: pdfBytes, filename: 'invoice.pdf');
+                          await Printing.layoutPdf(
+                            onLayout: (PdfPageFormat format) async => pdfBytes,
+                            name: 'Invoice.pdf',
+                          );
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+                          }
                         }
                       },
-                      icon: const Icon(Icons.download),
-                      label: const Text('Download / Share PDF', style: TextStyle(fontSize: 18)),
+                      icon: const Icon(Icons.print),
+                      label: const Text('Print / Save PDF', style: TextStyle(fontSize: 18)),
                     ),
                   ),
                   const SizedBox(height: 32),
