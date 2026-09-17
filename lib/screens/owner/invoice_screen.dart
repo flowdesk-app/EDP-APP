@@ -285,6 +285,24 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   TextField(controller: _taxLabelCtrl, decoration: const InputDecoration(labelText: 'Tax Label (e.g. IGST (18%))', border: OutlineInputBorder(), isDense: true), onChanged: (_) => setState((){})),
                   const SizedBox(height: 8),
                   TextField(controller: _referenceCtrl, decoration: const InputDecoration(labelText: 'Reference', border: OutlineInputBorder(), isDense: true), onChanged: (_) => setState((){})),
+                  
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        try {
+                          final pdfBytes = await PdfInvoiceApi.generate(_buildInvoiceData());
+                          await Printing.sharePdf(bytes: pdfBytes, filename: 'invoice.pdf');
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+                        }
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text('Download / Share PDF', style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

@@ -66,29 +66,35 @@ class InvoiceData {
 
 class PdfInvoiceApi {
   static Future<Uint8List> generate(InvoiceData data) async {
-    final pdf = pw.Document();
+    try {
+      final pdf = pw.Document();
 
-    // Default icon if logo is not provided
-    // In future, you can load a logo image here:
-    // final logoImage = pw.MemoryImage((await rootBundle.load('assets/logo.png')).buffer.asUint8List());
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (context) => [
+            _buildHeader(data),
+            pw.SizedBox(height: 24),
+            _buildAddresses(data),
+            pw.SizedBox(height: 24),
+            _buildTable(data),
+            pw.SizedBox(height: 24),
+            _buildTotal(data),
+          ],
+        ),
+      );
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (context) => [
-          _buildHeader(data),
-          pw.SizedBox(height: 24),
-          _buildAddresses(data),
-          pw.SizedBox(height: 24),
-          _buildTable(data),
-          pw.SizedBox(height: 24),
-          _buildTotal(data),
-        ],
-      ),
-    );
-
-    return pdf.save();
+      return await pdf.save();
+    } catch (e, stack) {
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          build: (context) => pw.Text('PDF Generation Error: $e\n$stack'),
+        ),
+      );
+      return await pdf.save();
+    }
   }
 
   static pw.Widget _buildHeader(InvoiceData data) {
