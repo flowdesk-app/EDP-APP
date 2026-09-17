@@ -624,7 +624,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<String>(
-                    value: _availUnit,
+                    initialValue: _availUnit,
                     decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
                     items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                     onChanged: (val) => setState(() => _availUnit = val!),
@@ -653,7 +653,7 @@ class _AddRawMaterialFormState extends State<_AddRawMaterialForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<String>(
-                    value: _minUnit,
+                    initialValue: _minUnit,
                     decoration: const InputDecoration(labelText: 'Unit', border: OutlineInputBorder()),
                     items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
                     onChanged: (val) => setState(() => _minUnit = val!),
