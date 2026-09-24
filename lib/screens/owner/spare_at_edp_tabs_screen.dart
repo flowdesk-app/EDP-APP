@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'stock_at_edp_screen.dart';
 
@@ -12,6 +13,7 @@ class SpareAtEdpTabsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Spare at ${supplierName ?? 'EDP'}', style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        actions: [const GlobalLogoutButton()],
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 1,

@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/notification_model.dart';
@@ -93,6 +94,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchData),
         ],
       ),

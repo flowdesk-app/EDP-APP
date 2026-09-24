@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/supplier_model.dart';
 import '../../models/job_model.dart';
@@ -90,6 +91,7 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing && _selectedJobIds.isNotEmpty)
             IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: _removeSelectedJobs),
           if (!_isEditing)

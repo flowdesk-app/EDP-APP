@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
@@ -280,6 +281,7 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing) ...[
             IconButton(
               icon: const Icon(Icons.select_all),

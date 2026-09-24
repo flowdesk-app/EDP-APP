@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
@@ -89,6 +90,7 @@ class _SpareToReadyForDeliveryScreenState extends State<SpareToReadyForDeliveryS
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Move to Ready for Delivery', style: TextStyle(color: Color(0xFF202124))),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,

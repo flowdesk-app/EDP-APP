@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/job_model.dart';
 import '../../services/api_service.dart';
@@ -119,6 +120,7 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing)
             IconButton(
               icon: Icon(

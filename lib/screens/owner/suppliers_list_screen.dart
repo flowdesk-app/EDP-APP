@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../models/supplier_model.dart';
@@ -139,6 +140,7 @@ class _SuppliersListScreenState extends State<SuppliersListScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing && _selectedSupplierIds.isNotEmpty)
             IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: _removeSelectedSuppliers),
           if (!_isEditing)

@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 
 class InfoScreen extends StatelessWidget {
@@ -9,6 +10,7 @@ class InfoScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Info', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF202124),
         elevation: 0,

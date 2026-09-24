@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/job_model.dart';
 import '../../services/api_service.dart';
@@ -129,6 +130,7 @@ class _RemovedJobsScreenState extends State<RemovedJobsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing)
             IconButton(
               icon: const Icon(Icons.select_all, color: Colors.blue),

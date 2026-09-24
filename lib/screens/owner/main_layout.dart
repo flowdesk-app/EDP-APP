@@ -133,29 +133,9 @@ class _MainLayoutState extends State<MainLayout> {
             backgroundColor: Colors.white,
             selectedIconTheme: const IconThemeData(color: Color(0xFF29B6F6)),
             selectedLabelTextStyle: const TextStyle(color: Color(0xFF29B6F6), fontWeight: FontWeight.bold),
-            leading: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const FlowdeskLogo(fontSize: 18),
-                  const SizedBox(height: 24),
-                  IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.redAccent),
-                    tooltip: 'Logout',
-                    onPressed: () async {
-                      await ApiService().logout();
-                      if (context.mounted) {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          (route) => false,
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
+            leading: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: FlowdeskLogo(fontSize: 18),
             ),
             destinations: _destinations,
           ),

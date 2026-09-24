@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
@@ -80,6 +81,7 @@ class _SpareToProductionStageScreenState extends State<SpareToProductionStageScr
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Move to Production', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.black87)),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),

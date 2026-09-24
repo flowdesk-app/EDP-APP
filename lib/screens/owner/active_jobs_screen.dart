@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../services/api_service.dart';
@@ -205,6 +206,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isAdmin && _isEditing)
             IconButton(
               icon: Icon(

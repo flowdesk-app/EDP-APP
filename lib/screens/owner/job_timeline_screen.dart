@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/job_model.dart';
@@ -355,6 +356,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          const GlobalLogoutButton(),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _isUpdating ? null : _refresh),
         ],
       ),

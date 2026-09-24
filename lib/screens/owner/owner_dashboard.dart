@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
@@ -157,6 +158,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           IconButton(
             icon: const Icon(Icons.refresh, color: Color(0xFF202124)),
             onPressed: _loading ? null : _load,

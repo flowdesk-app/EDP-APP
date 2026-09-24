@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 
 class CustomerDeliveryScreen extends StatefulWidget {
@@ -31,6 +32,7 @@ class _CustomerDeliveryScreenState extends State<CustomerDeliveryScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Customer Delivery', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         elevation: 0,
       ),

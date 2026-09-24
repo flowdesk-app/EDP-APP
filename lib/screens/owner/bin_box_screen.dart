@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
@@ -282,6 +283,7 @@ class _BinBoxScreenState extends State<BinBoxScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           IconButton(
             icon: Icon(_isEditing ? Icons.close : Icons.edit, color: const Color(0xFF202124)),
             onPressed: () {

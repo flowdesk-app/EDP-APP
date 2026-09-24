@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/lead_model.dart';
 import '../../models/job_model.dart';
@@ -51,6 +52,7 @@ class _NewStatusJobsScreenState extends State<NewStatusJobsScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('New Status Jobs', style: TextStyle(color: Color(0xFF202124))),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFF202124)),

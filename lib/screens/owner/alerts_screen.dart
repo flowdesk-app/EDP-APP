@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/notification_model.dart';
 import '../../services/api_service.dart';
@@ -92,6 +93,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing)
             IconButton(
               icon: Icon(

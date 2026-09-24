@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/job_model.dart';
 import '../../models/supplier_model.dart';
@@ -264,6 +265,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
             : null,
         actions: _isEditing 
             ? [
+                const GlobalLogoutButton(),
                 if (_selectedSupplierIds.isNotEmpty)
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
@@ -271,6 +273,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
                   ),
               ]
             : [
+                const GlobalLogoutButton(),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () => setState(() => _isEditing = true),

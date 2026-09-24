@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -218,6 +219,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
+          const GlobalLogoutButton(),
           TextButton.icon(
             onPressed: _saveAllMasterData,
             icon: const Icon(Icons.save),

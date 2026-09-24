@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
@@ -100,6 +101,7 @@ class _CalendarHistoryScreenState extends State<CalendarHistoryScreen> {
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Color(0xFF29B6F6)),
             onPressed: _pickDate,

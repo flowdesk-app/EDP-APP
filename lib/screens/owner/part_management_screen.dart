@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 
@@ -139,6 +140,7 @@ class _PartManagementScreenState extends State<PartManagementScreen> with Single
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Job Master', style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF202124),
         elevation: 0,

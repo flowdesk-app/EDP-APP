@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../services/api_service.dart';
@@ -1052,6 +1053,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          const GlobalLogoutButton(),
           if (_flowType != FlowType.none && widget.initialCustomerName == null)
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.grey),

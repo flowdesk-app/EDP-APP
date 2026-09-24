@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 
 class WarehouseItemDetailScreen extends StatelessWidget {
@@ -13,6 +14,7 @@ class WarehouseItemDetailScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(item['itemName'] ?? 'Item Details', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF202124),
         elevation: 0,

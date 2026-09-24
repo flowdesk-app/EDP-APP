@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
@@ -417,6 +418,7 @@ class _SpareDetailsScreenState extends State<SpareDetailsScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(spare['partNumber'] ?? 'Spare Details', style: const TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold)),
+        actions: [const GlobalLogoutButton()],
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,

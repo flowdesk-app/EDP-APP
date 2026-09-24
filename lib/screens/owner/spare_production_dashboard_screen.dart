@@ -1,3 +1,4 @@
+import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../models/supplier_model.dart';
 import '../../services/api_service.dart';
@@ -236,6 +237,7 @@ class _SpareProductionDashboardScreenState extends State<SpareProductionDashboar
         foregroundColor: const Color(0xFF202124),
         elevation: 1,
         actions: [
+          const GlobalLogoutButton(),
           if (_isEditing)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
