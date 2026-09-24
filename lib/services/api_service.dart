@@ -30,10 +30,16 @@ class ApiService {
     
     final roleStr = prefs.getString('auth_role');
     if (roleStr != null) {
+      UserRole r = UserRole.employee;
+      if (roleStr == 'admin') r = UserRole.admin;
+      else if (roleStr == 'employee1') r = UserRole.employee1;
+      else if (roleStr == 'employee2') r = UserRole.employee2;
+      else if (roleStr == 'employee3') r = UserRole.employee3;
+
       currentUser = UserModel(
         email: prefs.getString('auth_email') ?? '',
         password: '',
-        role: roleStr == 'admin' ? UserRole.admin : UserRole.employee,
+        role: r,
       );
     }
   }
@@ -54,14 +60,20 @@ class ApiService {
         final data = jsonDecode(res.body);
         _token = data['token'];
         final prefs = await SharedPreferences.getInstance();
-        final roleStr = data['role'] == 'admin' ? 'admin' : 'employee';
+        final roleStr = data['role'] ?? 'employee';
         await prefs.setString('auth_role', roleStr);
         await prefs.setString('auth_email', data['email']);
         
+        UserRole r = UserRole.employee;
+        if (roleStr == 'admin') r = UserRole.admin;
+        else if (roleStr == 'employee1') r = UserRole.employee1;
+        else if (roleStr == 'employee2') r = UserRole.employee2;
+        else if (roleStr == 'employee3') r = UserRole.employee3;
+
         currentUser = UserModel(
           email: data['email'],
           password: '',
-          role: roleStr == 'admin' ? UserRole.admin : UserRole.employee,
+          role: r,
           supplierId: data['supplierId'],
         );
         return currentUser;

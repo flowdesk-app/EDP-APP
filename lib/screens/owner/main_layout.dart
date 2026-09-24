@@ -11,6 +11,7 @@ import 'removed_jobs_screen.dart';
 import 'part_management_screen.dart';
 import 'invoice_screen.dart';
 import 'spare_production_dashboard_screen.dart';
+import 'recoating_dashboard_screen.dart';
 import 'raw_materials_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -28,38 +29,81 @@ class _MainLayoutState extends State<MainLayout> {
 
   late List<Widget> _screens;
   late List<NavigationRailDestination> _destinations;
-  bool _isAdmin = false;
+  late UserRole _role;
 
   @override
   void initState() {
     super.initState();
-    _isAdmin = ApiService().currentUser?.role == UserRole.admin;
-    
-    _screens = [
-      const OwnerDashboard(), // 0. Dashboard
-      CreateJobScreen(onNavigateToDashboard: () => setState(() => _currentIndex = 0)), // 1. Create Job
-      const ActiveJobsScreen(), // 2. Active Jobs
-      const DeliveredJobsScreen(), // 3. Delivered
-      if (_isAdmin) const PartManagementScreen(), // 4. Job Names (Parts)
-      if (_isAdmin) const RemovedJobsScreen(), // 5. Edit
-      if (_isAdmin) const InvoiceScreen(), // 6. Invoices
-      if (_isAdmin) const SpareProductionDashboardScreen(), // 7. Spare at EDP
-      if (_isAdmin) const RawMaterialsScreen(), // 8. Raw Materials
-      if (_isAdmin) const ReadyForDeliveryScreen(), // 9. Ready for Delivery
-    ];
+    _role = ApiService().currentUser?.role ?? UserRole.employee;
+    _buildDestinationsAndScreens();
+  }
 
-    _destinations = [
-      const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
-      const NavigationRailDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: Text('Create Job')),
-      const NavigationRailDestination(icon: Icon(Icons.list_alt), selectedIcon: Icon(Icons.list), label: Text('EDP Production')),
-      const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
-      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('Job Master')),
-      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.edit_outlined), selectedIcon: Icon(Icons.edit), label: Text('Edit')),
-      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.receipt_outlined), selectedIcon: Icon(Icons.receipt), label: Text('Invoices')),
-      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('Spare at EDP')),
-      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
-      if (_isAdmin) const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
-    ];
+  void _buildDestinationsAndScreens() {
+    _screens = [];
+    _destinations = [];
+    
+    if (_role == UserRole.admin) {
+      _screens = [
+        const OwnerDashboard(), // 0. Dashboard
+        CreateJobScreen(onNavigateToDashboard: () => setState(() => _currentIndex = 0)), // 1. Create Job
+        const ActiveJobsScreen(), // 2. Active Jobs
+        const DeliveredJobsScreen(), // 3. Delivered
+        const PartManagementScreen(), // 4. Job Names (Parts)
+        const RemovedJobsScreen(), // 5. Edit
+        const InvoiceScreen(), // 6. Invoices
+        const SpareProductionDashboardScreen(), // 7. Spare at EDP
+        const RawMaterialsScreen(), // 8. Raw Materials
+        const ReadyForDeliveryScreen(), // 9. Ready for Delivery
+      ];
+      _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
+        const NavigationRailDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: Text('Create Job')),
+        const NavigationRailDestination(icon: Icon(Icons.list_alt), selectedIcon: Icon(Icons.list), label: Text('EDP Production')),
+        const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
+        const NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('Job Master')),
+        const NavigationRailDestination(icon: Icon(Icons.edit_outlined), selectedIcon: Icon(Icons.edit), label: Text('Edit')),
+        const NavigationRailDestination(icon: Icon(Icons.receipt_outlined), selectedIcon: Icon(Icons.receipt), label: Text('Invoices')),
+        const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('Spare at EDP')),
+        const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
+        const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
+      ];
+    } else if (_role == UserRole.employee1) {
+      _screens = [
+        const SpareProductionDashboardScreen(),
+        const RawMaterialsScreen(),
+      ];
+      _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('Spare at EDP')),
+        const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
+      ];
+    } else if (_role == UserRole.employee2) {
+      _screens = [
+        const ActiveJobsScreen(),
+        const SpareProductionDashboardScreen(),
+      ];
+      _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.list_alt), selectedIcon: Icon(Icons.list), label: Text('EDP Production')),
+        const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('EDP Spare Prod')),
+      ];
+    } else if (_role == UserRole.employee3) {
+      _screens = [
+        RecoatingDashboardScreen(recoatingJobs: []),
+        const ReadyForDeliveryScreen(),
+        const DeliveredJobsScreen(),
+      ];
+      _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.build_circle_outlined), selectedIcon: Icon(Icons.build_circle), label: Text('Re-coating')),
+        const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
+        const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
+      ];
+    } else {
+      _screens = [
+        const OwnerDashboard(),
+      ];
+      _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
+      ];
+    }
   }
 
   // Mobile Bottom Navigation limits to 4 or 5 typically. We can use a Drawer or "More" tab for mobile.
@@ -141,12 +185,13 @@ class _MainLayoutState extends State<MainLayout> {
         },
         selectedItemColor: _currentIndex > 3 ? const Color(0xFF5F6368) : const Color(0xFF29B6F6),
         unselectedItemColor: const Color(0xFF5F6368),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_box_outlined), activeIcon: Icon(Icons.add_box), label: 'Create'),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), activeIcon: Icon(Icons.list), label: 'EDP Production'),
-          BottomNavigationBarItem(icon: Icon(Icons.check_circle_outline), activeIcon: Icon(Icons.check_circle), label: 'Delivered'),
-        ],
+        items: _destinations.take(4).map((d) {
+          return BottomNavigationBarItem(
+            icon: d.icon,
+            activeIcon: d.selectedIcon,
+            label: (d.label as Text).data,
+          );
+        }).toList(),
       ),
     );
   }

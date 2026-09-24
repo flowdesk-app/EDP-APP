@@ -27,6 +27,7 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   void initState() {
     super.initState();
     _currentJobs = widget.recoatingJobs;
+    _fetchJobs();
   }
 
   Future<void> _fetchJobs() async {
