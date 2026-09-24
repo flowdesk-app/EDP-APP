@@ -150,7 +150,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF4F7FE),
       appBar: AppBar(
         leading: const DrawerMenuButton(),
         title: const FlowdeskLogo(fontSize: 24),
@@ -248,14 +248,14 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     childAspectRatio: childAspectRatio,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
                     children: [
-                      _buildStatCard('Returned', _returnedJobs, Icons.assignment_return, const Color(0xFF8E24AA), () => _navToFiltered('Returned Materials', _currentJobs.where((j) => j.status == 'Returned').toList())),
-                      _buildStatCard('PO Not Given', _poNotGivenCount, Icons.assignment_late, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.poNotGiven == true).toList(), title: 'PO Not Given'))).then((_) => _load())),
-                      _buildStatCard('Blank Orders', _blankOrders, Icons.note_add, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).toList(), title: 'Blank Orders'))).then((_) => _load())),
-                      _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
-                      _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.blue, () {
+                      _buildStatCard('Returned', _returnedJobs, Icons.assignment_return, const Color(0xFF8A2BE2), () => _navToFiltered('Returned Materials', _currentJobs.where((j) => j.status == 'Returned').toList())),
+                      _buildStatCard('PO Not Given', _poNotGivenCount, Icons.assignment_late, const Color(0xFFEA4335), () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.poNotGiven == true).toList(), title: 'PO Not Given'))).then((_) => _load())),
+                      _buildStatCard('Blank Orders', _blankOrders, Icons.note_add, const Color(0xFFF4B400), () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlankOrdersScreen(jobs: _currentJobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).toList(), title: 'Blank Orders'))).then((_) => _load())),
+                      _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, const Color(0xFF0F9D58), () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
+                      _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, const Color(0xFF4285F4), () {
                         final validJobs = _currentJobs.where((j) {
                           if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
                           if (j.currentLocation == 'EDP Spare') return false;
@@ -271,9 +271,9 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                         }).toList();
                         Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionDashboardScreen(productionJobs: validJobs, month: _selectedMonth, date: _selectedDate))).then((_) => _load());
                       }),
-                      _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, Colors.green, () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),
-                      _buildStatCard('EDP Spare Production', 0, Icons.settings_suggest, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareProductionDashboardScreen()))),
-                      _buildStatCard('Coating Arrived', _coatingArrivedCount, Icons.layers, Colors.brown, () => _navToFiltered('Coating Arrived', _currentJobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).toList())),
+                      _buildStatCard('Ready for Delivery', _readyForDeliveryJobs, Icons.local_shipping, const Color(0xFF34A853), () => _navToFiltered('Ready for Delivery', _currentJobs.where((j) => j.status == 'Completed').toList(), filter: (j) => j.status == 'Completed')),
+                      _buildStatCard('EDP Spare Production', 0, Icons.settings_suggest, const Color(0xFF5C6BC0), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpareProductionDashboardScreen()))),
+                      _buildStatCard('Coating Arrived', _coatingArrivedCount, Icons.layers, const Color(0xFFE91E63), () => _navToFiltered('Coating Arrived', _currentJobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).toList())),
                     ],
                   ),
                 ],
@@ -360,32 +360,17 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
 
 
   Widget _buildStatCard(String title, int count, IconData icon, Color baseColor, VoidCallback onTap) {
-    final HSLColor hsl = HSLColor.fromColor(baseColor);
-    // Deepen and slightly desaturate the colors for a richer, more premium look (less "bright")
-    final Color adjustedBaseColor = hsl
-        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
-        .withLightness((hsl.lightness * 0.85).clamp(0.0, 1.0))
-        .toColor();
-    final Color darkerColor = hsl
-        .withSaturation((hsl.saturation * 0.85).clamp(0.0, 1.0))
-        .withLightness((hsl.lightness * 0.65).clamp(0.0, 1.0))
-        .toColor();
-
     return Container(
       decoration: BoxDecoration(
+        color: baseColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: adjustedBaseColor.withValues(alpha: 0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: baseColor.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
-        gradient: LinearGradient(
-          colors: [adjustedBaseColor, darkerColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -393,36 +378,37 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      child: Icon(icon, color: Colors.white, size: 24),
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.white70),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, color: Colors.white, size: 20),
+                    ),
                   ],
                 ),
-                const Spacer(),
                 Text(
                   '$count',
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ],
             ),
