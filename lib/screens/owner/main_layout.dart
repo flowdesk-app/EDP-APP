@@ -15,6 +15,7 @@ import 'recoating_dashboard_screen.dart';
 import 'raw_materials_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
+import '../login_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -132,9 +133,29 @@ class _MainLayoutState extends State<MainLayout> {
             backgroundColor: Colors.white,
             selectedIconTheme: const IconThemeData(color: Color(0xFF29B6F6)),
             selectedLabelTextStyle: const TextStyle(color: Color(0xFF29B6F6), fontWeight: FontWeight.bold),
-            leading: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: FlowdeskLogo(fontSize: 18),
+            leading: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const FlowdeskLogo(fontSize: 18),
+                  const SizedBox(height: 24),
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.redAccent),
+                    tooltip: 'Logout',
+                    onPressed: () async {
+                      await ApiService().logout();
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
             destinations: _destinations,
           ),
@@ -173,6 +194,21 @@ class _MainLayoutState extends State<MainLayout> {
                 },
               );
             }),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
+              onTap: () async {
+                await ApiService().logout();
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
