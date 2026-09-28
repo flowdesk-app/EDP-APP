@@ -21,7 +21,7 @@ router.get('/', auth, async (req, res) => {
       };
     }
 
-    const items = await ItemDatabase.find(query).limit(100);
+    const items = await ItemDatabase.find(query).limit(1000);
     res.json(items);
   } catch (err) {
     res.status(500).json({ error: 'Server error fetching items' });
