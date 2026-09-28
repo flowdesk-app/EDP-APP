@@ -1,0 +1,209 @@
+Item ID,Item Name,SKU,HSN/SAC,Is Tax Calculated on Label Price,Description,Rate,Account,Account Code,Taxable,Exemption Reason,Taxability Type,Product Type,Product Name,Intra State Tax Name,Intra State Tax Rate,Intra State Tax Type,Inter State Tax Name,Inter State Tax Rate,Inter State Tax Type,Source,Reference ID,Last Sync Time,Status,Usage unit,Unit Name,Purchase Rate,Purchase Account,Purchase Account Code,Purchase Description,Inventory Account,Inventory Account Code,Inventory Valuation Method,Reorder Point,Vendor,Opening Stock,Opening Stock Value,Stock On Hand,Item Type,Sellable,Purchasable,Track Inventory
+713621000000060001,RBL-Model1 - 330 Gangsaw (Regular),,68042110,FALSE,"EDP - NEW Commercial Gang Saw - Dia 330mm X 80mm Bore X 1.3mm BT X 2.5mm CT X Grit 40/50
+  DRG NO;RBL-001-010.
+Material Code:232415070001",INR 2070.00,Sales,,true,,,goods,RBL-Model1 - 330 Gangsaw (Regular),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,3,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066017,RBLA-Model2 -(ANGLE TYPE12 Seg Chamfering Wheel(BL50019),,68042110,FALSE,"EDP - BL Chamfering Wheel - Dia 610mm X 360mm ID X Grit 25/30(12 seg angle type)
+DRG No: BL50019
+Material Code:311916030217",INR 29700.00,Sales,,true,,,goods,RBLA-Model2 -(ANGLE TYPE12 Seg Chamfering Wheel(BL50019),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,Set of 12 Nos,,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066033,RBL-Model2 - 12 Seg Chamfering Wheel(BL50048),,68042110,FALSE,"EDP-BL Chamfering Wheel(12 segments type) Dia 610mm X 200mm Width X 20mm Thick X Grit 25/30
+DRG No: BL50048
+Mat code;232426030022",INR 38475.00,Sales,,true,,,goods,RBL-Model2 - 12 Seg Chamfering Wheel(BL50048),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,Set of 12 Nos,,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066041,RBL-Model2 - Clutch Facing DD Grinder,,68042110,FALSE,EDP-Clutch facing OD Grinding wheel Dia 460mm x 300mm ID  X Grit 30/40 & 40/50,INR 16500.00,Sales,,true,,,goods,RBL-Model2 - Clutch Facing DD Grinder,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066053,RBLA-Model1 - Discpad Grooving Wheel - 200mmX1.5X2.7,,68042110,FALSE,"EDP - NEW Disc Pad Grooving Wheel - Dia 200mm X 50mm Bore X 1.5mm BT X 2.7mm CT X Grit 40/50
+ DRG NO;DP50039
+Material Code: 311916030126",INR 1260.00,Sales,,true,,,goods,RBLA-Model1 - Discpad Grooving Wheel - 200mmX1.5X2.7,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066085,RBL-Model1 -235mm Gangsaw(Slot type) (1.2mm Thick),,68042110,FALSE,"EDP-NEW Passenger Gang Saw(Slot type)- Dia 235mm X 57.15mm Bore X 0.6mm BT X 1.2mm CT X Grit 60/70
+Material Code:232415070003",INR 1530.00,Sales,,true,,,goods,RBL-Model1 -235mm Gangsaw(Slot type) (1.2mm Thick),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066093,RBL-Model1 -235mm Gangsaw(Plain type)(1.6mm Thick),,68042110,FALSE,"EDP-NEW Passenger Gang Saw(Plain type)- Dia 235mm X 57.15mm Bore X 1.0mm BT X 1.6mm CT X Grit 60/70
+Material Code: R515940003",INR 1530.00,Sales,,true,,,goods,RBL-Model1 -235mm Gangsaw(Plain type)(1.6mm Thick),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066101,RBLA-Model2 - Dispad 2 Ring(190mm),,68042110,FALSE,"EDP -Disc Pad Grinding Wheel (2 Ring type) Dia 190mm X 35mm Bore 40mm Thickx Rough Grit 30/40 Fine Grit 50/60 
+ DRG NO;DP50041
+ Mat code;311916030219
+",INR 4320.00,Sales,,true,,,goods,RBLA-Model2 - Dispad 2 Ring(190mm),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066109,RBL-Model1 - 330 Gangsaw (1.6mm),,68042110,FALSE,EDP - Commercial Gangsaw - Dia 330mm X 80mm Bore X 1.0mm BT X 1.6mm CT X Grit 60/70,INR 2070.00,Sales,,true,,,goods,RBL-Model1 - 330 Gangsaw (1.6mm),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,Inventory Asset,,,,,,,,Sales,true,false,false
+713621000000066121,RBL-Model2 - 406 OD Wheel(Regular),,68042110,FALSE,"EDP - OD Grinding Wheel - Dia 406mm X 50mm Thick X Grit 30/40
+DRG No:RBL-001-004
+Material Code: R515940036",INR 15300.00,Sales,,true,,,goods,RBL-Model2 - 406 OD Wheel(Regular),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066129,RBL-Model2 - 570 OD Wheel(Regular),,68042110,FALSE,"EDP - OD Grinding Wheel - Dia 570mm X 70mm Thick X Grit 30/40
+ DRG NO;RBL-001-058.
+ Mat code;311916020012.
+",INR 18500.00,Sales,,true,,,goods,RBL-Model2 - 570 OD Wheel(Regular),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066137,RBL-Model2 - OD Segments,,68042110,FALSE,"EDP - OD grinding wheel (12 Segments type) X Dia 610mm X Grit 30/40
+Material Code: R5153940031",INR 24155.00,Sales,,true,,,goods,RBL-Model2 - OD Segments,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066145,RBL-Model2 - ID/OD Wheel(150mm X 80mm),,68042110,FALSE,"EDP - Bookpress ID/OD Wheel - Dia 150mm X 50mm Bore X 80mm Thick X Grit 30/40
+DRG: BL50011
+mat.code;311916030194 ",INR 7100.00,Sales,,true,,,goods,RBL-Model2 - ID/OD Wheel(150mm X 80mm),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066153,AutoAxle-Model2 - 610 Face Wheel,,68042110,FALSE,"EDP -BL OD Grinding Wheel for Brake Shoe Assembly Dia 610mm X 254mm ID X 35mm ThickX Grit 30/40 (MODEL-2)
+",INR 31150.00,Sales,,true,,,goods,AutoAxle-Model2 - 610 Face Wheel,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066161,BILS-Model1 - Block Cham(LAU0171),,68042110,FALSE,"EDP - Block Chamfering Wheel - Grit 40/50 DRG No: 26LAU0171
+Material: ZB311916000352",INR 4925.00,Sales,,true,,,goods,BILS-Model1 - Block Cham(LAU0171),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066169,BILS-Model2 - Block Cham(LAU0171),,68042110,FALSE,"EDP - Block Chamfering Wheel - Grit 40/50
+DRG No: 26LAU0171
+Material: ZB311916000352",INR 3750.00,Sales,,true,,,goods,BILS-Model2 - Block Cham(LAU0171),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066177,BILS-Model1 - Gangsaw(LAU0147A),,68042110,FALSE,"EDP - BL Gang Saw Wheel - GRIT 40/50 DRG No: LAU-0147A
+Material: ZB311916000348
+Line Item No: 40",INR 1900.00,Sales,,true,,,goods,BILS-Model1 - Gangsaw(LAU0147A),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066185,BILS-Model1 - Gangsaw(LAU0147B),,68042110,FALSE,"EDP - BL Gang Saw Wheel - GRIT 70/80 DRG No: LAU-0147B
+Material: ZB311916000349
+Line Item No: 30",INR 1900.00,Sales,,true,,,goods,BILS-Model1 - Gangsaw(LAU0147B),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066197,BILS-Model1 - Gangsaw(LAU0175),,68042110,FALSE,"EDP - BL Gang Saw  - GRIT 40/50 DRG No: LAU-0175
+Material: ZB311916000347",INR 1900.00,Sales,,true,,,goods,BILS-Model1 - Gangsaw(LAU0175),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066205,BILS-Model1 - Gangsaw(LAU0176),,68042110,FALSE,"EDP - BL Gang Saw  - GRIT 120/140 DRG No: LAU0176
+Line Item No: 10
+Material: ZB311916000346",INR 1900.00,Sales,,true,,,goods,BILS-Model1 - Gangsaw(LAU0176),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066213,BILS-Model1 - Discpad Cham(LAU0149),,68042110,FALSE,"EDP - Disc Pad Chamfering Wheel - Dia 200mm X 50mm Bore X 20.4mm thick X 26.5 Deg Angle X Grit 25/30
+DRG No. LAU0149",INR 8965.00,Sales,,true,,,goods,BILS-Model1 - Discpad Cham(LAU0149),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066221,BILS-Model2 - Discpad Cham(LAU0149),,68042110,FALSE,"EDP - Disc Pad Chamfering Wheel - Dia 200mm X 50mm Bore X 20.4mm thick X 26.5 Deg Angle X Grit 25/30
+DRG No. LAU0149
+LINE ITEM 490
+MAT ZB311916000322",INR 3300.00,Sales,,true,,,goods,BILS-Model2 - Discpad Cham(LAU0149),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066229,BILS-Model1 - Discpad Grooving(LAU0131),,68042110,FALSE,"EDP - DP Grooving Wheel - Dia 198mm DRG No: LAU0131
+Material: ZB311916000011
+Line Item No: 60",INR 1050.00,Sales,,true,,,goods,BILS-Model1 - Discpad Grooving(LAU0131),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066237,BILS-Model1 - Taper Cup(LAU0145A),,68042110,FALSE,"EDP - Disc Pad Grinding Wheel (Taper Cup - Rough) - Dia 175mm X 50mm Bore X 60mm Thick X Grit 25/30
+DRG No: LAU0145A",INR 6950.00,Sales,,true,,,goods,BILS-Model1 - Taper Cup(LAU0145A),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066251,BILS-Model2 - Taper Cup(LAU0145A),,68042110,FALSE,"EDP - Disc Pad Grinding Wheel (Taper Cup - Rough) - Dia 175mm X 50mm Bore X 60mm Thick X Grit 25/30
+DRG No: LAU0145A/RC
+Material Code: ZB311916000335
+L:ine Item No: 50",INR 2700.00,Sales,,true,,,goods,BILS-Model2 - Taper Cup(LAU0145A),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066259,BILS-Model2 - Taper Cup(LAU0145B),,68042110,FALSE,"EDP - Disc Pad Grinding Wheel (Taper Cup - Fine) - Dia 175mm X Dia 50mm Bore X 60mm Thick X Grit 40/50
+DRG No: LAU0145B/RC",INR 2000.00,Sales,,true,,,goods,BILS-Model2 - Taper Cup(LAU0145B),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066267,BILS-Model1 - Taper Cup(LAU0145B),,68042110,FALSE,"EDP - Disc Pad Grinding Wheel (Taper Cup - Fine) - Dia 175mm X Dia 50mm Bore X 60mm Thick X Grit 40/50
+DRG No: LAU0145B",INR 5700.00,Sales,,true,,,goods,BILS-Model1 - Taper Cup(LAU0145B),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066275,BILS-Model1 - Lining Grinding(LAU0152),,68042110,FALSE,EDP - BL OD Grinding Wheel - Grit 30/40 DRG No: LAU0152,INR 23900.00,Sales,,true,,,goods,BILS-Model1 - Lining Grinding(LAU0152),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066283,BILS-Model2 - Lining Grinding(LAU0152),,68042110,FALSE,"EDP - Lining Grinding WHeel - Dia 406mm X 200mm Bore X 26mm Thick X 103mm Face Width X Grit 30/40
+DRG No: LAU 0152/RC",INR 17600.00,Sales,,true,,,goods,BILS-Model2 - Lining Grinding(LAU0152),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Inactive,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066299,BILS-Model1 - Lining Chamfering(LAU0153),,68042110,FALSE,"EDP - BL Chamfering Wheel - GRIT 25/30 DRG No: LAU0153
+Material Code: ZB311916000390
+Line Item No: 340",INR 20600.00,Sales,,true,,,goods,BILS-Model1 - Lining Chamfering(LAU0153),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066307,BILS-Model2 - Lining Chamfering(LAU0153),,68042110,FALSE,"EDP - Lining Chamfering Wheel - Dia 300mm X Dia 127mm Bore X 20mm Thick X 53.57mm Face Width X GRIT 25/30
+Material Code: ZB311916000325    
+DRG No: LAU0153/RC
+Line Item No: 80",INR 13700.00,Sales,,true,,,goods,BILS-Model2 - Lining Chamfering(LAU0153),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066315,BILS-Model1 - Discpad Rough Grinding(LAU0157A),,68042110,FALSE,"EDP - DP Grinding Wheel (Rough) - Grit 30/40
+DRG No.26LAU0157A",INR 5370.00,Sales,,true,,,goods,BILS-Model1 - Discpad Rough Grinding(LAU0157A),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066323,BILS-Model2 - Discpad Rough Grinding(LAU0157ARC),,68042110,FALSE,"EDP - Disc Pad Grinding Wheel (Rough) - Dia 190mm X 40mm Thick X 35mm Bore X 9 Deg Angle Grit 30/40
+DRG No.29LAU0157A/RC
+Material: ZB311916000333
+Line Item No:270",INR 3480.00,Sales,,true,,,goods,BILS-Model2 - Discpad Rough Grinding(LAU0157ARC),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066331,BILS-Model1 - Discpad fineGrinding(LAU0157B),,68042110,FALSE,"EDP - DP Grinding Wheel (Fine) - Grit 60/70
+DRG No.LAU 0157B
+Material: ZB311916000033
+Line Item No. 140",INR 4240.00,Sales,,true,,,goods,BILS-Model1 - Discpad fineGrinding(LAU0157B),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066339,BILS-Model2 - Discpad FINE Grinding(LAU0157BRC),,68042110,FALSE,"EDP - Disc Pad Grinding Wheel (FINE) - Dia 190mm X 40mm Thick X 35mm Bore X 3 Deg Angle Grit 60/70
+DRG No.29LAU0157B/RC
+Material: ZB311916000334
+Line Item No: 280",INR 2150.00,Sales,,true,,,goods,BILS-Model2 - Discpad FINE Grinding(LAU0157BRC),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066429,BILS-Model1 - Block Chamfering(LAU0158),,68042110,FALSE,"EDP - Block Chamfering Wheel - Grit 25/30
+DRG No: LAU0158",INR 3515.00,Sales,,true,,,goods,BILS-Model1 - Block Chamfering(LAU0158),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000066437,BILS-Model2 - Block Chamfering(LAU0158/RC),,68042110,FALSE,"EDP - Block Chamfering Wheel - Grit 25/30
+DRG No: LAU0158/RC",INR 3270.00,Sales,,true,,,goods,BILS-Model2 - Block Chamfering(LAU0158/RC),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000068021,BILS-Model2 - OD Grinding(11VV2888),,68042110,FALSE,"EDP - OD Grinding Wheel(Rough) - Dia 570mm X Grit 30/40
+DRG No: 11VV2888
+Material: ZB231315150001",INR 24800.00,Sales,,true,,,goods,BILS-Model2 - OD Grinding(11VV2888),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000069189,BILS-Model2 - VW Chamfering(29LAU0002),,68042110,FALSE,"EDP - Disc Pad Chamfering Wheel(Volkswagen) - Dia 197mm X 50mm Bore X 23mm OAL X Grit 30/40
+Material: ZB311916000324-DRG.No.29LAU0002
+Line Item No: 260",INR 4530.00,Sales,,true,,,goods,BILS-Model2 - VW Chamfering(29LAU0002),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000069277,BILS-Model2 - 18Deg Chamfering(29LAu0163),,68042110,FALSE,"EDP - Disc Pad Chamfering Wheel - Dia 200mm X 50mm Bore X Grit 25/30
+DRG No: 29LAU0163RC
+Material: ZB311916000323",INR 5200.00,Sales,,true,,,goods,BILS-Model2 - 18Deg Chamfering(29LAu0163),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000069321,BILS-Model2 - Chamfering(Radius - 29LAU0162),,68042110,FALSE,"EDP - Disc Pad Chamfering Wheel - Dia 199.6 X 50mm Bore X Grit 25/30
+DRG No.29LAU0162RC
+Material: ZB311916000342
+LINE ITEM;120",INR 5050.00,Sales,,true,,,goods,BILS-Model2 - Chamfering(Radius - 29LAU0162),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000069459,BILS-Model2 - 20Deg Chamfering(29LAU0154RC),,68042110,FALSE,"EDP - Disc Pad Chamfering Wheel - Dia 200mm X 50mm Bore  X Grit 25/30
+DRG No.29LAU0154
+Material: ZB31191000002
+Line Item No. 170",INR 7200.00,Sales,,true,,,goods,BILS-Model2 - 20Deg Chamfering(29LAU0154RC),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000076286,PIX-Model1 - 200(230),,68042110,FALSE,"EDP - Plain Grinding Wheel - Dia 260mm X 700mm CL X 1570mm OAL
+DRG No: 200(230)
+MODEL 1
+Grit 60/80",INR 208760.00,Discount,,true,,,goods,PIX-Model1 - 200(230),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000076332,PIX-BL-239(230),,,FALSE,,INR 0.00,,,true,,,goods,PIX-BL-239(230),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 9315.00,Raw Material,MCHNDBL,MS Wheel as per DRG 239(230),,,,,,,,,Purchases,false,true,false
+713621000000076344,RBL-Model1 - 330 Wearmark,,68042110,FALSE,"EDP - BL Wear Mark Wheel - Dia 330mm X 80mm Bore X 3.5mm BT X 15mm WC X Grit 50/60
+DRG No: BL50051
+Material Code:232415070001",INR 6583.50,Sales,,true,,,goods,RBL-Model1 - 330 Wearmark,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000076356,RBL-Model1 - 330 Slot(40/50),,68042110,FALSE,"EDP - NEW Commercial Gang Saw - Dia 330mm X 80mm Bore X 1.3mm BT X 2.5mm CT X Grit 40/50
+  DRG NO;RBL-001-010
+Material Code:271128020008",INR 2070.00,Sales,,true,,,goods,RBL-Model1 - 330 Slot(40/50),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000076364,RBL-Model1 -235 Gangsaw(slot type)(1.2mm),,68042110,FALSE,"EDP-NEW Passenger Gang Saw(slot type) - Dia 235mm X 57.15mm Bore X 0.6mm BT X 1.2mm CT X Grit 60/70
+Material Code: 232415070003",INR 1530.00,Sales,,true,,,goods,RBL-Model1 -235 Gangsaw(slot type)(1.2mm),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000076372,RBL-Model1 - 32mm Notch Cutter(Small - 12mm Shank),,68042110,FALSE,EDP- Wear Indicator(Notch Cutter) - Dia 32mm X 8mm CL X Shank Dia 12mm X 36mm OAL X Grit 25/30,INR 1026.00,Sales,,true,,,goods,RBL-Model1 - 32mm Notch Cutter(Small - 12mm Shank),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000076384,RBLA-Model1 -235 Gangsaw(plain type)(1.6mm),,68042110,FALSE,"EDP-NEW Passenger Gang Saw(plain type) - Dia 235mm X 57.15mm Bore X 1.0mm BT X 1.6mm CT X Grit 60/70
+Material Code:232415070003.",INR 1530.00,Sales,,true,,,goods,RBLA-Model1 -235 Gangsaw(plain type)(1.6mm),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083043,FED-Model2 - Mushroom,,68042110,FALSE,"EDP _ BL OD Grinding Mushrooms
+FMCODE; CONSUDOM000146",INR 460.00,Sales,,true,,,goods,FED-Model2 - Mushroom,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083051,FED-Model2 38mm Notch Cutter,,68042110,FALSE,"EDP - Wear Indicator (Notch Cutter - Grit 25/30
+",INR 670.00,Sales,,true,,,goods,FED-Model2 38mm Notch Cutter,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083059,FED-Model2 Tata Drum(401.4 X 230),,68042110,FALSE,"EDP - BL ID Grinding Drum(Tata) - 401.4 X 230 Long X Grit 25/30
+FM CODE;CONSUDOMOOO151",INR 27000.00,Sales,,true,,,goods,FED-Model2 Tata Drum(401.4 X 230),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083067,FED-Model2 Auto Chamfering,,68042110,FALSE,EDP - BL Auto Chamfering Wheel - Grit 25/30,INR 3708.00,Sales,,true,,,goods,FED-Model2 Auto Chamfering,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083075,FED-Model2 - Wear Grooving WHeel(300mm X 1.3 BTX 40/50),,68042110,FALSE,EDP - Wear Grooving Wheel - 300mm X 63.5 Bore X 1.3 BT X Grit 40/50,INR 2510.00,Sales,,true,,,goods,FED-Model2 - Wear Grooving WHeel(300mm X 1.3 BTX 40/50),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083083,FED-Model2 Drum 409.6 X 230 Long,,68042110,FALSE,EDP - BL ID Grinding WHeel - 409.6mm OD X 230mm Long X Grit 25/30,INR 30000.00,Sales,,true,,,goods,FED-Model2 Drum 409.6 X 230 Long,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083091,FED-Model2 6 Segments,,68042110,FALSE,EDP _ BL OD Grinding Wheel(1 set of 6 segments) - Grit 25/30,INR 26820.00,Sales,,true,,,goods,FED-Model2 6 Segments,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083099,FED-Model1 - Wearmark Step Wheel,,68042110,FALSE,EDP - Wearmark Step Wheel - Dia 312mm X 63.5 X Grit 50/60,INR 7380.00,Sales,,true,,,goods,FED-Model1 - Wearmark Step Wheel,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083249,FED-Model2 OD WHeel(Full),,68042110,FALSE,EDP - BL OD WHeel - 600 X 380 X 25/30,INR 28800.00,Sales,,true,,,goods,FED-Model2 OD WHeel(Full),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083273,FED-Model1 - Mushroom,,68042110,FALSE,EDP _ BL OD Grinding Mushrooms,INR 693.00,Sales,,true,,,goods,FED-Model1 - Mushroom,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083281,FED-Model1 38mm Notch Cutter,,68042110,FALSE,"EDP - Wear Indicator (Notch Cutter) 38mm - Grit 25/30
+",INR 1260.00,Sales,,true,,,goods,FED-Model1 38mm Notch Cutter,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083289,FED-Model1 32mm Notch Cutter,,68042110,FALSE,"EDP - Wear Indicator (Notch Cutter) 32mm - Grit 25/30
+",INR 1251.00,Sales,,true,,,goods,FED-Model1 32mm Notch Cutter,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083297,FED-Model1 - Wear Grooving WHeel(300mm X 1.3 BTX 40/50),,68042110,FALSE,EDP - Wear Grooving Wheel - 300mm X 63.5 Bore X 1.3 BT X Grit 40/50,INR 4600.00,Sales,,true,,,goods,FED-Model1 - Wear Grooving WHeel(300mm X 1.3 BTX 40/50),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083421,SBL-Model1 16 Segments 917E Iss C,,68042110,FALSE,"EDP - BL OD Segments
+DRG No: SASK 917E Iss C DT 10.12.13
+GRIT 30/35
+PART No.453091701",INR 33558.75,Sales,,true,,,goods,SBL-Model1 16 Segments 917E Iss C,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,Set of 16 Nos,,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000083443,SBL-Model2 16 Segments 917E Iss C,,68042110,FALSE,"EDP - BL OD Segments
+DRG No: SASK 917E Iss C",INR 17800.00,Sales,,true,,,goods,SBL-Model2 16 Segments 917E Iss C,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,Set of 16 Nos,,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084013,FLOW ETDP0.125IN,,68042110,FALSE,"EDP - 0.125"" Pins - Code: ETPll0125",INR 110.00,Sales,,true,,,goods,FLOW ETDP0.125IN,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084021,FLOW ETPD0.156IN,,68042110,FALSE,"EDP - 0.156"" Pins - Code: ETDP0.156IN",INR 120.00,Sales,,true,,,goods,FLOW ETPD0.156IN,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084029,FLOW ETPD0.172IN,,68042110,FALSE,EDP - 0.172PINS-iTEMCODE;ETPII0172,INR 120.00,Sales,,true,,,goods,FLOW ETPD0.172IN,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084037,FLOW ETPII0187,,68042110,FALSE,"EDP - 0.187"" Pins - Code: ETPII0187",INR 130.00,Sales,,true,,,goods,FLOW ETPII0187,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084045,FLOW ETPII0250,,68042110,FALSE,"EDP - 0.250"" Pins - Code: ETPII0250",INR 140.00,Sales,,true,,,goods,FLOW ETPII0250,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084053,FLOW ETPD0.265IN,,68042110,FALSE,"EDP - 0.265"" Pins - Code: ETDP0.265IN",INR 80.00,Sales,,true,,,goods,FLOW ETPD0.265IN,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084061,FLOW ETPD0.372IN,,68042110,FALSE,"EDP - 0.372"" Pins - Code: ETPD0.372IN",INR 81.00,Sales,,true,,,goods,FLOW ETPD0.372IN,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084069,FLOW ETPII0375,,68042110,FALSE,"EDP - 0.375"" Pins - Code: ETPII0375",INR 190.00,Sales,,true,,,goods,FLOW ETPII0375,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084077,FLOW ETPD3MM,,68042110,FALSE,EDP - 3mm Pins - Code: ETPIM0300,INR 110.00,Sales,,true,,,goods,FLOW ETPD3MM,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084085,FLOW ETPD3.5MM,,68042110,FALSE,EDP - 3.5mm Pins - Code: ETDP3.5MM,INR 70.00,Sales,,true,,,goods,FLOW ETPD3.5MM,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084093,FLOW ETPD3.4MM,,68042110,FALSE,EDP - 3.4mm Pins - Code: ETPIM0340,INR 110.00,Sales,,true,,,goods,FLOW ETPD3.4MM,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084101,FLOW ETPIM0500,,68042110,FALSE,EDP - 5.0mm Pins - Code: ETPIM0500,INR 130.00,Sales,,true,,,goods,FLOW ETPIM0500,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084109,FLOW ETPIM0550,,68042110,FALSE,EDP - 5.5mm Pins - Code: ETPIM0550,INR 130.00,Sales,,true,,,goods,FLOW ETPIM0550,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084117,FLOW ETPIM0600,,68042110,FALSE,EDP - 6.0mm Pins - Code: ETPIM600,INR 140.00,Sales,,true,,,goods,FLOW ETPIM0600,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084125,FLOW ETPIM0700,,68042110,FALSE,EDP - 7.0mm Pins - Code: ETPIM0700,INR 150.00,Sales,,true,,,goods,FLOW ETPIM0700,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084133,FLOW ETPIM0800,,68042110,FALSE,EDP - 8.0mm Pins - Code: ETPIM0800,INR 180.00,Sales,,true,,,goods,FLOW ETPIM0800,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084141,FLOW ETPD8.5MM,,68042110,FALSE,EDP - 8.5mm Pins - Code: ETDP8.5MM,INR 90.00,Sales,,true,,,goods,FLOW ETPD8.5MM,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084149,FLOW ETPD9.0MM,,68042110,FALSE,EDP - 9.0mm Pins - Code: ETDP9.0MM,INR 190.00,Sales,,true,,,goods,FLOW ETPD9.0MM,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000084157,FLOW ETPD11.0MM,,68042110,FALSE,EDP - 11.0mm Pins - Code: ETDP11.0MM,INR 90.00,Sales,,true,,,goods,FLOW ETPD11.0MM,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000085031,Abhi Plunger,,68042110,FALSE,SPHT Plunger - Dia 12mm X 105mm CL X D91,INR 680.00,Sales,,true,,,goods,Abhi Plunger,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Inactive,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000085067,Abhi Sleeve,,68042110,FALSE,SPHT Sleeve - Dia 35.06mm X 75mm CL X D426,INR 2080.00,Sales,,true,,,goods,Abhi Sleeve,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Inactive,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000088003,METSES S2,,34059010,FALSE,EDP Lapping Compound - 1 Micron. Code S2,INR 140.00,Sales,,true,,,goods,METSES S2,Higher Rate,28.000000,Group,IGST,18.000000,Simple,3,,,Inactive,,,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089001,BILS-Model1 - OD Grinding(11VV2888),,68042110,FALSE,"EDP - OD Grinding Wheel(Rough) - Dia 570mm X Grit 30/40
+DRG No: 11VV2888
+Material: ZB311916000262",INR 44000.00,Sales,,true,,,goods,BILS-Model1 - OD Grinding(11VV2888),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089041,JMI - Grooving Wheel 125 Dia,,68042110,FALSE,EDP - JCO0407 / Clutch Facing Grooving Wheel (Dia125x31.75X1.8X1.2X60/70),INR 600.00,Sales,,true,,,goods,JMI - Grooving Wheel 125 Dia,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089114,PIX - 209(230),,68042110,FALSE,"EDP - Side Grinding WHeel(Flat - 90 Deg) - Dia 150mm X 18mm X 80/100
+Drg No. 209(230)",INR 5000.00,Sales,,true,,,goods,PIX - 209(230),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089174,RBLP-Model1 - 100mm DP Grooving Wheel,,68042110,FALSE,"EDP -Discpad Wearmark Wheel
+  mat code;311916030099",INR 570.00,Sales,,true,,,goods,RBLP-Model1 - 100mm DP Grooving Wheel,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089182,RBLP-Model1 - 200 Grooving DP50039,,68042110,FALSE,EDP - R515950009 - 200mm Grooving Wheel - DP50039,INR 1260.00,Sales,,true,,,goods,RBLP-Model1 - 200 Grooving DP50039,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089198,RBLP-Model2 - 190(Rough),,68042110,FALSE,"EDP-Redema Rough Wheel
+Mat.code;311916030174.
+",INR 4600.00,Sales,,true,,,goods,RBLP-Model2 - 190(Rough),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089206,RBLP-Model2 - 190(Fine),,68042110,FALSE,"EDPRedema Fine Wheel
+mat.code;311916030173
+",INR 4140.00,Sales,,true,,,goods,RBLP-Model2 - 190(Fine),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089214,RBLP-Model1 - 196 Grooving,,68042110,FALSE,EDP - R515980140 - 196mm Grooving Wheel,INR 1260.00,Sales,,true,,,goods,RBLP-Model1 - 196 Grooving,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089222,RBLP-Model1 - 201 Grooving(XYLO),,68042110,FALSE,EDP - R515980115 - 201mm Grooving Wheel(XYLO),INR 1260.00,Sales,,true,,,goods,RBLP-Model1 - 201 Grooving(XYLO),Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089230,RBLP-Model2 - 190 2Ring,,68042110,FALSE,"EDP- 190mm 2 Ring Wheel
+Mat.code;311916030094
+",INR 4320.00,Sales,,true,,,goods,RBLP-Model2 - 190 2Ring,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089238,RBLP-Model2 - Chamfering(Twinpot) - Small,,68042110,FALSE,EDP - R515980035 - CHAM.WH (Redema) Grit (30/40),INR 5085.00,Sales,,true,,,goods,RBLP-Model2 - Chamfering(Twinpot) - Small,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089246,RBLP-Model2 - Chamfering(Twinpot) - Big,,68042110,FALSE,EDP - R515940045 - DIA 198X50X51MM CHAM. WHEEL GRIT 30/40,INR 8820.00,Sales,,true,,,goods,RBLP-Model2 - Chamfering(Twinpot) - Big,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089438,BILS-Model2 - ID/OD 26LAU0173LB,,68042110,FALSE,"EDP - Lining ID/OD Grinding Wheel - Dia 130mm X 45mm H7 Bore X 125mm OAL X Grit 30/40
+DRG No: 26LAU0173LB
+Material: ZB311916000292
+L:ine Item No: 220",INR 15020.00,Sales,,true,,,goods,BILS-Model2 - ID/OD 26LAU0173LB,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false
+713621000000089446,BILS-Model2 - External LAU0152LB,,68042110,FALSE,"EDP - Lining Grinding WHeel - Dia 406mm X 200mm Bore X 26mm Thick X 103mm Face Width X Grit 30/40
+DRG No: LAU 0152/RC
+Material: ZB311916000331
+Line Item No: 90",INR 17600.00,Sales,,true,,,goods,BILS-Model2 - External LAU0152LB,Standard Rate(18),18.000000,Group,IGST,18.000000,Simple,1,,,Active,No(s),,INR 0.00,,,,,,,,,,,,Sales,true,false,false

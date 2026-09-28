@@ -9,6 +9,7 @@ import '../models/bin_box_return_model.dart';
 import '../models/notification_model.dart';
 import '../models/lead_model.dart';
 import '../models/raw_material_model.dart';
+import '../models/item_database_model.dart';
 import 'package:flutter/foundation.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -867,6 +868,20 @@ class ApiService {
     );
     if (res.statusCode != 200) {
       throw Exception('Failed to use raw material: ${res.body}');
+    }
+  }
+
+  Future<List<ItemDatabaseModel>> getDatabaseItems([String search = '']) async {
+    await _loadToken();
+    final url = search.isNotEmpty 
+        ? '$baseUrl/item-database?search=${Uri.encodeComponent(search)}'
+        : '$baseUrl/item-database';
+    final res = await http.get(Uri.parse(url), headers: _headers);
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.map((e) => ItemDatabaseModel.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to fetch database items');
     }
   }
 }

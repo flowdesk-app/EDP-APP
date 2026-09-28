@@ -1,0 +1,50 @@
+const mongoose = require('mongoose');
+
+const itemDatabaseSchema = new mongoose.Schema({
+  itemId: { type: String, unique: true },
+  itemName: { type: String, required: true },
+  sku: { type: String },
+  hsnSac: { type: String },
+  isTaxCalculatedOnLabelPrice: { type: String },
+  description: { type: String },
+  rate: { type: String },
+  account: { type: String },
+  accountCode: { type: String },
+  taxable: { type: String },
+  exemptionReason: { type: String },
+  taxabilityType: { type: String },
+  productType: { type: String },
+  productName: { type: String },
+  intraStateTaxName: { type: String },
+  intraStateTaxRate: { type: String },
+  intraStateTaxType: { type: String },
+  interStateTaxName: { type: String },
+  interStateTaxRate: { type: String },
+  interStateTaxType: { type: String },
+  source: { type: String },
+  referenceId: { type: String },
+  lastSyncTime: { type: String },
+  status: { type: String },
+  usageUnit: { type: String },
+  unitName: { type: String },
+  purchaseRate: { type: String },
+  purchaseAccount: { type: String },
+  purchaseAccountCode: { type: String },
+  purchaseDescription: { type: String },
+  inventoryAccount: { type: String },
+  inventoryAccountCode: { type: String },
+  inventoryValuationMethod: { type: String },
+  reorderPoint: { type: String },
+  vendor: { type: String },
+  openingStock: { type: String },
+  openingStockValue: { type: String },
+  stockOnHand: { type: String },
+  itemType: { type: String },
+  sellable: { type: String },
+  purchasable: { type: String },
+  trackInventory: { type: String }
+}, {
+  timestamps: true
+});
+
+module.exports = mongoose.model('ItemDatabase', itemDatabaseSchema);
