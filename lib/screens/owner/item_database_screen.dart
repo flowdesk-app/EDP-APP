@@ -199,19 +199,6 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
           _buildInfoRow(Icons.inventory_2_outlined, 'Vendor: ${item.vendor ?? 'N/A'}'),
           const SizedBox(height: 8),
           _buildInfoRow(Icons.pin_drop_outlined, 'SKU: ${item.sku ?? 'N/A'}'),
-          const Spacer(),
-          // Footer
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              (item.rate ?? '0.00').replaceAll('INR ', ''),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-          ),
         ],
       ),
     );
