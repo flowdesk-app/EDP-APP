@@ -92,7 +92,7 @@ function parseCSV(text) {
   return results;
 }
 
-const csvText = fs.readFileSync('../scratch/items.csv', 'utf8');
+const csvText = fs.readFileSync('/Users/siddarth-mac/.gemini/antigravity/brain/ed7196ec-da69-4194-986b-8cae9dfbf6e5/.user_uploaded/media_1790606594156.csv', 'utf8');
 const items = parseCSV(csvText);
 
 console.log(`Parsed ${items.length} items from CSV.`);

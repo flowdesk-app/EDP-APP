@@ -168,15 +168,6 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
             onPressed: _selectDate,
           ),
 
-          IconButton(
-            icon: const Icon(Icons.logout, color: Color(0xFF202124)),
-            onPressed: () async {
-              await _api.logout();
-              if (context.mounted) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-              }
-            },
-          ),
         ],
       ),
       body: _loading ? const Center(child: CircularProgressIndicator()) : RefreshIndicator(
