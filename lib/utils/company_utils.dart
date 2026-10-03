@@ -5,7 +5,7 @@ List<String> getCompaniesForPrefix(String itemName) {
   
   
   // Special handling for Lapping Compound (LC)
-  if (upperName.startsWith('LC-') || upperName.contains('-LC-') || upperName.contains(' LC ') || upperName.contains(' LC-')) {
+  if (upperName == 'LC' || upperName.startsWith('LC-') || upperName.startsWith('LC ') || upperName.endsWith('-LC') || upperName.endsWith(' LC') || upperName.contains('-LC-') || upperName.contains(' LC ') || upperName.contains(' LC-') || upperName.contains('-LC ')) {
     return ['Lapping Compound'];
   }
 
