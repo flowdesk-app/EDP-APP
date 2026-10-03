@@ -1,0 +1,35 @@
+class CompanyStorage {
+  final String name;
+  final List<String> prefixes;
+
+  const CompanyStorage({required this.name, required this.prefixes});
+}
+
+const List<CompanyStorage> kCompanyStorages = [
+  CompanyStorage(name: 'Excel Diamond Tools', prefixes: ['EDT']),
+  CompanyStorage(name: 'Wheels India Limited', prefixes: ['WHEELS']),
+  CompanyStorage(name: 'JK Fenner', prefixes: ['FEN', 'JK-FEN', 'JKFEN', 'JK']),
+  CompanyStorage(name: 'Brakes India Limited Mahindra City', prefixes: ['BILS68', 'BILM68']),
+  CompanyStorage(name: 'Brakes India Limited Solingar', prefixes: ['BILS']),
+  CompanyStorage(name: 'Breaks India Limited', prefixes: ['BIL']),
+  CompanyStorage(name: 'Rane Brake Lining Limited Trichy', prefixes: ['RBLT']),
+  CompanyStorage(name: 'Rane Brakelining Limited Pondicherry', prefixes: ['RBLP']),
+  CompanyStorage(name: 'Rane Brake Lining Limited Ambattur', prefixes: ['RBLA']),
+  CompanyStorage(name: 'Rane Brakelining Limited Medak', prefixes: ['RBLM']),
+  CompanyStorage(name: 'Unique Industries', prefixes: ['UNQ']),
+  CompanyStorage(name: 'Pix Transmissions Limited', prefixes: ['PIX']),
+  CompanyStorage(name: 'Krish Mettech', prefixes: ['KRISH']),
+  CompanyStorage(name: 'Devi Polymers', prefixes: ['DEVI']),
+  CompanyStorage(name: 'TPi Composites', prefixes: ['TPI']),
+  CompanyStorage(name: 'Automotive Axles Limited', prefixes: ['AUTOAXLE']),
+  CompanyStorage(name: 'JM Frictech', prefixes: ['JMI']),
+  CompanyStorage(name: 'AS Industries', prefixes: ['ASIN']),
+  CompanyStorage(name: 'Flowserve Sanmar Limited', prefixes: ['FLOW']),
+  CompanyStorage(name: 'Federal Mogul', prefixes: ['FED']),
+  CompanyStorage(name: 'Sangsin', prefixes: ['SANG']),
+  CompanyStorage(name: 'Hitek Machines', prefixes: ['HI']),
+  CompanyStorage(name: 'Yohasan', prefixes: ['YOHA']),
+  CompanyStorage(name: 'Madras Metallurgical Services', prefixes: ['METSES']),
+  CompanyStorage(name: 'Sundaram Brake Lining', prefixes: ['SBL']),
+  CompanyStorage(name: 'Tools and Instruments Company', prefixes: ['TIC']),
+];

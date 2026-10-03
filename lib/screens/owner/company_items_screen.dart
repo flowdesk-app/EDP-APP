@@ -4,14 +4,17 @@ import '../../utils/company_utils.dart';
 
 import '../../services/api_service.dart';
 
-class ItemDatabaseScreen extends StatefulWidget {
-  const ItemDatabaseScreen({Key? key}) : super(key: key);
+import '../../models/company_storage.dart';
+
+class CompanyItemsScreen extends StatefulWidget {
+  final CompanyStorage company;
+  const CompanyItemsScreen({super.key, required this.company});
 
   @override
-  State<ItemDatabaseScreen> createState() => _ItemDatabaseScreenState();
+  State<CompanyItemsScreen> createState() => _CompanyItemsScreenState();
 }
 
-class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
+class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<ItemDatabaseModel> _items = [];
   bool _isLoading = true;
@@ -26,7 +29,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
     setState(() => _isLoading = true);
     try {
       final items = await ApiService().getDatabaseItems(search);
-      final unassignedItems = items.where((i) => getCompanyForPrefix(i.itemName) == null).toList();
+      final unassignedItems = items.where((i) => getCompanyForPrefix(i.itemName) == widget.company.name).toList();
       
       if (search.isNotEmpty) {
         final q = search.toLowerCase();
@@ -77,6 +80,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text(widget.company.name), elevation: 0, backgroundColor: Colors.white, foregroundColor: Colors.black),
       backgroundColor: Colors.grey[50],
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -91,8 +95,8 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Item Database',
+                    Text(
+                      widget.company.name,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -101,7 +105,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Browse and manage item master records.',
+                      'Browse items in this company storage.',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -271,7 +275,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
                     ],
                   ),
                   const Divider(height: 32),
-                  const Text('Overview', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text('Overview', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
                   _buildDetailRow('Item Type', item.itemType ?? 'N/A'),
                   _buildDetailRow('HSN Code', item.hsnSac ?? 'N/A'),
@@ -281,7 +285,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
                   _buildDetailRow('Inter State Tax Rate', '${item.interStateTaxRate ?? '0'} %'),
                   _buildDetailRow('Status', item.status ?? 'N/A'),
                   const SizedBox(height: 24),
-                  const Text('Sales Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text('Sales Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
                   _buildDetailRow('Selling Price', (item.rate ?? '0.00').replaceAll('INR ', '')),
                   _buildDetailRow('Description', item.description ?? 'N/A'),
