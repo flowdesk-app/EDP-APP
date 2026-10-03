@@ -8,31 +8,20 @@ class FlowdeskLogo extends StatelessWidget {
   const FlowdeskLogo({
     super.key,
     this.fontSize = 28,
-    this.flowColor = const Color(0xFF42A5F5), // Or 0xFF29B6F6
-    this.deskColor = const Color(0xFF000000), // Or 0xFF202124
+    this.flowColor = const Color(0xFF42A5F5),
+    this.deskColor = const Color(0xFF000000),
   });
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -0.5,
-          fontFamily: 'Roboto',
-        ),
-        children: [
-          TextSpan(
-            text: 'Flow',
-            style: TextStyle(color: const Color(0xFF29B6F6)),
-          ),
-          TextSpan(
-            text: 'desk',
-            style: TextStyle(color: const Color(0xFF202124)),
-          ),
-        ],
-      ),
+    // We use fontSize as a proxy for the height we want the logo to be
+    double imageHeight = fontSize * 1.5;
+    if (imageHeight < 30) imageHeight = 30; // Min height to be readable
+
+    return Image.asset(
+      'assets/images/edp_logo.png',
+      height: imageHeight,
+      fit: BoxFit.contain,
     );
   }
 }

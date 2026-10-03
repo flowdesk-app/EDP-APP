@@ -142,10 +142,7 @@ class _MainLayoutState extends State<MainLayout> {
                       backgroundColor: Colors.white,
                       selectedIconTheme: const IconThemeData(color: Color(0xFF29B6F6)),
                       selectedLabelTextStyle: const TextStyle(color: Color(0xFF29B6F6), fontWeight: FontWeight.bold),
-                      leading: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: FlowdeskLogo(fontSize: 18),
-                      ),
+
                       destinations: _destinations,
                     ),
                   ),
