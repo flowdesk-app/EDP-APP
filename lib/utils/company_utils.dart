@@ -3,6 +3,12 @@ import '../models/company_storage.dart';
 List<String> getCompaniesForPrefix(String itemName) {
   final upperName = itemName.toUpperCase();
   
+  
+  // Special handling for Lapping Compound (LC)
+  if (upperName.startsWith('LC-') || upperName.contains('-LC-') || upperName.contains(' LC ') || upperName.contains(' LC-')) {
+    return ['Lapping Compound'];
+  }
+
   // Special handling for RBL with explicit locations
   if (upperName.startsWith('RBL ') || upperName.startsWith('RBL-')) {
     if (upperName.contains('TRICHY')) {
