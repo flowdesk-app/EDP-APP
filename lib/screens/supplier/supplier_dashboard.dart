@@ -39,7 +39,9 @@ class _SupplierDashboardState extends State<SupplierDashboard> with SingleTicker
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const FlowdeskLogo(fontSize: 24),
+        title: const FlowdeskLogo(fontSize: 32),
+        centerTitle: false,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF202124),
         elevation: 0,

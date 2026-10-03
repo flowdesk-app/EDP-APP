@@ -154,7 +154,9 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         leading: const DrawerMenuButton(),
-        title: const FlowdeskLogo(fontSize: 24),
+        title: const FlowdeskLogo(fontSize: 32),
+        centerTitle: false,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
