@@ -41,7 +41,7 @@ class _SupplierDashboardState extends State<SupplierDashboard> with SingleTicker
       appBar: AppBar(
         title: const FlowdeskLogo(fontSize: 32),
         centerTitle: false,
-        titleSpacing: 0,
+        titleSpacing: 24,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF202124),
         elevation: 0,
