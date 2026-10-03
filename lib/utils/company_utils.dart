@@ -1,23 +1,32 @@
 import '../models/company_storage.dart';
 
-String? getCompanyForPrefix(String itemName) {
+List<String> getCompaniesForPrefix(String itemName) {
   final parts = itemName.split(RegExp(r'[- ]'));
-  if (parts.isEmpty) return null;
+  if (parts.isEmpty) return [];
   final prefix = parts[0].toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  
+  List<String> matchedCompanies = [];
   
   for (var company in kCompanyStorages) {
     if (company.prefixes.contains(prefix)) {
-      return company.name;
+      matchedCompanies.add(company.name);
     }
   }
   
-  // Fallback for special cases
+  if (matchedCompanies.isNotEmpty) {
+    return matchedCompanies;
+  }
+  
+  // Fallback for special cases (e.g., JK-FEN)
   for (var company in kCompanyStorages) {
     for (var p in company.prefixes) {
       if (itemName.toUpperCase().startsWith(p.toUpperCase())) {
-        return company.name;
+        if (!matchedCompanies.contains(company.name)) {
+           matchedCompanies.add(company.name);
+        }
       }
     }
   }
-  return null;
+  
+  return matchedCompanies;
 }

@@ -29,7 +29,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
     setState(() => _isLoading = true);
     try {
       final items = await ApiService().getDatabaseItems(search);
-      final unassignedItems = items.where((i) => getCompanyForPrefix(i.itemName) == widget.company.name).toList();
+      final unassignedItems = items.where((i) => getCompaniesForPrefix(i.itemName).contains(widget.company.name)).toList();
       
       if (search.isNotEmpty) {
         final q = search.toLowerCase();

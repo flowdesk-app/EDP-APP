@@ -26,7 +26,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
     setState(() => _isLoading = true);
     try {
       final items = await ApiService().getDatabaseItems(search);
-      final unassignedItems = items.where((i) => getCompanyForPrefix(i.itemName) == null).toList();
+      final unassignedItems = items.where((i) => getCompaniesForPrefix(i.itemName).isEmpty).toList();
       
       if (search.isNotEmpty) {
         final q = search.toLowerCase();
