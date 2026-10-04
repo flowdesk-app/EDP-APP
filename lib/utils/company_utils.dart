@@ -9,6 +9,12 @@ List<String> getCompaniesForPrefix(String itemName) {
     return ['Lapping Compound'];
   }
 
+  
+  // Special handling for BIL SRICITY
+  if (upperName.startsWith('BIL') && (upperName.contains('SRIC') || upperName.contains('SRI CITY') || upperName.contains('SRI-CITY') || upperName.contains('BILSRI'))) {
+    return ['Brakes india limited SRICITY'];
+  }
+
   // Special handling for RBL with explicit locations
   if (upperName.startsWith('RBL ') || upperName.startsWith('RBL-')) {
     if (upperName.contains('TRICHY')) {
