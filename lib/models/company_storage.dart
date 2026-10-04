@@ -43,4 +43,5 @@ const List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'BREMSKERL Friction', prefixes: ['BREM']),
   CompanyStorage(name: 'NORDEX', prefixes: ['NORDEX']),
   CompanyStorage(name: 'RAJ Mohini Industries', prefixes: ['RAJ']),
+  CompanyStorage(name: 'KAYES Industries', prefixes: ['KAYES']),
 ];
