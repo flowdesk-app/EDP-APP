@@ -16,7 +16,7 @@ const List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'Rane Brakelining Limited Pondicherry', prefixes: ['RBLP', 'RBL']),
   CompanyStorage(name: 'Rane Brake Lining Limited Ambattur', prefixes: ['RBLA', 'RBL']),
   CompanyStorage(name: 'Rane Brakelining Limited Medak', prefixes: ['RBLM', 'RBL']),
-  CompanyStorage(name: 'Unique Industries', prefixes: ['UNQ']),
+  CompanyStorage(name: 'Unique Industries', prefixes: ['UNQ', 'UNI', 'UNIQ']),
   CompanyStorage(name: 'Pix Transmissions Limited', prefixes: ['PIX']),
   CompanyStorage(name: 'Krish Mettech', prefixes: ['KRISH']),
   CompanyStorage(name: 'Devi Polymers', prefixes: ['DEVI']),
