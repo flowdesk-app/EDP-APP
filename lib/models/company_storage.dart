@@ -37,4 +37,5 @@ const List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'Lapping Compound', prefixes: ['LC']),
   CompanyStorage(name: 'SIC MARKING', prefixes: ['SIC']),
   CompanyStorage(name: 'RATEK Pheon', prefixes: ['RATEK']),
+  CompanyStorage(name: 'AUTONEED', prefixes: ['AUTONEED']),
 ];
