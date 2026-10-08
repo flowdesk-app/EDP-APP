@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/company_storage.dart';
 import '../../models/item_database_model.dart';
 import '../../services/api_service.dart';
+import '../../utils/company_utils.dart';
 
 class StorageSelectionDialog extends StatefulWidget {
   const StorageSelectionDialog({Key? key}) : super(key: key);
@@ -34,39 +35,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
     try {
       final items = await ApiService().getDatabaseItems();
       setState(() {
-        _items = items.where((i) {
-          final upperName = i.itemName.toUpperCase();
-          if (company.name == 'Breaks India Limited' && (upperName.contains('SRIC') || upperName.contains('SRI CITY') || upperName.contains('SRI-CITY') || upperName.contains('BILSRI'))) {
-             return false;
-          }
-          if (company.name == 'Brakes india limited SRICITY' && upperName.startsWith('BIL') && (upperName.contains('SRIC') || upperName.contains('SRI CITY') || upperName.contains('SRI-CITY') || upperName.contains('BILSRI'))) {
-             return true;
-          }
-          if (company.name == 'Lapping Compound' && (upperName.contains('LC-') || upperName.contains(' LC '))) {
-             return true;
-          }
-          if (company.name == 'ADMAC' && (upperName.contains('ADMAC') || upperName.contains('ADMACH'))) {
-             return true;
-          }
-          if (company.name == 'Rane Brake Lining Limited Trichy' && upperName.startsWith('RBL') && upperName.contains('TRICHY')) {
-            return true;
-          }
-          if (company.name == 'Rane Brakelining Limited Pondicherry' && upperName.startsWith('RBL') && upperName.contains('PONDY')) {
-            return true;
-          }
-          if (company.name == 'Rane Brake Lining Limited Ambattur' && upperName.startsWith('RBL') && upperName.contains('AMB')) {
-            return true;
-          }
-          if (company.name == 'Rane Brakelining Limited Medak' && upperName.startsWith('RBL') && upperName.contains('MEDAK')) {
-            return true;
-          }
-          if (company.name == 'Breaks India Limited' && upperName.startsWith('BIL')) return true;
-          
-          final parts = upperName.split(RegExp(r'[\s-]'));
-          final firstPart = parts.isNotEmpty ? parts[0] : upperName;
-          
-          return company.prefixes.any((prefix) => firstPart.startsWith(prefix));
-        }).toList();
+        _items = items.where((i) => getCompaniesForPrefix(i.itemName).contains(company.name)).toList();
         _filteredItems = List.from(_items);
         _isLoading = false;
       });
