@@ -583,14 +583,18 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
       setState(() {
         _customerNameCtrl.text = companyName;
-        // User said: "Part number will be mentioned at the top... Diamond proud git size will be in the description, so we'll take that separately... description will be copied from there"
-        // Let's populate the text fields
         _partNumberCtrl.text = item.itemName;
-        _wheelSizeCtrl.text = item.description ?? '';
         
-        // Extract Grit Size if it's in the description or just leave it for the user to edit? 
-        // Or if item.itemName has grit size. For now we just put itemName in part number.
-        // If there's any logic to extract grit size, we could do it, but we can also just fill description with item.description.
+        final desc = item.description ?? '';
+        _wheelSizeCtrl.text = desc;
+        
+        final gritRegExp = RegExp(r'Grit\s*[:-]?\s*([0-9/]+)', caseSensitive: false);
+        final match = gritRegExp.firstMatch(desc);
+        if (match != null && match.groupCount >= 1) {
+          _gritSizeCtrl.text = match.group(1)!;
+        } else {
+          _gritSizeCtrl.text = '';
+        }
       });
     }
   }
