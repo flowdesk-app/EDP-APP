@@ -17,6 +17,18 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   List<ItemDatabaseModel> _filteredItems = [];
   bool _isLoading = false;
   final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDynamicCompanies();
+  }
+
+  Future<void> _loadDynamicCompanies() async {
+    await ApiService().fetchAndMergeDynamicCompanies();
+    if (mounted) setState(() {});
+  }
+
   String _companySearchQuery = '';
 
   @override

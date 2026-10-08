@@ -4,6 +4,7 @@ import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../services/api_service.dart';
+import '../../models/company_storage.dart';
 import '../../models/job_model.dart';
 import '../../models/lead_model.dart';
 import 'package:intl/intl.dart';
@@ -249,6 +250,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       );
 
       await _api.createJob(job);
+      await _checkAndSaveStorage(_customerNameCtrl.text.trim(), _partNumberCtrl.text.trim(), _wheelSizeCtrl.text.trim());
 
       if (widget.leadId != null) {
         // Update the lead to Converted
@@ -555,6 +557,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       );
 
       await _api.createJob(job);
+      await _checkAndSaveStorage(_customerNameCtrl.text.trim(), _partNumberCtrl.text.trim(), _wheelSizeCtrl.text.trim());
 
       if (mounted) {
         _hideLoadingDialog();
@@ -571,6 +574,23 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
 
   
+
+  Future<void> _checkAndSaveStorage(String customerName, String partNumber, String description) async {
+    if (customerName.isEmpty || partNumber.isEmpty) return;
+    
+    // Check if company exists in kCompanyStorages
+    bool companyExists = kCompanyStorages.any((c) => c.name.toLowerCase() == customerName.toLowerCase());
+    
+    if (!companyExists) {
+      // Create new company
+      final prefix = customerName.split(' ').first.toUpperCase();
+      await _api.createCompanyStorage(customerName, prefix);
+    }
+    
+    // Save item to database
+    await _api.saveToItemDatabase(partNumber, description);
+  }
+
   Future<void> _handleStorageSelection() async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -957,6 +977,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       );
 
       await _api.createJob(job);
+      await _checkAndSaveStorage(_customerNameCtrl.text.trim(), _partNumberCtrl.text.trim(), _wheelSizeCtrl.text.trim());
       if (mounted) {
         Navigator.pop(context); // loading dialog
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job created successfully')));

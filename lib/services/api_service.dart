@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/job_model.dart';
+import '../models/company_storage.dart';
 import '../models/supplier_model.dart';
 import '../models/user_model.dart';
 import '../models/bin_box_balance_model.dart';
@@ -908,6 +909,57 @@ class ApiService {
       return data.map((e) => ItemDatabaseModel.fromJson(e)).toList();
     } else {
       throw Exception('Failed to fetch database items');
+    }
+  }
+
+  Future<void> saveToItemDatabase(String itemName, String? description) async {
+    if (itemName.trim().isEmpty) return;
+    await _loadToken();
+    final res = await http.post(
+      Uri.parse('$baseUrl/item-database'),
+      headers: _headers,
+      body: jsonEncode({
+        'itemName': itemName.trim(),
+        'description': description?.trim() ?? '',
+      }),
+    );
+    if (res.statusCode != 200) {
+      print('Failed to save item to database: ${res.body}');
+    }
+  }
+
+  Future<void> fetchAndMergeDynamicCompanies() async {
+    await _loadToken();
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/companies'), headers: _headers);
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(res.body);
+        final dynamicCompanies = data.map((e) => CompanyStorage.fromJson(e)).toList();
+        mergeDynamicCompanies(dynamicCompanies);
+      }
+    } catch (e) {
+      print('Error fetching companies: $e');
+    }
+  }
+
+  Future<void> createCompanyStorage(String name, String prefix) async {
+    if (name.trim().isEmpty) return;
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/companies'),
+        headers: _headers,
+        body: jsonEncode({
+          'name': name.trim(),
+          'prefixes': [prefix.trim().toUpperCase()]
+        }),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        mergeDynamicCompanies([CompanyStorage.fromJson(data)]);
+      }
+    } catch (e) {
+      print('Error creating company: $e');
     }
   }
 }

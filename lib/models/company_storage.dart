@@ -2,10 +2,17 @@ class CompanyStorage {
   final String name;
   final List<String> prefixes;
 
-  const CompanyStorage({required this.name, required this.prefixes});
+  CompanyStorage({required this.name, required this.prefixes});
+
+  factory CompanyStorage.fromJson(Map<String, dynamic> json) {
+    return CompanyStorage(
+      name: json['name'] ?? '',
+      prefixes: List<String>.from(json['prefixes'] ?? []),
+    );
+  }
 }
 
-const List<CompanyStorage> kCompanyStorages = [
+List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'Excel Diamond Tools', prefixes: ['EDT']),
   CompanyStorage(name: 'Wheels India Limited', prefixes: ['WHEELS']),
   CompanyStorage(name: 'JK Fenner', prefixes: ['FEN', 'JK-FEN', 'JKFEN', 'JK']),
@@ -48,3 +55,11 @@ const List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'Bharat Rubber', prefixes: ['BHA']),
   CompanyStorage(name: 'ADMAC', prefixes: ['ADMAC', 'ADMACH']),
 ];
+
+void mergeDynamicCompanies(List<CompanyStorage> dynamicCompanies) {
+  for (var dyn in dynamicCompanies) {
+    if (!kCompanyStorages.any((c) => c.name == dyn.name)) {
+      kCompanyStorages.add(dyn);
+    }
+  }
+}

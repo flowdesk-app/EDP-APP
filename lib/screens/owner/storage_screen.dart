@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/company_storage.dart';
 import 'company_items_screen.dart';
+import '../../services/api_service.dart';
 
 class StorageScreen extends StatefulWidget {
   const StorageScreen({super.key});
@@ -11,6 +12,18 @@ class StorageScreen extends StatefulWidget {
 
 class _StorageScreenState extends State<StorageScreen> {
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDynamicCompanies();
+  }
+
+  Future<void> _loadDynamicCompanies() async {
+    await ApiService().fetchAndMergeDynamicCompanies();
+    if (mounted) setState(() {});
+  }
+
 
   @override
   Widget build(BuildContext context) {

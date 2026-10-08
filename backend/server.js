@@ -47,6 +47,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/item-database', require('./routes/itemDatabase'));
+app.use('/api/companies', require('./routes/companies'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/parts', require('./routes/parts'));
 app.use('/api/movements', require('./routes/movements'));
