@@ -194,7 +194,7 @@ class _MainLayoutState extends State<MainLayout> {
               title: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
               onTap: () async {
                 await ApiService().logout();
-                if (context.mounted) {
+                if (mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const LoginScreen()),

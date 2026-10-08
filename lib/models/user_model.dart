@@ -15,10 +15,17 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     UserRole parsedRole = UserRole.employee;
-    if (json['role'] == 'admin') parsedRole = UserRole.admin;
-    else if (json['role'] == 'employee1') parsedRole = UserRole.employee1;
-    else if (json['role'] == 'employee2') parsedRole = UserRole.employee2;
-    else if (json['role'] == 'employee3') parsedRole = UserRole.employee3;
+    if (json['role'] == 'admin') {
+      parsedRole = UserRole.admin;
+    } else if (json['role'] == 'employee1') {
+      parsedRole = UserRole.employee1;
+    }
+    else if (json['role'] == 'employee2') {
+      parsedRole = UserRole.employee2;
+    }
+    else if (json['role'] == 'employee3') {
+      parsedRole = UserRole.employee3;
+    }
 
     return UserModel(
       email: json['email'] as String,

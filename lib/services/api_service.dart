@@ -32,10 +32,15 @@ class ApiService {
     final roleStr = prefs.getString('auth_role');
     if (roleStr != null) {
       UserRole r = UserRole.employee;
-      if (roleStr == 'admin') r = UserRole.admin;
-      else if (roleStr == 'employee1') r = UserRole.employee1;
-      else if (roleStr == 'employee2') r = UserRole.employee2;
-      else if (roleStr == 'employee3') r = UserRole.employee3;
+      if (roleStr == 'admin') {
+        r = UserRole.admin;
+      } else if (roleStr == 'employee1') {
+        r = UserRole.employee1;
+      } else if (roleStr == 'employee2') {
+        r = UserRole.employee2;
+      } else if (roleStr == 'employee3') {
+        r = UserRole.employee3;
+      }
 
       currentUser = UserModel(
         email: prefs.getString('auth_email') ?? '',
@@ -66,10 +71,15 @@ class ApiService {
         await prefs.setString('auth_email', data['email']);
         
         UserRole r = UserRole.employee;
-        if (roleStr == 'admin') r = UserRole.admin;
-        else if (roleStr == 'employee1') r = UserRole.employee1;
-        else if (roleStr == 'employee2') r = UserRole.employee2;
-        else if (roleStr == 'employee3') r = UserRole.employee3;
+        if (roleStr == 'admin') {
+          r = UserRole.admin;
+        } else if (roleStr == 'employee1') {
+          r = UserRole.employee1;
+        } else if (roleStr == 'employee2') {
+          r = UserRole.employee2;
+        } else if (roleStr == 'employee3') {
+          r = UserRole.employee3;
+        }
 
         currentUser = UserModel(
           email: data['email'],
@@ -242,7 +252,9 @@ class ApiService {
       Uri.parse('$baseUrl/suppliers/$supplierId'),
       headers: _headers,
     );
-    if (res.statusCode != 200) throw Exception('Failed to delete supplier');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to delete supplier');
+    }
   }
 
   Future<void> updateSupplier(String supplierId, String newName) async {
@@ -252,7 +264,9 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'supplierName': newName}),
     );
-    if (res.statusCode != 200) throw Exception('Failed to update supplier');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to update supplier');
+    }
   }
 
   Future<List<dynamic>> getWarehouseItems() async {
@@ -483,7 +497,9 @@ class ApiService {
   Future<List<Map<String, dynamic>>> getStockSummary({String? month, String? date}) async {
     try {
       await _loadToken();
-      if (_token == null) return [];
+      if (_token == null) {
+      return [];
+    }
       
       String query = '';
       if (date != null) {
@@ -706,7 +722,9 @@ class ApiService {
       Uri.parse('$baseUrl/spares/$id'),
       headers: _headers,
     );
-    if (res.statusCode != 200) throw Exception('Failed to delete spare');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to delete spare');
+    }
   }
 
   Future<void> createJobFromSpareToDelivery(String spareId, Map<String, dynamic> payload) async {
@@ -740,7 +758,9 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'supplierName': name}),
     );
-    if (res.statusCode != 200) throw Exception('Failed to add spare supplier');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to add spare supplier');
+    }
   }
 
   // Update Spare to Extraction
@@ -774,7 +794,9 @@ class ApiService {
   Future<void> deleteSpareSupplier(String id) async {
     await _loadToken();
     final res = await http.delete(Uri.parse('$baseUrl/spare-suppliers/$id'), headers: _headers);
-    if (res.statusCode != 200) throw Exception('Failed to delete spare supplier');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to delete spare supplier');
+    }
   }
 
   Future<void> updateSpare(String id, {String? status, String? currentSupplier}) async {
@@ -788,7 +810,9 @@ class ApiService {
       headers: _headers,
       body: jsonEncode(body),
     );
-    if (res.statusCode != 200) throw Exception('Failed to update spare');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to update spare');
+    }
   }
 
   Future<void> undoSendToSpare(String jobId) async {
@@ -821,7 +845,9 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'quantity': quantity, 'targetJobId': targetJobId}),
     );
-    if (res.statusCode != 200) throw Exception('Failed to consume spare');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to consume spare');
+    }
   }
 
   // --- Raw Materials ---

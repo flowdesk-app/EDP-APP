@@ -1,3 +1,5 @@
+import 'storage_selection_dialog.dart';
+import '../../models/item_database_model.dart';
 import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/drawer_menu_button.dart';
@@ -568,12 +570,56 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
 
 
+  
+  Future<void> _handleStorageSelection() async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const StorageSelectionDialog(),
+    );
+
+    if (result != null) {
+      final companyName = result['company'] as String;
+      final item = result['item'] as ItemDatabaseModel;
+
+      setState(() {
+        _customerNameCtrl.text = companyName;
+        // User said: "Part number will be mentioned at the top... Diamond proud git size will be in the description, so we'll take that separately... description will be copied from there"
+        // Let's populate the text fields
+        _partNumberCtrl.text = item.itemName;
+        _wheelSizeCtrl.text = item.description ?? '';
+        
+        // Extract Grit Size if it's in the description or just leave it for the user to edit? 
+        // Or if item.itemName has grit size. For now we just put itemName in part number.
+        // If there's any logic to extract grit size, we could do it, but we can also just fill description with item.description.
+      });
+    }
+  }
+
+  Widget _buildStorageButton() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: ElevatedButton.icon(
+          onPressed: _handleStorageSelection,
+          icon: const Icon(Icons.inventory_2_outlined),
+          label: const Text('Use from Storage'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.indigo,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildNewFlow() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildStorageButton(),
           _buildCreatedDateSelector(),
           const SizedBox(height: 16),
           _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
@@ -697,6 +743,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Module 1
+          _buildStorageButton(),
           _buildCreatedDateSelector(),
           const SizedBox(height: 16),
           _buildAutocomplete(_highConcentrationCtrl, 'High Concentration', _getSuggestions('High Concentration')),
@@ -911,7 +958,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         isActive: _currentStep >= 0,
         content: Column(
           children: [
-            _buildCreatedDateSelector(),
+            _buildStorageButton(),
+          _buildCreatedDateSelector(),
             const SizedBox(height: 16),
             _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
             const SizedBox(height: 12),

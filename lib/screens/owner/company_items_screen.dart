@@ -185,7 +185,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
           border: Border.all(color: Colors.grey[200]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withAlpha((0.02 * 255).toInt()),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

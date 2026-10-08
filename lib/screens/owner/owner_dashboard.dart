@@ -2,7 +2,6 @@ import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
-import '../login_screen.dart';
 import 'filtered_jobs_screen.dart';
 import 'material_search_screen.dart';
 import 'recoating_dashboard_screen.dart';

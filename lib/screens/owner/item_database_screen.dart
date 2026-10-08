@@ -5,7 +5,7 @@ import '../../utils/company_utils.dart';
 import '../../services/api_service.dart';
 
 class ItemDatabaseScreen extends StatefulWidget {
-  const ItemDatabaseScreen({Key? key}) : super(key: key);
+  const ItemDatabaseScreen({super.key});
 
   @override
   State<ItemDatabaseScreen> createState() => _ItemDatabaseScreenState();
@@ -181,7 +181,7 @@ class _ItemDatabaseScreenState extends State<ItemDatabaseScreen> {
           border: Border.all(color: Colors.grey[200]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withAlpha((0.02 * 255).toInt()),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
