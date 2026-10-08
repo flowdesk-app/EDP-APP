@@ -272,7 +272,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     
     final filtered = _spares.where((s) {
       if (status == null) return true;
-      final sStatus = s['status'] ?? 'Blank';
+      final sStatus = s['status'] == 'Blank' ? 'Arrived' : (s['status'] ?? 'Arrived');
       return sStatus == status;
     }).toList();
     if (filtered.isEmpty) {
@@ -288,7 +288,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
       padding: const EdgeInsets.all(16),
       itemCount: filtered.length,
       itemBuilder: (context, index) {
-        return _buildSpareCard(filtered[index], status == 'Blank' || status == null);
+        return _buildSpareCard(filtered[index], status == 'Arrived' || status == null);
       },
     );
   }
@@ -309,7 +309,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
     showDialog(
       context: parentContext,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add Blank Spare'),
+        title: const Text('Add Spare (Arrived)'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -457,17 +457,17 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                         String? currentStatus;
                         if (!isSupplier) {
                           if (widget.jobType == 'Re-coating') {
-                            const statuses = ['Finished', 'Production', 'Extraction', 'Blank'];
+                            const statuses = ['Finished', 'Production', 'Extraction', 'Arrived'];
                             currentStatus = statuses[_tabController.index];
                           } else {
-                            const statuses = ['Finished', 'Production', 'Blank'];
+                            const statuses = ['Finished', 'Production', 'Arrived'];
                             currentStatus = statuses[_tabController.index];
                           }
                         }
                         
                         final currentSpares = _spares.where((s) {
                           if (currentStatus == null) return true;
-                          final sStatus = s['status'] ?? 'Blank';
+                          final sStatus = s['status'] == 'Blank' ? 'Arrived' : (s['status'] ?? 'Arrived');
                           return sStatus == currentStatus;
                         }).toList();
 
@@ -504,11 +504,11 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                   Tab(text: 'Finished'),
                   Tab(text: 'Production'),
                   Tab(text: 'Extraction'),
-                  Tab(text: 'Blank'),
+                  Tab(text: 'Arrived'),
                 ] : const [
                   Tab(text: 'Finished'),
                   Tab(text: 'Production'),
-                  Tab(text: 'Blank'),
+                  Tab(text: 'Arrived'),
                 ],
               ),
             ),
@@ -521,11 +521,11 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                       _buildList('Finished'),
                       _buildList('Production'),
                       _buildList('Extraction'),
-                      _buildList('Blank'),
+                      _buildList('Arrived'),
                     ] : [
                       _buildList('Finished'),
                       _buildList('Production'),
-                      _buildList('Blank'),
+                      _buildList('Arrived'),
                     ],
                   ),
           ),
