@@ -976,8 +976,14 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         createdDate: _createdDate,
       );
 
+
       await _api.createJob(job);
-      await _checkAndSaveStorage(_customerNameCtrl.text.trim(), _partNumberCtrl.text.trim(), _wheelSizeCtrl.text.trim());
+      
+      String lcConc = (_highConcentrationCtrl.text.trim().toLowerCase() == 'yes' || _highConcentrationCtrl.text.trim().toLowerCase() == 'high') ? 'HIGH' : 'STD';
+      String lcPartNumber = 'LC-${_micronSizeCtrl.text.trim()}-$lcConc';
+      String lcDescription = 'Lapping Compound, Size: ${_micronSizeCtrl.text.trim()} Micron, Conc: $lcConc, Colour: ${_micronColorCtrl.text.trim()}, Base: ${_baseType ?? ''}, Weight: ${_syringeQuantityCtrl.text.trim()}CC';
+      
+      await _checkAndSaveStorage('Lapping Compound', lcPartNumber, lcDescription);
       if (mounted) {
         Navigator.pop(context); // loading dialog
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job created successfully')));

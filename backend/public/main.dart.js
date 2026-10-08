@@ -55179,71 +55179,81 @@ a0=a.aV(a0)
 a=a0}else a=d
 B.m.O(c,A.b([B.vX,B.ar,b,B.bf,B.vY,B.ar,A.ch(!1,j,!0,A.hs(j,A.B(a,j,j,j,j,j,j,j,j),B.cW,!1,!1,!1,!1,j,j),j,!0,j,j,j,j,j,j,j,j,j,j,new A.aCv(m),j,j,j,j,j,j,j),B.bf],p))}if(m.id!=null)c.push(A.dg(B.b9Y,m.galG(),A.cy(j,j,B.bt,j,j,j,j,j,j,j,j,j,B.cd,j,j,j,j,j,j,j)))
 return A.fA(A.an(c,B.dm,j,B.E,B.z,B.O),j,B.N,B.ax,j,B.aL)},
-yI(){var s=0,r=A.v(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6
-var $async$yI=A.q(function(a7,a8){if(a7===1){o.push(a8)
-s=p}for(;;)switch(s){case 0:a5=n.y
-if(B.p.ap(a5.a.a).length===0){n.c.L(t.q).f.av(B.b1a)
+yI(){var s=0,r=A.v(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2
+var $async$yI=A.q(function(b3,b4){if(b3===1){o.push(b4)
+s=p}for(;;)switch(s){case 0:b1=n.y
+if(B.p.ap(b1.a.a).length===0){n.c.L(t.q).f.av(B.b1a)
 s=1
-break}j=n.z
-if(B.p.ap(j.a.a).length===0){n.c.L(t.q).f.av(B.b0R)
+break}g=n.z
+if(B.p.ap(g.a.a).length===0){n.c.L(t.q).f.av(B.b0R)
 s=1
-break}i=n.Q
-if(B.p.ap(i.a.a).length===0){n.c.L(t.q).f.av(B.b0B)
+break}f=n.Q
+if(B.p.ap(f.a.a).length===0){n.c.L(t.q).f.av(B.b0B)
 s=1
-break}h=n.as
-if(B.p.ap(h.a.a).length===0){n.c.L(t.q).f.av(B.b1_)
+break}e=n.as
+if(B.p.ap(e.a.a).length===0){n.c.L(t.q).f.av(B.b1_)
 s=1
 break}if(n.at==null){n.c.L(t.q).f.av(B.b10)
 s=1
-break}g=n.ch
-if(B.p.ap(g.a.a).length===0){n.c.L(t.q).f.av(B.b13)
+break}d=n.ch
+if(B.p.ap(d.a.a).length===0){n.c.L(t.q).f.av(B.b13)
 s=1
-break}f=n.r
-if(B.p.ap(f.a.a).length===0){n.c.L(t.q).f.av(B.b12)
+break}c=n.r
+if(B.p.ap(c.a.a).length===0){n.c.L(t.q).f.av(B.b12)
 s=1
 break}if(n.CW==null){n.c.L(t.q).f.av(B.b0T)
 s=1
-break}if(n.id===!0)e=B.p.ap(n.k1.a.a).length===0||n.k2==null
-else e=!1
-if(e){n.c.L(t.q).f.av(B.p0)
+break}if(n.id===!0)b=B.p.ap(n.k1.a.a).length===0||n.k2==null
+else b=!1
+if(b){n.c.L(t.q).f.av(B.p0)
 s=1
 break}n.zI()
 p=4
 m="JOB-"+B.p.cJ(B.l.k(Date.now()),5)
-e=B.p.ap(f.a.a)
-g=B.p.ap(g.a.a)
-d=n.CW
-c=B.p.ap(n.w.a.a)
-b=B.p.ap(n.x.a.a)
-a5=B.p.ap(a5.a.a)
-j=B.p.ap(j.a.a)
-i=B.p.ap(i.a.a)
-h=A.hu(B.p.ap(h.a.a),null)
-if(h==null)h=0
-a=n.at
-a0=n.id
-a1=B.p.ap(n.k1.a.a)
-if(a1.length===0)a1=null
-a2=n.k2
-a3=a0===!0?"Completed":"PO Not Given"
-l=A.UN(g,B.a3,a,n.cx,"EDP",e,null,null,null,null,null,d,null,null,null,null,null,null,null,null,null,null,null,null,null,null,c,null,null,null,null,m,"Lapping Compound",null,j,i,a5,null,0,0,null,null,a0===!1,null,null,a2,a1,a0,null,null,null,null,null,null,!1,b,a3,B.fd,null,B.a3,B.fd,null,null,h,null,null,null)
+c=B.p.ap(c.a.a)
+d=B.p.ap(d.a.a)
+b=n.CW
+a=n.w
+a0=B.p.ap(a.a.a)
+a1=B.p.ap(n.x.a.a)
+b1=B.p.ap(b1.a.a)
+a2=B.p.ap(g.a.a)
+a3=B.p.ap(f.a.a)
+a4=A.hu(B.p.ap(e.a.a),null)
+if(a4==null)a4=0
+a5=n.at
+a6=n.id
+a7=B.p.ap(n.k1.a.a)
+if(a7.length===0)a7=null
+a8=n.k2
+a9=a6===!0?"Completed":"PO Not Given"
+l=A.UN(d,B.a3,a5,n.cx,"EDP",c,null,null,null,null,null,b,null,null,null,null,null,null,null,null,null,null,null,null,null,null,a0,null,null,null,null,m,"Lapping Compound",null,a2,a3,b1,null,0,0,null,null,a6===!1,null,null,a8,a7,a6,null,null,null,null,null,null,!1,a1,a9,B.fd,null,B.a3,B.fd,null,null,a4,null,null,null)
 s=7
 return A.l(n.f.t9(l),$async$yI)
-case 7:s=8
-return A.l(n.rr(B.p.ap(f.a.a),B.p.ap(n.cy.a.a),B.p.ap(n.ax.a.a)),$async$yI)
-case 8:a5=n.c
-if(a5!=null){A.af(a5,!1).aT(null)
+case 7:b1=B.p.ap(a.a.a)
+k=b1.toLowerCase()==="yes"||b1.toLowerCase()==="high"?"HIGH":"STD"
+j="LC-"+B.p.ap(f.a.a)+"-"+A.j(k)
+f=B.p.ap(f.a.a)
+d=A.j(k)
+g=B.p.ap(g.a.a)
+c=n.at
+b1=c==null?"":c
+i="Lapping Compound, Size: "+f+" Micron, Conc: "+d+", Colour: "+g+", Base: "+b1+", Weight: "+B.p.ap(e.a.a)+"CC"
+s=8
+return A.l(n.rr("Lapping Compound",j,i),$async$yI)
+case 8:b1=n.c
+if(b1!=null){A.af(b1,!1).aT(null)
 n.c.L(t.q).f.av(B.b1b)
 n.a.e.$0()
 n.t(new A.aCN(n))}p=2
 s=6
 break
 case 4:p=3
-a6=o.pop()
-k=A.a1(a6)
-a5=n.c
-if(a5!=null){A.af(a5,!1).aT(null)
-n.c.L(t.q).f.av(A.cr(null,null,null,null,null,B.D,null,A.B("Failed: "+A.j(k),null,null,null,null,null,null,null,null),null,B.W,null,null,null,null,null,null,null,null,null,null))}s=6
+b2=o.pop()
+h=A.a1(b2)
+b1=n.c
+if(b1!=null){A.af(b1,!1).aT(null)
+n.c.L(t.q).f.av(A.cr(null,null,null,null,null,B.D,null,A.B("Failed: "+A.j(h),null,null,null,null,null,null,null,null),null,B.W,null,null,null,null,null,null,null,null,null,null))}s=6
 break
 case 3:s=2
 break
