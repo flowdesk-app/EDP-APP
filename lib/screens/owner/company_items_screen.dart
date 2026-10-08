@@ -16,6 +16,7 @@ class CompanyItemsScreen extends StatefulWidget {
 
 class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  List<ItemDatabaseModel> _allItems = [];
   List<ItemDatabaseModel> _items = [];
   bool _isLoading = true;
 
@@ -25,41 +26,16 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
     _fetchItems();
   }
 
-  Future<void> _fetchItems([String search = '']) async {
+  Future<void> _fetchItems() async {
     setState(() => _isLoading = true);
     try {
-      final items = await ApiService().getDatabaseItems(search);
+      final items = await ApiService().getDatabaseItems('');
       final unassignedItems = items.where((i) => getCompaniesForPrefix(i.itemName).contains(widget.company.name)).toList();
       
-      if (search.isNotEmpty) {
-        final q = search.toLowerCase();
-        final escapedQ = RegExp.escape(q);
-        
-        int getScore(ItemDatabaseModel item) {
-          final name = item.itemName.toLowerCase();
-          final desc = (item.description ?? '').toLowerCase();
-          
-          if (name == q) return 100;
-          if (name.startsWith(q)) return 90;
-          if (name.contains(RegExp('\\b$escapedQ\\b'))) return 80;
-          if (name.contains(RegExp('\\b$escapedQ'))) return 70;
-          if (name.contains(q)) return 60;
-          
-          if (desc == q) return 50;
-          if (desc.startsWith(q)) return 40;
-          if (desc.contains(RegExp('\\b$escapedQ\\b'))) return 30;
-          if (desc.contains(RegExp('\\b$escapedQ'))) return 20;
-          if (desc.contains(q)) return 10;
-          
-          return 0;
-        }
-        
-        unassignedItems.sort((a, b) => getScore(b).compareTo(getScore(a)));
-      }
-
       if (mounted) {
         setState(() {
-          _items = unassignedItems;
+          _allItems = unassignedItems;
+          _items = List.from(_allItems);
           _isLoading = false;
         });
       }
@@ -74,7 +50,20 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   }
 
   void _onSearchChanged(String query) {
-    _fetchItems(query);
+    if (query.isEmpty) {
+      setState(() => _items = List.from(_allItems));
+      return;
+    }
+    
+    final q = query.toLowerCase();
+    setState(() {
+      _items = _allItems.where((item) =>
+        item.itemName.toLowerCase().contains(q) ||
+        ((item.sku ?? "").toLowerCase().contains(q)) ||
+        (item.itemId.isNotEmpty && item.itemId.toLowerCase().contains(q)) ||
+        ((item.description ?? "").toLowerCase().contains(q))
+      ).toList();
+    });
   }
 
   @override
@@ -123,7 +112,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    onSubmitted: _onSearchChanged,
+                    onChanged: _onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search items...',
                       hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
