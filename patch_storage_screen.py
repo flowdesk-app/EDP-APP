@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import sys
+
+content = """import 'package:flutter/material.dart';
 import '../../models/company_storage.dart';
 import 'company_items_screen.dart';
 
@@ -118,3 +120,7 @@ class _StorageScreenState extends State<StorageScreen> {
     );
   }
 }
+"""
+
+with open('lib/screens/owner/storage_screen.dart', 'w') as f:
+    f.write(content)

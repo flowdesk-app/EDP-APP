@@ -16,6 +16,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   List<ItemDatabaseModel> _filteredItems = [];
   bool _isLoading = false;
   final TextEditingController _searchCtrl = TextEditingController();
+  String _companySearchQuery = '';
 
   @override
   void dispose() {
@@ -145,49 +146,74 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   }
 
   Widget _buildCompanyGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: kCompanyStorages.length,
-      itemBuilder: (context, index) {
-        final company = kCompanyStorages[index];
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey[300]!),
-          ),
-          child: InkWell(
-            onTap: () => _fetchItems(company),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.business, size: 32, color: Color(0xFF29B6F6)),
-                  const SizedBox(height: 12),
-                  Text(
-                    company.name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+    final filteredCompanies = kCompanyStorages
+        .where((company) => company.name.toLowerCase().contains(_companySearchQuery.toLowerCase()))
+        .toList();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: 'Search companies...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
             ),
+            onChanged: (value) {
+              setState(() {
+                _companySearchQuery = value;
+              });
+            },
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 200,
+              childAspectRatio: 1.2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: filteredCompanies.length,
+            itemBuilder: (context, index) {
+              final company = filteredCompanies[index];
+              return Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.grey[300]!),
+                ),
+                child: InkWell(
+                  onTap: () => _fetchItems(company),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.business, size: 32, color: Color(0xFF29B6F6)),
+                        const SizedBox(height: 12),
+                        Text(
+                          company.name,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
-
 
   Widget _buildItemsView() {
     return Column(
