@@ -41,7 +41,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
           if (company.name == 'Brakes india limited SRICITY' && upperName.startsWith('BIL') && (upperName.contains('SRIC') || upperName.contains('SRI CITY') || upperName.contains('SRI-CITY') || upperName.contains('BILSRI'))) {
              return true;
           }
-          if (company.name == 'Lapping Compound' && upperName.startsWith('LC')) {
+          if (company.name == 'Lapping Compound' && (upperName.contains('LC-') || upperName.contains(' LC '))) {
              return true;
           }
           if (company.name == 'Rane Brake Lining Limited Trichy' && upperName.startsWith('RBL') && upperName.contains('TRICHY')) {
