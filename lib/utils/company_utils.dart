@@ -4,6 +4,12 @@ List<String> getCompaniesForPrefix(String itemName) {
   final upperName = itemName.toUpperCase();
   
   
+  
+  // Special handling for ADMAC
+  if (upperName.contains('ADMAC') || upperName.contains('ADMACH')) {
+    return ['ADMAC'];
+  }
+
   // Special handling for Lapping Compound (LC)
   if (upperName == 'LC' || upperName.startsWith('LC-') || upperName.startsWith('LC ') || upperName.endsWith('-LC') || upperName.endsWith(' LC') || upperName.contains('-LC-') || upperName.contains(' LC ') || upperName.contains(' LC-') || upperName.contains('-LC ')) {
     return ['Lapping Compound'];

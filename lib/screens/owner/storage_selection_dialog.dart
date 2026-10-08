@@ -44,6 +44,9 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
           if (company.name == 'Lapping Compound' && (upperName.contains('LC-') || upperName.contains(' LC '))) {
              return true;
           }
+          if (company.name == 'ADMAC' && (upperName.contains('ADMAC') || upperName.contains('ADMACH'))) {
+             return true;
+          }
           if (company.name == 'Rane Brake Lining Limited Trichy' && upperName.startsWith('RBL') && upperName.contains('TRICHY')) {
             return true;
           }

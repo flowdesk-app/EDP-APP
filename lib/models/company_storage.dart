@@ -46,4 +46,5 @@ const List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'KAYES Industries', prefixes: ['KAYES', 'KAY']),
   CompanyStorage(name: 'Accurate machines', prefixes: ['ACCU']),
   CompanyStorage(name: 'Bharat Rubber', prefixes: ['BHA']),
+  CompanyStorage(name: 'ADMAC', prefixes: ['ADMAC', 'ADMACH']),
 ];
