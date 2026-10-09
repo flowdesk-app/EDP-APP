@@ -13,7 +13,7 @@ class CompanyStorage {
 }
 
 List<CompanyStorage> kCompanyStorages = [
-  CompanyStorage(name: 'Excel Diamond Tools', prefixes: ['EDT']),
+  CompanyStorage(name: 'Excel Diamond Tools', prefixes: ['EDT', 'EXL', 'EXL-CBNSTRIP']),
   CompanyStorage(name: 'Wheels India Limited', prefixes: ['WHEELS']),
   CompanyStorage(name: 'JK Fenner', prefixes: ['FEN', 'JK-FEN', 'JKFEN', 'JK']),
   CompanyStorage(name: 'Brakes India Limited Mahindra City', prefixes: ['BILS68', 'BILM68']),
@@ -53,7 +53,12 @@ List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'KAYES Industries', prefixes: ['KAYES', 'KAY']),
   CompanyStorage(name: 'Accurate machines', prefixes: ['ACCU']),
   CompanyStorage(name: 'Bharat Rubber', prefixes: ['BHA']),
-  CompanyStorage(name: 'ADMAC', prefixes: ['ADMAC', 'ADMACH']),
+    CompanyStorage(name: 'ADMAC', prefixes: ['ADMAC', 'ADMACH']),
+  CompanyStorage(name: 'CAMFAST', prefixes: ['CAM']),
+  CompanyStorage(name: 'VINKO', prefixes: ['VINK']),
+  CompanyStorage(name: 'Give&take enterprises', prefixes: ['GIVETAKE', 'GIVE', 'GIVE&TAKE']),
+  CompanyStorage(name: 'AKM', prefixes: ['AKM', 'EDP-AKM']),
+
 ];
 
 void mergeDynamicCompanies(List<CompanyStorage> dynamicCompanies) {
