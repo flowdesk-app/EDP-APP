@@ -61,7 +61,7 @@ List<CompanyStorage> kCompanyStorages = [
         CompanyStorage(name: 'RANE PONNERI', prefixes: ['RANE MADRAS LTD PONNERI', 'RANE MADRAS LTD PONEERI']),
     CompanyStorage(name: 'SEVOX', prefixes: ['SEVOX']),
   CompanyStorage(name: 'SWASTIC', prefixes: ['SWASTIC', 'SWA', 'SWAS']),
-  CompanyStorage(name: 'SRI Venus', prefixes: ['SRI-VENUS', 'SRIVENUS']),
+  CompanyStorage(name: 'SRI Venus', prefixes: ['SRI-VENUS', 'SRIVENUS', 'SREE-VINUS', 'SREEVINUS']),
   CompanyStorage(name: 'Nachi', prefixes: ['NACHI']),
   CompanyStorage(name: 'SIGI', prefixes: ['SIGI']),
   CompanyStorage(name: 'Ashok LeyLand', prefixes: ['ASHOK']),
