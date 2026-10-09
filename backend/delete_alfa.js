@@ -4,18 +4,11 @@ const ItemDatabase = require('./models/ItemDatabase');
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
-    const toDeleteExact = [
-      "Purshotam company Private Limited",
-      "TSKP2-100X46X20.4",
-      "MILLENNIUM LAPPING HOLDER"
-    ];
-
     console.log("Starting deletion...");
-
-    for (let name of toDeleteExact) {
-      const res = await ItemDatabase.deleteMany({ itemName: name });
-      console.log(`Deleted ${res.deletedCount} items for exactly "${name}"`);
-    }
+    
+    // Deleting "alpha dia" or "ALFA-Dia"
+    const res = await ItemDatabase.deleteMany({ itemName: { $regex: /^ALFA/i } });
+    console.log(`Deleted ${res.deletedCount} items starting with ALFA`);
 
     console.log("Done.");
     process.exit(0);
