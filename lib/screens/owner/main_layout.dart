@@ -57,7 +57,6 @@ class _MainLayoutState extends State<MainLayout> {
         const SpareProductionDashboardScreen(), // 7. Spare at EDP
         const RawMaterialsScreen(), // 8. Raw Materials
         const ReadyForDeliveryScreen(), // 9. Ready for Delivery
-        const ItemDatabaseScreen(), // 10. Item Database
         const StorageScreen(), // 11. Storage
       ];
       _destinations = [
@@ -72,7 +71,6 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.storage_outlined), selectedIcon: Icon(Icons.storage), label: Text('Database')),
-        const NavigationRailDestination(icon: Icon(Icons.business_center_outlined), selectedIcon: Icon(Icons.business_center), label: Text('Storage')),
       ];
     } else if (_role == UserRole.employee1) {
       _screens = [
