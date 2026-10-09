@@ -27,7 +27,7 @@ List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'Pix Transmissions Limited', prefixes: ['PIX']),
   CompanyStorage(name: 'Krish Mettech', prefixes: ['KRISH']),
   CompanyStorage(name: 'Devi Polymers', prefixes: ['DEVI']),
-  CompanyStorage(name: 'TPi Composites', prefixes: ['TPI']),
+  CompanyStorage(name: 'TPi Composites', prefixes: ['TPI', 'EDP-TPI']),
   CompanyStorage(name: 'Automotive Axles Limited', prefixes: ['AUTOAXLE']),
   CompanyStorage(name: 'JM Frictech', prefixes: ['JMI']),
   CompanyStorage(name: 'AS Industries', prefixes: ['ASIN']),
@@ -57,7 +57,8 @@ List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'CAMFAST', prefixes: ['CAM']),
   CompanyStorage(name: 'VINKO', prefixes: ['VINK']),
   CompanyStorage(name: 'Give&take enterprises', prefixes: ['GIVETAKE', 'GIVE', 'GIVE&TAKE']),
-    CompanyStorage(name: 'SIGI', prefixes: ['SIGI']),
+      CompanyStorage(name: 'SRISAI', prefixes: ['SRISAI', 'SRI-SAI']),
+  CompanyStorage(name: 'SIGI', prefixes: ['SIGI']),
   CompanyStorage(name: 'Ashok LeyLand', prefixes: ['ASHOK']),
   CompanyStorage(name: 'AKM', prefixes: ['AKM', 'EDP-AKM']),
 
