@@ -53883,7 +53883,7 @@ s.x.V(0)},
 $S:0}
 A.axT.prototype={
 $1(a){var s=null
-return A.e_(A.b([A.cd(B.bv,s,new A.axR(a),s),A.cd(B.vT,s,new A.axS(a),s)],t.p),B.RB,s,B.vU)},
+return A.e_(A.b([A.cd(B.bv,s,new A.axR(a),s),A.cd(B.vT,s,new A.axS(a),s)],t.p),B.RA,s,B.vU)},
 $S:11}
 A.axR.prototype={
 $0(){A.ae(this.a,!1).aU(!1)
@@ -55074,7 +55074,7 @@ if(p!=null)q.t(new A.aD4(q,A.cu(p.h(0,"company")),t.Pf.a(p.h(0,"item"))))
 return A.t(null,r)}})
 return A.u($async$EZ,r)},
 LN(){var s=null
-return new A.a7(B.jL,new A.d_(B.jf,s,s,A.fN(B.zx,B.Rw,this.gasI(),A.cx(s,s,B.up,s,s,s,s,s,s,B.y,s,s,s,s,s,s,s,s,s,s)),s),s)},
+return new A.a7(B.jL,new A.d_(B.jf,s,s,A.fN(B.zx,B.RB,this.gasI(),A.cx(s,s,B.up,s,s,s,s,s,s,B.y,s,s,s,s,s,s,s,s,s,s)),s),s)},
 ajT(){var s,r,q,p,o,n=this,m="Customer Name",l="Part Number",k=null,j="Description",i="Person Responsible",h="dd-MM-yyyy",g="Select Date",f=n.LN(),e=n.LK(),d=n.iw(n.r,m,n.ix(m)),c=n.iw(n.cy,l,n.ix(l)),b=A.bs(k,B.a3,!1,k,!0,B.D,k,A.bw(),n.db,k,k,k,k,k,2,B.t1,B.O,!0,k,!0,k,!1,k,B.a8,k,k,k,k,B.dt,k,k,k,1,k,k,!1,"\u2022",k,k,k,k,k,!1,k,k,!1,k,!0,k,B.a5,k,k,k,k,k,k,k,k,k,k,k,k,!0,B.Y,k,B.ae,k,k,k,k),a=n.iw(n.ax,j,n.ix(j)),a0=n.iw(n.ay,"Diamond Powder Grit Size",n.ix("Grit Size")),a1=n.iw(n.ch,i,n.ix(i))
 if(n.CW!=null){s=A.aP(h)
 r=n.CW
@@ -56257,7 +56257,7 @@ s.y.V(0)},
 $S:0}
 A.aFU.prototype={
 $1(a){var s=null
-return A.e_(A.b([A.cd(B.bv,s,new A.aFS(a),s),A.cd(B.vT,s,new A.aFT(a),s)],t.p),B.RB,s,B.vU)},
+return A.e_(A.b([A.cd(B.bv,s,new A.aFS(a),s),A.cd(B.vT,s,new A.aFT(a),s)],t.p),B.RA,s,B.vU)},
 $S:11}
 A.aFS.prototype={
 $0(){A.ae(this.a,!1).aU(!1)
@@ -58762,7 +58762,7 @@ $1(a){return a.b.toLowerCase()===this.a.toLowerCase()},
 $S:111}
 A.aMp.prototype={
 $1(a){var s=null,r=A.C("Are you sure you want to remove "+this.a.f.a+" supplier(s)?",s,s,s,s,s,s,s,s)
-return A.e_(A.b([A.cd(B.bv,s,new A.aMn(a),s),A.cd(B.iZ,s,new A.aMo(a),s)],t.p),r,s,B.Rx)},
+return A.e_(A.b([A.cd(B.bv,s,new A.aMn(a),s),A.cd(B.iZ,s,new A.aMo(a),s)],t.p),r,s,B.Rw)},
 $S:11}
 A.aMn.prototype={
 $0(){A.ae(this.a,!1).aU(!1)
@@ -60147,8 +60147,8 @@ if(s==null)s="Blank"
 if(a){r=t.V
 q=t.p
 if(J.c(o.a.c.h(0,"jobType"),"New")){r=A.b([new A.be(0,B.aq,B.V.di(0.05),B.e3,10)],r)
-return A.aU(n,A.ad(A.b([A.am(A.fN(B.mu,B.Rz,new A.aQY(o),A.cx(n,n,B.fe,n,n,n,n,n,n,B.y,n,n,B.cd,n,new A.b3(A.af(8),B.S),n,n,n,n,n)),1)],q),B.I,B.E,B.C,0),B.M,n,n,new A.aY(B.y,n,n,n,r,n,B.a7),n,n,n,B.ax,n,n,n)}else{r=A.b([new A.be(0,B.aq,B.V.di(0.05),B.e3,10)],r)
-return A.aU(n,A.ad(A.b([A.am(A.fN(B.a1w,B.Rz,new A.aQZ(o),A.cx(n,n,B.hJ,n,n,n,n,n,n,B.y,n,n,B.cd,n,new A.b3(A.af(8),B.S),n,n,n,n,n)),1)],q),B.I,B.E,B.C,0),B.M,n,n,new A.aY(B.y,n,n,n,r,n,B.a7),n,n,n,B.ax,n,n,n)}}r=J.oT(s)
+return A.aU(n,A.ad(A.b([A.am(A.fN(B.mu,B.Ry,new A.aQY(o),A.cx(n,n,B.fe,n,n,n,n,n,n,B.y,n,n,B.cd,n,new A.b3(A.af(8),B.S),n,n,n,n,n)),1)],q),B.I,B.E,B.C,0),B.M,n,n,new A.aY(B.y,n,n,n,r,n,B.a7),n,n,n,B.ax,n,n,n)}else{r=A.b([new A.be(0,B.aq,B.V.di(0.05),B.e3,10)],r)
+return A.aU(n,A.ad(A.b([A.am(A.fN(B.a1w,B.Ry,new A.aQZ(o),A.cx(n,n,B.hJ,n,n,n,n,n,n,B.y,n,n,B.cd,n,new A.b3(A.af(8),B.S),n,n,n,n,n)),1)],q),B.I,B.E,B.C,0),B.M,n,n,new A.aY(B.y,n,n,n,r,n,B.a7),n,n,n,B.ax,n,n,n)}}r=J.oT(s)
 if(r.j(s,"Blank")){r=t.V
 q=t.p
 if(J.c(o.a.c.h(0,"jobType"),"New")){r=A.b([new A.be(0,B.aq,B.V.di(0.05),B.e3,10)],r)
@@ -60401,7 +60401,7 @@ case 2:o=c
 if(o!=null)a.sb3(A.aP("yyyy-MM-dd").aV(o))
 return A.t(null,r)}})
 return A.u($async$zK,r)},
-J(a){var s,r,q,p,o,n,m=this,l=null,k=m.a.c,j=t.p,i=A.eC(A.b([B.bF],j),B.y,l,l,0,l,B.mt,l,l,B.Ry,l)
+J(a){var s,r,q,p,o,n,m=this,l=null,k=m.a.c,j=t.p,i=A.eC(A.b([B.bF],j),B.y,l,l,0,l,B.mt,l,l,B.Rx,l)
 if(m.r)j=B.b6
 else{s=A.af(12)
 r=k.h(0,"partNumber")
@@ -60417,7 +60417,7 @@ o=o==null?l:J.aQ(o)
 o=m.zJ("Grit Size",o==null?"":o)
 n=k.h(0,"personResponsible")
 n=n==null?l:J.aQ(n)
-j=A.fY(A.ap(A.b([A.fr(new A.a7(B.c5,A.ap(A.b([B.vQ,B.f6,r,q,p,o,m.zJ("Person Responsible",n==null?"":n)],j),B.Z,l,B.E,B.C,B.P),l),l,2,l,new A.b3(s,B.S)),B.cX,B.RA,B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.d,l,l,l,l,l,2,B.a2t,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aRi(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.e,l,l,l,l,l,2,B.zO,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aRj(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.fj],j),B.Z,l,B.E,B.C,B.P),l,B.O,B.c5,l,B.aN)}if(m.r)s=l
+j=A.fY(A.ap(A.b([A.fr(new A.a7(B.c5,A.ap(A.b([B.vQ,B.f6,r,q,p,o,m.zJ("Person Responsible",n==null?"":n)],j),B.Z,l,B.E,B.C,B.P),l),l,2,l,new A.b3(s,B.S)),B.cX,B.Rz,B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.d,l,l,l,l,l,2,B.a2t,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aRi(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.e,l,l,l,l,l,2,B.zO,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aRj(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.fj],j),B.Z,l,B.E,B.C,B.P),l,B.O,B.c5,l,B.aN)}if(m.r)s=l
 else{s=A.b([new A.be(0,B.aq,B.V.di(0.05),B.e3,10)],t.V)
 s=A.aU(l,A.df(B.l0,m.gaAU(),A.cx(l,l,B.be,l,l,l,l,l,l,B.y,l,l,B.cd,l,new A.b3(A.af(8),B.S),l,l,l,l,l)),B.M,l,l,new A.aY(B.y,l,l,l,s,l,B.a7),l,l,l,B.ax,l,l,l)}return A.dQ(i,B.y,j,s,l,l,l)},
 zJ(a,b){var s=null
@@ -60605,7 +60605,7 @@ $1(a){return a.b.toLowerCase()===this.a.toLowerCase()},
 $S:111}
 A.aRo.prototype={
 $1(a){var s=null,r=A.C("Are you sure you want to remove "+this.a.f.a+" supplier(s)?",s,s,s,s,s,s,s,s)
-return A.e_(A.b([A.cd(B.bv,s,new A.aRm(a),s),A.cd(B.iZ,s,new A.aRn(a),s)],t.p),r,s,B.Rx)},
+return A.e_(A.b([A.cd(B.bv,s,new A.aRm(a),s),A.cd(B.iZ,s,new A.aRn(a),s)],t.p),r,s,B.Rw)},
 $S:11}
 A.aRm.prototype={
 $0(){A.ae(this.a,!1).aU(!1)
@@ -60981,7 +60981,7 @@ case 2:o=c
 if(o!=null)a.sb3(A.aP("yyyy-MM-dd").aV(o))
 return A.t(null,r)}})
 return A.u($async$vx,r)},
-J(a){var s,r,q,p,o,n,m=this,l=null,k="extractionSentDate",j="expectedExtractionDate",i=m.a.c,h=t.p,g=A.eC(A.b([B.bF],h),B.y,l,l,0,l,B.mt,l,l,B.Ry,l)
+J(a){var s,r,q,p,o,n,m=this,l=null,k="extractionSentDate",j="expectedExtractionDate",i=m.a.c,h=t.p,g=A.eC(A.b([B.bF],h),B.y,l,l,0,l,B.mt,l,l,B.Rx,l)
 if(m.w)h=B.b6
 else{s=A.af(12)
 r=i.h(0,"partNumber")
@@ -61000,7 +61000,7 @@ n=n==null?l:J.aQ(n)
 r=A.b([B.vQ,B.f6,r,q,p,o,m.rR("Person Responsible",n==null?"":n)],h)
 if(i.h(0,k)!=null)r.push(m.rR("Extraction Sent",i.h(0,k)))
 if(i.h(0,j)!=null)r.push(m.rR("Expected Extraction",i.h(0,j)))
-h=A.fY(A.ap(A.b([A.fr(new A.a7(B.c5,A.ap(r,B.Z,l,B.E,B.C,B.P),l),l,2,l,new A.b3(s,B.S)),B.cX,B.RA,B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.d,l,l,l,l,l,2,B.a26,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aRZ(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.e,l,l,l,l,l,2,B.a2k,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aS_(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.f,l,l,l,l,l,2,B.zO,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aS0(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.fj],h),B.Z,l,B.E,B.C,B.P),l,B.O,B.c5,l,B.aN)}if(m.w)s=l
+h=A.fY(A.ap(A.b([A.fr(new A.a7(B.c5,A.ap(r,B.Z,l,B.E,B.C,B.P),l),l,2,l,new A.b3(s,B.S)),B.cX,B.Rz,B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.d,l,l,l,l,l,2,B.a26,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aRZ(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.e,l,l,l,l,l,2,B.a2k,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aS_(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.ap,A.bs(l,B.a3,!1,l,!0,B.D,l,A.bw(),m.f,l,l,l,l,l,2,B.zO,B.O,!0,l,!0,l,!1,l,B.a8,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,l,new A.aS0(m),!1,l,l,!0,l,!0,l,B.a5,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.Y,l,B.ae,l,l,l,l),B.fj],h),B.Z,l,B.E,B.C,B.P),l,B.O,B.c5,l,B.aN)}if(m.w)s=l
 else{s=A.b([new A.be(0,B.aq,B.V.di(0.05),B.e3,10)],t.V)
 s=A.aU(l,A.df(B.l0,m.gaAX(),A.cx(l,l,B.be,l,l,l,l,l,l,B.y,l,l,B.cd,l,new A.b3(A.af(8),B.S),l,l,l,l,l)),B.M,l,l,new A.aY(B.y,l,l,l,s,l,B.a7),l,l,l,B.ax,l,l,l)}return A.dQ(g,B.y,h,s,l,l,l)},
 rR(a,b){var s=null
@@ -61466,7 +61466,7 @@ return this.a.ak_(s,r)},
 $S:48}
 A.aT4.prototype={
 $1(a){var s=this,r=null,q=s.a,p=s.c,o=s.d,n=s.e,m=s.b,l=t.N,k=s.f,j=s.r,i=s.w,h=t.p
-l=A.fY(A.ap(A.b([new A.d_(B.jf,r,r,A.fN(B.zx,B.Rw,new A.aSP(q,a,p,o,n),A.cx(r,r,B.up,r,r,r,r,r,r,B.y,r,r,r,r,r,r,r,r,r,r)),r),B.ap,A.rM(new A.aSQ(q,p),new A.aSR(p),new A.aSX(m),r,l),A.bs(r,B.a3,!1,r,!0,B.D,r,A.bw(),k,r,r,r,r,r,2,B.zT,B.O,!0,r,!0,r,!1,r,B.a8,r,r,r,r,B.dt,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.a5,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.Y,r,B.ae,r,r,r,r),A.rM(new A.aSY(q,o),new A.aSZ(o),new A.aT_(m),r,l),A.rM(new A.aT0(q,n),new A.aT1(n),new A.aT2(m),r,l),A.rM(new A.aT3(j),new A.aSS(j),new A.aST(m),r,l),A.bs(r,B.a3,!1,r,!0,B.D,r,A.bw(),i,r,r,r,r,r,2,B.a2i,B.O,!0,r,!0,r,!1,r,B.a8,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,new A.aSU(a,i),!1,r,r,!0,r,!0,r,B.a5,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.Y,r,B.ae,r,r,r,r)],h),B.I,r,B.E,B.b9,B.P),r,B.O,r,r,B.aN)
+l=A.fY(A.ap(A.b([new A.d_(B.jf,r,r,A.fN(B.zx,B.RB,new A.aSP(q,a,p,o,n),A.cx(r,r,B.up,r,r,r,r,r,r,B.y,r,r,r,r,r,r,r,r,r,r)),r),B.ap,A.rM(new A.aSQ(q,p),new A.aSR(p),new A.aSX(m),r,l),A.bs(r,B.a3,!1,r,!0,B.D,r,A.bw(),k,r,r,r,r,r,2,B.zT,B.O,!0,r,!0,r,!1,r,B.a8,r,r,r,r,B.dt,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.a5,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.Y,r,B.ae,r,r,r,r),A.rM(new A.aSY(q,o),new A.aSZ(o),new A.aT_(m),r,l),A.rM(new A.aT0(q,n),new A.aT1(n),new A.aT2(m),r,l),A.rM(new A.aT3(j),new A.aSS(j),new A.aST(m),r,l),A.bs(r,B.a3,!1,r,!0,B.D,r,A.bw(),i,r,r,r,r,r,2,B.a2i,B.O,!0,r,!0,r,!1,r,B.a8,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,new A.aSU(a,i),!1,r,r,!0,r,!0,r,B.a5,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.Y,r,B.ae,r,r,r,r)],h),B.I,r,B.E,B.b9,B.P),r,B.O,r,r,B.aN)
 return A.e_(A.b([A.cd(B.bv,r,new A.aSV(a),r),A.df(B.iY,new A.aSW(m,p,k,o,n,j,i,a,s.x),r)],h),l,r,B.b86)},
 $S:11}
 A.aSP.prototype={
@@ -139815,28 +139815,27 @@ B.b95=new A.O("General Details",null,B.kZ,null,null,null,null,null,null,null,nul
 B.b97=new A.O("Extraction Details",null,B.iT,null,null,null,null,null,null,null,null)
 B.b99=new A.O("Spare Production Dashboard",null,B.d0,null,null,null,null,null,null,null,null)
 B.vR=new A.O("Purchase Order Number",null,B.bU,null,null,null,null,null,null,null,null)
-B.Rw=new A.O("Use from Storage",null,null,null,null,null,null,null,null,null,null)
 B.b9e=new A.O("Submit Return",null,null,null,null,null,null,null,null,null,null)
 B.b9f=new A.O("Ready for delivery",null,null,null,null,null,null,null,null,null,null)
 B.b9h=new A.O("EDP Purchase Order Number",null,B.bU,null,null,null,null,null,null,null,null)
 B.b9l=new A.O("Next Supplier",null,null,null,null,null,null,null,null,null,null)
 B.b9n=new A.O("Job Master",null,B.d0,null,null,null,null,null,null,null,null)
 B.vS=new A.O("Purchase Order Date",null,B.bU,null,null,null,null,null,null,null,null)
-B.Rx=new A.O("Remove Suppliers?",null,null,null,null,null,null,null,null,null,null)
+B.Rw=new A.O("Remove Suppliers?",null,null,null,null,null,null,null,null,null,null)
 B.b9o=new A.O("Forward",null,null,null,null,null,null,null,null,null,null)
-B.Ry=new A.O("Move to Production",null,B.vM,null,null,null,null,null,null,null,null)
+B.Rx=new A.O("Move to Production",null,B.vM,null,null,null,null,null,null,null,null)
 B.Rc=new A.w(!0,B.y,null,null,null,null,null,B.ah,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.b9p=new A.O("No",null,B.Rc,null,null,null,null,null,null,null,null)
 B.b9u=new A.O("Back to EDP Spare Production",null,B.vO,null,null,null,null,null,null,null,null)
 B.b3O=new A.w(!0,B.y,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.b9v=new A.O("Search",null,B.b3O,null,null,null,null,null,null,null,null)
 B.b9w=new A.O("Expected Extraction Completion Date",null,B.cn,null,null,null,null,null,null,null,null)
-B.Rz=new A.O("Move to Ready for Delivery",null,B.bU,null,null,null,null,null,null,null,null)
+B.Ry=new A.O("Move to Ready for Delivery",null,B.bU,null,null,null,null,null,null,null,null)
 B.b9x=new A.O("Supplier Invoice Number",null,B.cn,null,null,null,null,null,null,null,null)
 B.pd=new A.O("Remove Jobs?",null,null,null,null,null,null,null,null,null,null)
 B.b9y=new A.O("Use from Spare",null,B.Rm,null,null,null,null,null,null,null,null)
 B.b9z=new A.O("Create Job",null,B.d0,null,null,null,null,null,null,null,null)
-B.RA=new A.O("Production Details",null,B.iT,null,null,null,null,null,null,null,null)
+B.Rz=new A.O("Production Details",null,B.iT,null,null,null,null,null,null,null,null)
 B.b9B=new A.O("Assignment & Delivery",null,null,null,null,null,null,null,null,null,null)
 B.b5B=new A.w(!0,B.be,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.vT=new A.O("Undo",null,B.b5B,null,null,null,null,null,null,null,null)
@@ -139852,13 +139851,14 @@ B.b9J=new A.O("What type of job is this?",null,B.b4b,null,null,null,null,null,nu
 B.b9K=new A.O("Move to Extraction",null,B.vM,null,null,null,null,null,null,null,null)
 B.b9M=new A.O("Confirm Usage",null,null,null,null,null,null,null,null,null,null)
 B.b9O=new A.O("Restore",null,B.vO,null,null,null,null,null,null,null,null)
-B.RB=new A.O("Are you sure you want to revert this job to its previous state?",null,null,null,null,null,null,null,null,null,null)
+B.RA=new A.O("Are you sure you want to revert this job to its previous state?",null,null,null,null,null,null,null,null,null,null)
 B.b9P=new A.O("Confirm Job",null,B.vL,null,null,null,null,null,null,null,null)
 B.b9Q=new A.O("Customer & Gate Pass Details",null,B.iT,null,null,null,null,null,null,null,null)
 B.b9R=new A.O("Save Fields to Master",null,null,null,null,null,null,null,null,null,null)
 B.b9S=new A.O("Delete Jobs?",null,null,null,null,null,null,null,null,null,null)
 B.b9T=new A.O("Sales Information",null,B.Rb,null,null,null,null,null,null,null,null)
 B.b9X=new A.O("Create Job",null,B.vL,null,null,null,null,null,null,null,null)
+B.RB=new A.O("Use from Database",null,null,null,null,null,null,null,null,null,null)
 B.ba0=new A.O("Blank Order Date",null,B.bU,null,null,null,null,null,null,null,null)
 B.ba1=new A.O("Available Qty",null,B.R9,null,null,null,null,null,null,null,null)
 B.ba2=new A.O("More",null,null,null,null,null,null,null,null,null,null)

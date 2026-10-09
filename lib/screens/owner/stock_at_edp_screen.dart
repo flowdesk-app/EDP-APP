@@ -318,7 +318,7 @@ class _StockAtEdpScreenState extends State<StockAtEdpScreen> with SingleTickerPr
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.inventory_2_outlined),
-                  label: const Text('Use from Storage'),
+                  label: const Text('Use from Database'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.indigo,
                     foregroundColor: Colors.white,
