@@ -19,7 +19,7 @@ List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'Brakes India Limited Mahindra City', prefixes: ['BILS68', 'BILM68']),
   CompanyStorage(name: 'Brakes India Limited Solingar', prefixes: ['BILS']),
   CompanyStorage(name: 'Breaks India Limited', prefixes: ['BIL']),
-  CompanyStorage(name: 'Rane Brake Lining Limited Trichy', prefixes: ['RBLT', 'RBL']),
+  CompanyStorage(name: 'Rane Brake Lining Limited Trichy', prefixes: ['RBLT', 'RBL', 'YCA']),
   CompanyStorage(name: 'Rane Brakelining Limited Pondicherry', prefixes: ['RBLP', 'RBL']),
   CompanyStorage(name: 'Rane Brake Lining Limited Ambattur', prefixes: ['RBLA', 'RBL']),
   CompanyStorage(name: 'Rane Brakelining Limited Medak', prefixes: ['RBLM', 'RBL']),
@@ -57,7 +57,10 @@ List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'CAMFAST', prefixes: ['CAM']),
   CompanyStorage(name: 'VINKO', prefixes: ['VINK']),
   CompanyStorage(name: 'Give&take enterprises', prefixes: ['GIVETAKE', 'GIVE', 'GIVE&TAKE']),
+    CompanyStorage(name: 'SIGI', prefixes: ['SIGI']),
+  CompanyStorage(name: 'Ashok LeyLand', prefixes: ['ASHOK']),
   CompanyStorage(name: 'AKM', prefixes: ['AKM', 'EDP-AKM']),
+
 
 ];
 
