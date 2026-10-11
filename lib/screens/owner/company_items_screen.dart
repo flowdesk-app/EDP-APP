@@ -58,24 +58,22 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   }
 
   void _filterItems() {
-    final query = _searchController.text.trim().toLowerCase();
-    final descQuery = _descSearchController.text.trim().toLowerCase();
+    final query = _searchController.text.trim();
+    final descQuery = _descSearchController.text.trim();
 
     setState(() {
       _items = _allItems.where((item) {
-        final name = item.itemName.toLowerCase();
-        final sku = (item.sku ?? "").toLowerCase();
-        final id = item.itemId.toLowerCase();
-        final desc = (item.description ?? "").toLowerCase();
-
         bool matchesItem = true;
         if (query.isNotEmpty) {
-          matchesItem = name.contains(query) || sku.contains(query) || id.contains(query) || desc.contains(query);
+          matchesItem = smartMatch(item.itemName, query) ||
+              smartMatch(item.sku, query) ||
+              smartMatch(item.itemId, query) ||
+              smartMatch(item.description, query);
         }
 
         bool matchesDesc = true;
         if (descQuery.isNotEmpty) {
-          matchesDesc = desc.contains(descQuery);
+          matchesDesc = smartMatch(item.description, descQuery);
         }
 
         return matchesItem && matchesDesc;
@@ -288,7 +286,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
             _buildInfoRow(Icons.pin_drop_outlined, 'SKU: ${item.sku ?? 'N/A'}'),
             if (item.description != null && item.description!.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
-              _buildInfoRow(Icons.description_outlined, 'Desc: ${item.description!.replaceAll('\n', ' ').trim()}'),
+              _buildInfoRow(Icons.description_outlined, 'Desc: ${item.description!.replaceAll('\n', ' ').trim()}', maxLines: 2),
             ],
           ],
         ),
@@ -376,10 +374,14 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(IconData icon, String text, {int maxLines = 1}) {
     return Row(
+      crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 14, color: Colors.grey[400]),
+        Padding(
+          padding: EdgeInsets.only(top: maxLines > 1 ? 2.0 : 0.0),
+          child: Icon(icon, size: 14, color: Colors.grey[400]),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -388,7 +390,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
               fontSize: 12,
               color: Colors.grey[600],
             ),
-            maxLines: 1,
+            maxLines: maxLines,
             overflow: TextOverflow.ellipsis,
           ),
         ),

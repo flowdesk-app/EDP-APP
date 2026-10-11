@@ -66,3 +66,38 @@ List<String> getCompaniesForPrefix(String itemName) {
   
   return matchedCompanies;
 }
+
+bool smartMatch(String? target, String query) {
+  if (query.trim().isEmpty) return true;
+  if (target == null || target.trim().isEmpty) return false;
+
+  final normTarget = target.toLowerCase().replaceAll(RegExp(r'[\r\n\t]+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+  final normQuery = query.toLowerCase().replaceAll(RegExp(r'[\r\n\t]+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  // 1. Exact normalized substring match
+  if (normTarget.contains(normQuery)) return true;
+
+  // 2. Query with ellipses/dots removed (e.g. if user copied from UI preview)
+  final cleanQuery = normQuery.replaceAll(RegExp(r'\.{2,}'), '').trim();
+  if (cleanQuery.isNotEmpty && normTarget.contains(cleanQuery)) return true;
+
+  // 3. Alphanumeric match (ignores all hyphens, slashes, punctuation, spacing differences)
+  final alphaTarget = normTarget.replaceAll(RegExp(r'[^a-z0-9]'), '');
+  final alphaQuery = cleanQuery.replaceAll(RegExp(r'[^a-z0-9]'), '');
+  if (alphaQuery.length > 2 && alphaTarget.contains(alphaQuery)) return true;
+
+  // 4. Token / word-based match: all words/numbers typed in the search query must exist in target
+  final tokens = cleanQuery
+      .replaceAll(RegExp(r'[,\.;:\(\)\[\]\{\}"\n\r\-–—/]'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((t) => t.isNotEmpty)
+      .toList();
+
+  if (tokens.isEmpty) return true;
+
+  return tokens.every((t) {
+    final alphaT = t.replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return normTarget.contains(t) || (alphaT.length > 1 && alphaTarget.contains(alphaT));
+  });
+}
+
