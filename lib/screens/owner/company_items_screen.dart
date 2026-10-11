@@ -16,6 +16,7 @@ class CompanyItemsScreen extends StatefulWidget {
 
 class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _descSearchController = TextEditingController();
   List<ItemDatabaseModel> _allItems = [];
   List<ItemDatabaseModel> _items = [];
   bool _isLoading = true;
@@ -24,6 +25,13 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   void initState() {
     super.initState();
     _fetchItems();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _descSearchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchItems() async {
@@ -49,20 +57,29 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
     }
   }
 
-  void _onSearchChanged(String query) {
-    if (query.isEmpty) {
-      setState(() => _items = List.from(_allItems));
-      return;
-    }
-    
-    final q = query.toLowerCase();
+  void _filterItems() {
+    final query = _searchController.text.trim().toLowerCase();
+    final descQuery = _descSearchController.text.trim().toLowerCase();
+
     setState(() {
-      _items = _allItems.where((item) =>
-        item.itemName.toLowerCase().contains(q) ||
-        ((item.sku ?? "").toLowerCase().contains(q)) ||
-        (item.itemId.isNotEmpty && item.itemId.toLowerCase().contains(q)) ||
-        ((item.description ?? "").toLowerCase().contains(q))
-      ).toList();
+      _items = _allItems.where((item) {
+        final name = item.itemName.toLowerCase();
+        final sku = (item.sku ?? "").toLowerCase();
+        final id = item.itemId.toLowerCase();
+        final desc = (item.description ?? "").toLowerCase();
+
+        bool matchesItem = true;
+        if (query.isNotEmpty) {
+          matchesItem = name.contains(query) || sku.contains(query) || id.contains(query) || desc.contains(query);
+        }
+
+        bool matchesDesc = true;
+        if (descQuery.isNotEmpty) {
+          matchesDesc = desc.contains(descQuery);
+        }
+
+        return matchesItem && matchesDesc;
+      }).toList();
     });
   }
 
@@ -102,25 +119,69 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                     ),
                   ],
                 ),
-                Container(
-                  width: 300,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: _onSearchChanged,
-                    decoration: InputDecoration(
-                      hintText: 'Search items...',
-                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                      prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey[400]),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    Container(
+                      width: 230,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (_) => _filterItems(),
+                        decoration: InputDecoration(
+                          hintText: 'Search items...',
+                          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                          prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey[400]),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _filterItems();
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                        ),
+                      ),
                     ),
-                  ),
+                    Container(
+                      width: 230,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: TextField(
+                        controller: _descSearchController,
+                        onChanged: (_) => _filterItems(),
+                        decoration: InputDecoration(
+                          hintText: 'Search by description...',
+                          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                          prefixIcon: Icon(Icons.description_outlined, size: 18, color: Colors.grey[400]),
+                          suffixIcon: _descSearchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 16),
+                                  onPressed: () {
+                                    _descSearchController.clear();
+                                    _filterItems();
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -146,7 +207,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                                 crossAxisCount: crossAxisCount,
                                 crossAxisSpacing: 16,
                                 mainAxisSpacing: 16,
-                                childAspectRatio: 1.6, // Adjust card height
+                                childAspectRatio: 1.35, // Adjust card height
                               ),
                               itemCount: _items.length,
                               itemBuilder: (context, index) {
@@ -225,6 +286,10 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
             _buildInfoRow(Icons.inventory_2_outlined, 'Vendor: ${item.vendor ?? 'N/A'}'),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.pin_drop_outlined, 'SKU: ${item.sku ?? 'N/A'}'),
+            if (item.description != null && item.description!.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.description_outlined, 'Desc: ${item.description!.replaceAll('\n', ' ').trim()}'),
+            ],
           ],
         ),
       ),

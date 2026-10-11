@@ -46,7 +46,7 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
         setState(() {
           _suppliers = suppliers;
           _currentJobs = jobs.where((j) {
-            if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
+            if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed' || j.status == 'Blank Order') return false;
             if (j.currentLocation == 'EDP Spare') return false;
             if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
 

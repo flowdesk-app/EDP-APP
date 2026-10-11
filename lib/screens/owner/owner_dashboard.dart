@@ -73,7 +73,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           _coatingArrivedCount = jobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).length;
           
           bool isValidProductionJob(JobModel j) {
-            if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
+            if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed' || j.status == 'Blank Order') return false;
             if (j.currentLocation == 'EDP Spare') return false;
             if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
             if (j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')) return false;
@@ -252,7 +252,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                       _buildStatCard('Re-coating', _recoatingJobs, Icons.build_circle_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => RecoatingDashboardScreen(recoatingJobs: _currentJobs.where((j) => j.jobType == 'Re-coating').toList(), month: _selectedMonth, date: _selectedDate))).then((_) => _load())),
                       _buildStatCard('Production', _productionJobs, Icons.precision_manufacturing, Colors.blue, () {
                         final validJobs = _currentJobs.where((j) {
-                          if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed') return false;
+                          if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed' || j.status == 'Blank Order') return false;
                           if (j.currentLocation == 'EDP Spare') return false;
                           if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
                           if (j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')) return false;

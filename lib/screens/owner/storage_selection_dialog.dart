@@ -17,6 +17,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   List<ItemDatabaseModel> _filteredItems = [];
   bool _isLoading = false;
   final TextEditingController _searchCtrl = TextEditingController();
+  final TextEditingController _descSearchCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _descSearchCtrl.dispose();
     super.dispose();
   }
 
@@ -42,6 +44,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
       _selectedCompany = company;
       _isLoading = true;
       _searchCtrl.clear();
+      _descSearchCtrl.clear();
     });
 
     try {
@@ -59,17 +62,29 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
     }
   }
 
-  void _filterItems(String query) {
+  void _filterItems() {
+    final query = _searchCtrl.text.trim().toLowerCase();
+    final descQuery = _descSearchCtrl.text.trim().toLowerCase();
+
     setState(() {
-      if (query.isEmpty) {
-        _filteredItems = List.from(_items);
-      } else {
-        _filteredItems = _items.where((item) =>
-          item.itemName.toLowerCase().contains(query.toLowerCase()) ||
-          ((item.sku ?? "").toLowerCase().contains(query.toLowerCase())) ||
-          (item.itemId.isNotEmpty && item.itemId.toLowerCase().contains(query.toLowerCase()))
-        ).toList();
-      }
+      _filteredItems = _items.where((item) {
+        final name = item.itemName.toLowerCase();
+        final sku = (item.sku ?? "").toLowerCase();
+        final id = item.itemId.toLowerCase();
+        final desc = (item.description ?? "").toLowerCase();
+
+        bool matchesItem = true;
+        if (query.isNotEmpty) {
+          matchesItem = name.contains(query) || sku.contains(query) || id.contains(query) || desc.contains(query);
+        }
+
+        bool matchesDesc = true;
+        if (descQuery.isNotEmpty) {
+          matchesDesc = desc.contains(descQuery);
+        }
+
+        return matchesItem && matchesDesc;
+      }).toList();
     });
   }
 
@@ -201,15 +216,52 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: TextField(
-            controller: _searchCtrl,
-            onChanged: _filterItems,
-            decoration: InputDecoration(
-              hintText: 'Search items...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (_) => _filterItems(),
+                  decoration: InputDecoration(
+                    hintText: 'Search items...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: _searchCtrl.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 16),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              _filterItems();
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _descSearchCtrl,
+                  onChanged: (_) => _filterItems(),
+                  decoration: InputDecoration(
+                    hintText: 'Search by description...',
+                    prefixIcon: const Icon(Icons.description_outlined, size: 20),
+                    suffixIcon: _descSearchCtrl.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 16),
+                            onPressed: () {
+                              _descSearchCtrl.clear();
+                              _filterItems();
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
@@ -231,7 +283,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
                             crossAxisCount: crossAxisCount,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: 1.6,
+                            childAspectRatio: 1.35,
                           ),
                           itemCount: _filteredItems.length,
                           itemBuilder: (context, index) {
@@ -306,6 +358,10 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
             _buildInfoRow(Icons.inventory_2_outlined, 'Vendor: ${item.vendor ?? 'N/A'}'),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.pin_drop_outlined, 'SKU: ${item.sku ?? 'N/A'}'),
+            if (item.description != null && item.description!.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.description_outlined, 'Desc: ${item.description!.replaceAll('\n', ' ').trim()}'),
+            ],
           ],
         ),
       ),

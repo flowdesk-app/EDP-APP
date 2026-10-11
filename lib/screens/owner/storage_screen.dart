@@ -45,7 +45,7 @@ class _StorageScreenState extends State<StorageScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Company Storage',
+                        'Company Database',
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
                       ),
                       SizedBox(height: 8),

@@ -73,7 +73,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
       
       final activeJobs = _selectedStatus == null 
           ? jobs.where((j) {
-              if (j.status == 'Closed' || j.status == 'Removed' || j.status == 'Completed') return false;
+              if (j.status == 'Closed' || j.status == 'Removed' || j.status == 'Completed' || j.status == 'Blank Order') return false;
               if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
               if (_selectedSupplier != null && _selectedSupplier != 'EDP Production') {
                 return j.currentLocation.toLowerCase() == _selectedSupplier!.toLowerCase();
@@ -81,7 +81,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
               return j.currentLocation == 'EDP' || j.currentLocation.toLowerCase() == 'edp production' || j.currentLocation.isEmpty;
             }).toList()
           : jobs.where((j) {
-              if (j.status == 'Removed' || j.status == 'Completed') return false;
+              if (j.status == 'Removed' || j.status == 'Completed' || (_selectedStatus != 'Blank Order' && j.status == 'Blank Order')) return false;
               if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
               if (_selectedSupplier != null && _selectedSupplier != 'EDP Production') {
                 return j.currentLocation.toLowerCase() == _selectedSupplier!.toLowerCase();
