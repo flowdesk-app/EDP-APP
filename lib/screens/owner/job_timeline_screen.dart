@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
-import '../../widgets/edit_quantity_dialog.dart';
 import '../../widgets/job_type_badge.dart';
 
 class JobTimelineScreen extends StatefulWidget {
@@ -392,41 +391,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Part Number', _currentJob.partNumber ?? _currentJob.customerName ?? 'N/A'),
                 _row('Customer Name', _currentJob.customerName ?? 'N/A'),
                 if (_currentJob.jobType != 'Lapping Compound')
-                  _row(
-                    'Quantity',
-                    '${_currentJob.quantity ?? 0} units',
-                    trailing: InkWell(
-                      onTap: () {
-                        showEditQuantityDialog(
-                          context: context,
-                          job: _currentJob,
-                          onJobUpdated: (updated) {
-                            setState(() => _currentJob = updated);
-                          },
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE3F2FD),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFF90CAF9), width: 0.8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.edit, size: 11, color: Color(0xFF1976D2)),
-                            SizedBox(width: 2),
-                            Text(
-                              'Edit',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF1976D2), fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  _row('Quantity', '${_currentJob.quantity ?? 0} units'),
                 if (_currentJob.isAssembly || (_currentJob.numberOfSets != null && _currentJob.numberOfSets! > 0))
                   _row('Assembly Sets', '${_currentJob.numberOfSets ?? 0} Sets'),
                 _row('Status', _isRecoatingSKMT ? 'SKMT' : (((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status)),
@@ -445,41 +410,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Microns', _currentJob.microns ?? 'N/A'),
                   _row('Micron Color', _currentJob.micronColor ?? 'N/A'),
                   _row('Micron Size', _currentJob.micronSize ?? 'N/A'),
-                  _row(
-                    'Syringe Quantity',
-                    '${_currentJob.syringeQuantity ?? 0}',
-                    trailing: InkWell(
-                      onTap: () {
-                        showEditQuantityDialog(
-                          context: context,
-                          job: _currentJob,
-                          onJobUpdated: (updated) {
-                            setState(() => _currentJob = updated);
-                          },
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE3F2FD),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFF90CAF9), width: 0.8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.edit, size: 11, color: Color(0xFF1976D2)),
-                            SizedBox(width: 2),
-                            Text(
-                              'Edit',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF1976D2), fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  _row('Syringe Quantity', '${_currentJob.syringeQuantity ?? 0}'),
                   _row('Base Type', _currentJob.baseType ?? 'N/A'),
                 ],
               ),

@@ -4,7 +4,6 @@ import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
-import '../../widgets/edit_quantity_dialog.dart';
 import '../../widgets/job_type_badge.dart';
 
 class FilteredJobsScreen extends StatefulWidget {
@@ -341,19 +340,7 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                       Row(
                                         children: [
                                           Expanded(child: _buildInfo('Part Number', job.partNumber ?? 'N/A')),
-                                          Expanded(
-                                            child: EditQuantityCell(
-                                              job: job,
-                                              onJobUpdated: (updatedJob) {
-                                                setState(() {
-                                                  final idx = _allJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                                  if (idx != -1) _allJobs[idx] = updatedJob;
-                                                  final fIdx = _filteredJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                                  if (fIdx != -1) _filteredJobs[fIdx] = updatedJob;
-                                                });
-                                              },
-                                            ),
-                                          ),
+                                          Expanded(child: _buildInfo('Quantity', '${job.quantity ?? 0}')),
                                           Expanded(child: _buildInfo('Available', '${(job.status == 'Delivered' || job.status == 'Closed') && job.deliveredQuantity == null ? 0 : (job.quantity ?? 0) - (job.deliveredQuantity ?? 0) - (job.returnedQuantity ?? 0)}')),
                                         ],
                                       ),

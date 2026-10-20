@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
 import 'package:intl/intl.dart';
-import '../../widgets/edit_quantity_dialog.dart';
 import '../../widgets/job_type_badge.dart';
 
 class BlankOrdersScreen extends StatefulWidget {
@@ -410,17 +409,7 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                         Row(
                           children: [
                             Expanded(child: _buildInfo('Part Number', job.partNumber ?? 'N/A')),
-                            Expanded(
-                              child: EditQuantityCell(
-                                job: job,
-                                onJobUpdated: (updatedJob) {
-                                  setState(() {
-                                    final idx = _currentJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                    if (idx != -1) _currentJobs[idx] = updatedJob;
-                                  });
-                                },
-                              ),
-                            ),
+                            Expanded(child: _buildInfo('Quantity', '${job.quantity ?? 0}')),
                             Expanded(child: _buildInfo('Available', '${(job.status == 'Delivered' || job.status == 'Closed') && job.deliveredQuantity == null ? 0 : (job.quantity ?? 0) - (job.deliveredQuantity ?? 0) - (job.returnedQuantity ?? 0)}')),
                           ],
                         ),

@@ -5,7 +5,6 @@ import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../widgets/drawer_menu_button.dart';
-import '../../widgets/edit_quantity_dialog.dart';
 import '../../widgets/job_type_badge.dart';
 
 class ReadyForDeliveryScreen extends StatefulWidget {
@@ -278,19 +277,7 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                         Row(
                                           children: [
                                             Expanded(child: _buildInfo('Concentration', job.highConcentration ?? 'N/A')),
-                                            Expanded(
-                                              child: EditQuantityCell(
-                                                job: job,
-                                                onJobUpdated: (updatedJob) {
-                                                  setState(() {
-                                                    final idx = _allJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                                    if (idx != -1) _allJobs[idx] = updatedJob;
-                                                    final fIdx = _filteredJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                                    if (fIdx != -1) _filteredJobs[fIdx] = updatedJob;
-                                                  });
-                                                },
-                                              ),
-                                            ),
+                                            Expanded(child: _buildInfo('Syringe Qty', '${job.syringeQuantity ?? 0}')),
                                             Expanded(child: _buildInfo('Base Type', job.baseType ?? 'N/A')),
                                           ],
                                         )
@@ -298,19 +285,7 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                         Row(
                                           children: [
                                             Expanded(child: _buildInfo('Part Number', job.partNumber ?? 'N/A')),
-                                            Expanded(
-                                              child: EditQuantityCell(
-                                                job: job,
-                                                onJobUpdated: (updatedJob) {
-                                                  setState(() {
-                                                    final idx = _allJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                                    if (idx != -1) _allJobs[idx] = updatedJob;
-                                                    final fIdx = _filteredJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
-                                                    if (fIdx != -1) _filteredJobs[fIdx] = updatedJob;
-                                                  });
-                                                },
-                                              ),
-                                            ),
+                                            Expanded(child: _buildInfo('Quantity', '${job.quantity ?? 0}')),
                                             Expanded(child: _buildInfo('Available', '${(job.status == 'Delivered' || job.status == 'Closed') && job.deliveredQuantity == null ? 0 : (job.quantity ?? 0) - (job.deliveredQuantity ?? 0) - (job.returnedQuantity ?? 0)}')),
                                           ],
                                         ),
