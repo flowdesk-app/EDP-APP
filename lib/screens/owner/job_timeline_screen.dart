@@ -5,6 +5,7 @@ import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
 import '../../widgets/edit_quantity_dialog.dart';
+import '../../widgets/job_type_badge.dart';
 
 class JobTimelineScreen extends StatefulWidget {
   final JobModel job;
@@ -366,6 +367,18 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  JobTypeBadge(jobType: _currentJob.jobType),
+                  if (_currentJob.isAssembly || (_currentJob.numberOfSets != null && _currentJob.numberOfSets! > 0)) ...[
+                    const SizedBox(width: 8),
+                    SetsBadge(numberOfSets: _currentJob.numberOfSets),
+                  ],
+                ],
+              ),
+            ),
             _buildSectionCard(
               title: 'General Information',
               icon: Icons.info_outline,
@@ -409,6 +422,8 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                       ),
                     ),
                   ),
+                if (_currentJob.isAssembly || (_currentJob.numberOfSets != null && _currentJob.numberOfSets! > 0))
+                  _row('Assembly Sets', '${_currentJob.numberOfSets ?? 0} Sets'),
                 _row('Status', ((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status),
                 _row('Location', _currentJob.currentLocation),
                 if (_currentJob.negotiationDone != null && _currentJob.jobType == 'New')

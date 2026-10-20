@@ -79,7 +79,9 @@ const jobSchema = new mongoose.Schema({
   supplierPurchaseOrderDate: { type: Date },
   forwardQuantity: { type: Number },
   deliveryChalanNumber: { type: String },
-  deliveryChalanDate: { type: Date }
+  deliveryChalanDate: { type: Date },
+  isAssembly: { type: Boolean, default: false },
+  numberOfSets: { type: Number },
 }, { timestamps: true });
 
 jobSchema.index({ jobId: 1 });

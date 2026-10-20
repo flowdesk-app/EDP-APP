@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../widgets/edit_quantity_dialog.dart';
+import '../../widgets/job_type_badge.dart';
 
 class ReadyForDeliveryScreen extends StatefulWidget {
   const ReadyForDeliveryScreen({super.key});
@@ -232,31 +233,31 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Row(
-                                            children: [
-                                              Text(displayTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                              if (job.logisticsName != null && job.logisticsName!.isNotEmpty) ...[
-                                                const SizedBox(width: 8),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.blue.shade50,
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    border: Border.all(color: Colors.blue.shade200),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Icon(Icons.local_shipping, size: 12, color: Colors.blue.shade700),
-                                                      const SizedBox(width: 4),
-                                                      Text(job.logisticsName!, style: TextStyle(fontSize: 10, color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ]
-                                            ],
-                                          ),
+                                          JobTypeBadge(jobType: job.jobType),
+                                          if (job.isAssembly || (job.numberOfSets != null && job.numberOfSets! > 0)) ...[
+                                            const SizedBox(width: 8),
+                                            SetsBadge(numberOfSets: job.numberOfSets),
+                                          ],
+                                          if (job.logisticsName != null && job.logisticsName!.isNotEmpty) ...[
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade50,
+                                                borderRadius: BorderRadius.circular(4),
+                                                border: Border.all(color: Colors.blue.shade200),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.local_shipping, size: 12, color: Colors.blue.shade700),
+                                                  const SizedBox(width: 4),
+                                                  Text(job.logisticsName!, style: TextStyle(fontSize: 10, color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          const Spacer(),
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
@@ -270,6 +271,8 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                           ),
                                         ],
                                       ),
+                                      const SizedBox(height: 8),
+                                      Text(displayTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                       const Divider(height: 24),
                                       if (job.jobType == 'Lapping Compound')
                                         Row(

@@ -75,6 +75,8 @@ class JobModel {
   final int? forwardQuantity;
   final String? deliveryChalanNumber;
   final DateTime? deliveryChalanDate;
+  final bool isAssembly;
+  final int? numberOfSets;
 
   JobModel({
     this.id,
@@ -144,6 +146,8 @@ class JobModel {
     this.forwardQuantity,
     this.deliveryChalanNumber,
     this.deliveryChalanDate,
+    this.isAssembly = false,
+    this.numberOfSets,
   });
 
   JobModel copyWith({
@@ -214,6 +218,8 @@ class JobModel {
     int? forwardQuantity,
     String? deliveryChalanNumber,
     DateTime? deliveryChalanDate,
+    bool? isAssembly,
+    int? numberOfSets,
   }) {
     return JobModel(
       id: id ?? this.id,
@@ -283,6 +289,8 @@ class JobModel {
       forwardQuantity: forwardQuantity ?? this.forwardQuantity,
       deliveryChalanNumber: deliveryChalanNumber ?? this.deliveryChalanNumber,
       deliveryChalanDate: deliveryChalanDate ?? this.deliveryChalanDate,
+      isAssembly: isAssembly ?? this.isAssembly,
+      numberOfSets: numberOfSets ?? this.numberOfSets,
     );
   }
 
@@ -292,6 +300,8 @@ class JobModel {
     partNumber: json['partNumber'],
     partDescription: json['partDescription'],
     quantity: json['quantity'],
+    isAssembly: json['isAssembly'] == true,
+    numberOfSets: (json['numberOfSets'] as num?)?.toInt(),
     numberOfBins: json['numberOfBins'] ?? 0,
     numberOfBoxes: json['numberOfBoxes'] ?? 0,
     logisticsName: json['logisticsName'],
@@ -424,5 +434,7 @@ class JobModel {
     'forwardQuantity': forwardQuantity,
     'deliveryChalanNumber': deliveryChalanNumber,
     'deliveryChalanDate': deliveryChalanDate?.toIso8601String(),
+    'isAssembly': isAssembly,
+    'numberOfSets': numberOfSets,
   };
 }

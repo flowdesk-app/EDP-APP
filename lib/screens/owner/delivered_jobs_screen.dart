@@ -6,6 +6,7 @@ import '../../models/job_model.dart';
 import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../widgets/edit_quantity_dialog.dart';
+import '../../widgets/job_type_badge.dart';
 
 class DeliveredJobsScreen extends StatefulWidget {
   const DeliveredJobsScreen({super.key});
@@ -258,9 +259,13 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(job.customerName?.isNotEmpty == true ? job.customerName! : (job.partNumber != null ? 'Part No: ${job.partNumber}' : 'Job Card'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                        JobTypeBadge(jobType: job.jobType),
+                                        if (job.isAssembly || (job.numberOfSets != null && job.numberOfSets! > 0)) ...[
+                                          const SizedBox(width: 8),
+                                          SetsBadge(numberOfSets: job.numberOfSets),
+                                        ],
+                                        const Spacer(),
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
@@ -274,6 +279,8 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                                         ),
                                       ],
                                     ),
+                                    const SizedBox(height: 8),
+                                    Text(job.customerName?.isNotEmpty == true ? job.customerName! : (job.partNumber != null ? 'Part No: ${job.partNumber}' : 'Job Card'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     const Divider(height: 24),
                                     Row(
                                       children: [
