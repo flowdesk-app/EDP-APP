@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
+import '../../widgets/edit_quantity_dialog.dart';
 
 class JobTimelineScreen extends StatefulWidget {
   final JobModel job;
@@ -373,7 +374,41 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Part Number', _currentJob.partNumber ?? _currentJob.customerName ?? 'N/A'),
                 _row('Customer Name', _currentJob.customerName ?? 'N/A'),
                 if (_currentJob.jobType != 'Lapping Compound')
-                  _row('Quantity', '${_currentJob.quantity ?? 0} units'),
+                  _row(
+                    'Quantity',
+                    '${_currentJob.quantity ?? 0} units',
+                    trailing: InkWell(
+                      onTap: () {
+                        showEditQuantityDialog(
+                          context: context,
+                          job: _currentJob,
+                          onJobUpdated: (updated) {
+                            setState(() => _currentJob = updated);
+                          },
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF90CAF9), width: 0.8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit, size: 11, color: Color(0xFF1976D2)),
+                            SizedBox(width: 2),
+                            Text(
+                              'Edit',
+                              style: TextStyle(fontSize: 10, color: Color(0xFF1976D2), fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 _row('Status', ((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status),
                 _row('Location', _currentJob.currentLocation),
                 if (_currentJob.negotiationDone != null && _currentJob.jobType == 'New')
@@ -390,7 +425,41 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Microns', _currentJob.microns ?? 'N/A'),
                   _row('Micron Color', _currentJob.micronColor ?? 'N/A'),
                   _row('Micron Size', _currentJob.micronSize ?? 'N/A'),
-                  _row('Syringe Quantity', '${_currentJob.syringeQuantity ?? 0}'),
+                  _row(
+                    'Syringe Quantity',
+                    '${_currentJob.syringeQuantity ?? 0}',
+                    trailing: InkWell(
+                      onTap: () {
+                        showEditQuantityDialog(
+                          context: context,
+                          job: _currentJob,
+                          onJobUpdated: (updated) {
+                            setState(() => _currentJob = updated);
+                          },
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF90CAF9), width: 0.8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit, size: 11, color: Color(0xFF1976D2)),
+                            SizedBox(width: 2),
+                            Text(
+                              'Edit',
+                              style: TextStyle(fontSize: 10, color: Color(0xFF1976D2), fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   _row('Base Type', _currentJob.baseType ?? 'N/A'),
                 ],
               ),
@@ -1166,7 +1235,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     );
   }
 
-  Widget _row(String label, String value) {
+  Widget _row(String label, String value, {Widget? trailing}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -1182,10 +1251,21 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
           const SizedBox(width: 16),
           Expanded(
             flex: 1,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF202124)),
-              textAlign: TextAlign.left,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF202124)),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                if (trailing != null) ...[
+                  const SizedBox(width: 8),
+                  trailing,
+                ],
+              ],
             ),
           ),
         ],

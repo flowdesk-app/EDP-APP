@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../models/job_model.dart';
 import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
+import '../../widgets/edit_quantity_dialog.dart';
 
 class DeliveredJobsScreen extends StatefulWidget {
   const DeliveredJobsScreen({super.key});
@@ -277,7 +278,17 @@ class _DeliveredJobsScreenState extends State<DeliveredJobsScreen> {
                                     Row(
                                       children: [
                                         Expanded(child: _buildInfo('Part Number', job.partNumber ?? 'N/A')),
-                                        Expanded(child: _buildInfo('Quantity', '${job.quantity ?? 0}')),
+                                        Expanded(
+                                          child: EditQuantityCell(
+                                            job: job,
+                                            onJobUpdated: (updatedJob) {
+                                              setState(() {
+                                                final idx = _jobs.indexWhere((j) => j.jobId == updatedJob.jobId);
+                                                if (idx != -1) _jobs[idx] = updatedJob;
+                                              });
+                                            },
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 12),
