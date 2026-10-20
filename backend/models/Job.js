@@ -19,7 +19,7 @@ const jobSchema = new mongoose.Schema({
   driverName: { type: String },
   driverMobile: { type: String },
   dispatchDate: { type: Date, default: Date.now },
-  status: { type: String, enum: ['Created', 'Blank Order', 'PO Not Given', 'Dispatched', 'At Supplier', 'In Process', 'Returned', 'Delivered', 'Closed', 'Completed', 'Removed', 'Arrived', 'Extracted', 'Production', 'Delivery'], default: 'Created' },
+  status: { type: String, enum: ['Created', 'Blank Order', 'PO Not Given', 'Dispatched', 'At Supplier', 'In Process', 'Returned', 'Delivered', 'Closed', 'Completed', 'Removed', 'Arrived', 'Extracted', 'Production', 'Delivery', 'SKMT'], default: 'Created' },
   currentLocation: { type: String, default: 'EDP' },
   remarks: { type: String },
   supplier: { type: String },

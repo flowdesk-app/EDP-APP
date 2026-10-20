@@ -314,17 +314,25 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                             ),
                                           ],
                                           const Spacer(),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: _getStatusColor(job.status).withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              job.status,
-                                              style: TextStyle(color: _getStatusColor(job.status), fontSize: 12, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
+                                          Builder(builder: (context) {
+                                            final isSKMT = job.jobType == 'Re-coating' && 
+                                                (job.status == 'At Supplier' || job.status == 'SKMT') && 
+                                                (job.supplier?.toUpperCase() == 'SKMT' || job.currentLocation.toUpperCase() == 'SKMT');
+                                            final isArrived = (job.status == 'Created' || job.status == 'Arrived') && (job.jobType == 'Re-coating' || job.jobType == 'Coating');
+                                            final statusText = isSKMT ? 'SKMT' : (isArrived ? 'Arrived' : job.status);
+                                            final statusColor = isSKMT ? Colors.deepPurple : _getStatusColor(statusText);
+                                            return Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: statusColor.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                statusText,
+                                                style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                                              ),
+                                            );
+                                          }),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
@@ -524,10 +532,15 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
       case 'Created': return Colors.grey;
       case 'Dispatched': return Colors.blue;
       case 'At Supplier': return Colors.orange;
+      case 'SKMT': return Colors.deepPurple;
       case 'In Process': return Colors.deepPurple;
       case 'Returned': return Colors.purple;
       case 'Delivered': return Colors.green;
       case 'Closed': return const Color(0xFF1E8E3E);
+      case 'Extracted': return Colors.orange;
+      case 'Arrived': return Colors.blueAccent;
+      case 'Production': return Colors.teal;
+      case 'Completed': return const Color(0xFF1E8E3E);
       default: return Colors.blueGrey;
     }
   }

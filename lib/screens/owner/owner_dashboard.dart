@@ -69,13 +69,13 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
           _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
           final recoatingJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
-          _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted').length;
+          _recoatingJobs = recoatingJobs.where((j) => j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted' || ((j.status == 'At Supplier' || j.status == 'SKMT') && (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT'))).length;
           _coatingArrivedCount = jobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).length;
           
           bool isValidProductionJob(JobModel j) {
             if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed' || j.status == 'Blank Order') return false;
             if (j.currentLocation == 'EDP Spare') return false;
-            if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+            if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted' || ((j.status == 'At Supplier' || j.status == 'SKMT') && (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT')))) return false;
             if (j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')) return false;
 
             final loc = j.currentLocation.toLowerCase();
@@ -254,7 +254,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                         final validJobs = _currentJobs.where((j) {
                           if (j.status == 'Removed' || j.status == 'Closed' || j.status == 'Delivered' || j.status == 'Returned' || j.status == 'Completed' || j.status == 'Blank Order') return false;
                           if (j.currentLocation == 'EDP Spare') return false;
-                          if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted')) return false;
+                          if (j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived' || j.status == 'Extracted' || ((j.status == 'At Supplier' || j.status == 'SKMT') && (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT')))) return false;
                           if (j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')) return false;
 
                           final loc = j.currentLocation.toLowerCase();

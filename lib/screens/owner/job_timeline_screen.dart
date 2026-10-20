@@ -30,6 +30,11 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
   DateTime? _extractionCompletedDate;
   DateTime? _productionDate;
   DateTime? _expectedProductionDate;
+  bool get _isRecoatingSKMT =>
+      _currentJob.jobType == 'Re-coating' &&
+      (_currentJob.status == 'At Supplier' || _currentJob.status == 'SKMT') &&
+      (_currentJob.supplier?.toUpperCase() == 'SKMT' ||
+          _currentJob.currentLocation.toUpperCase() == 'SKMT');
 
   @override
   void initState() {
@@ -424,7 +429,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   ),
                 if (_currentJob.isAssembly || (_currentJob.numberOfSets != null && _currentJob.numberOfSets! > 0))
                   _row('Assembly Sets', '${_currentJob.numberOfSets ?? 0} Sets'),
-                _row('Status', ((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status),
+                _row('Status', _isRecoatingSKMT ? 'SKMT' : (((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status)),
                 _row('Location', _currentJob.currentLocation),
                 if (_currentJob.negotiationDone != null && _currentJob.jobType == 'New')
                   _row('Negotiation', _currentJob.negotiationDone! ? 'Yes' : 'No'),
@@ -573,9 +578,19 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   final supplierName = movement['supplierName'] ?? 'Unknown';
                   final sentDateStr = movement['sentDate'];
                   final sentDate = sentDateStr != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(sentDateStr.toString()).toLocal()) : null;
+                  final fwdQty = movement['forwardQuantity'];
+                  final chalanNo = movement['deliveryChalanNumber'];
+                  final chalanDateStr = movement['deliveryChalanDate'];
+                  final chalanDate = chalanDateStr != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(chalanDateStr.toString()).toLocal()) : null;
                   return [
                     if (sentDate != null)
                       _row(supplierName.toLowerCase() == 'edp' ? 'Sent to EDP Production' : 'Sent to $supplierName', sentDate),
+                    if (fwdQty != null)
+                      _row('Forward Quantity', '$fwdQty units'),
+                    if (chalanNo != null && chalanNo.toString().isNotEmpty)
+                      _row('Delivery Chalan Number', chalanNo.toString()),
+                    if (chalanDate != null)
+                      _row('Delivery Chalan Date', chalanDate),
                   ];
                 }).toList(),
               ),
@@ -604,10 +619,18 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               ),
             if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Created')
               _buildExtractionProcessUI(),
-            if ((_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Extracted') ||
+            if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Extracted')
+              _buildExtractedNextSupplierUI(),
+            if ((_currentJob.jobType == 'Re-coating' && _isRecoatingSKMT) ||
                 (_currentJob.jobType == 'Coating' && (_currentJob.status == 'Created' || _currentJob.status == 'Arrived')))
               _buildExtractionCompletedUI(),
-            if ((_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && (_currentJob.jobType != 'Coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Arrived')) && _currentJob.status != 'Delivered' && _currentJob.status != 'Closed' && _currentJob.status != 'Completed' && (_currentJob.status != 'Returned' || ((_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) - (_currentJob.returnedQuantity ?? 0) > 0)))
+            if (!_isRecoatingSKMT &&
+                (_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && 
+                (_currentJob.jobType != 'Coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Arrived')) && 
+                _currentJob.status != 'Delivered' && 
+                _currentJob.status != 'Closed' && 
+                _currentJob.status != 'Completed' && 
+                (_currentJob.status != 'Returned' || ((_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) - (_currentJob.returnedQuantity ?? 0) > 0)))
               Padding(
                 padding: const EdgeInsets.only(top: 24),
                 child: Row(
@@ -837,7 +860,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
 
   Future<void> _updateExtractionCompletedStatus() async {
     if (_extractionCompletedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Extraction Completed Date')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_isRecoatingSKMT ? 'Please select Return Date from SKMT' : 'Please select Extraction Completed Date')));
       return;
     }
     if (_productionDate == null) {
@@ -868,6 +891,159 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
         setState(() => _isUpdating = false);
       }
     }
+  }
+
+  Future<void> _showForwardToSKMTDialog() async {
+    final ctrl = TextEditingController(text: 'SKMT');
+    final qtyCtrl = TextEditingController(text: _currentJob.quantity?.toString() ?? '');
+    final chalanCtrl = TextEditingController();
+    DateTime? selectedDate = DateTime.now();
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (sbContext, setStateSB) {
+          return AlertDialog(
+            title: const Text('Forward to Next Supplier'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: ctrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Supplier Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: qtyCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Quantity',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: chalanCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Delivery Chalan Number',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final dt = await showDatePicker(
+                        context: sbContext,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (dt != null) setStateSB(() => selectedDate = dt);
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Delivery Chalan Date',
+                        border: OutlineInputBorder(),
+                      ),
+                      child: Text(selectedDate != null ? DateFormat('dd-MM-yyyy').format(selectedDate!) : 'Select Date'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () async {
+                  String val = ctrl.text.trim();
+                  if (val.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter supplier name')));
+                    return;
+                  }
+                  int? qty = int.tryParse(qtyCtrl.text.trim());
+                  if (qty == null || qty <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter valid quantity')));
+                    return;
+                  }
+
+                  Navigator.pop(ctx);
+                  setState(() => _isUpdating = true);
+                  try {
+                    if (!_suppliers.any((s) => s.toLowerCase() == val.toLowerCase())) {
+                      try { await ApiService().addSupplier(val); } catch (_) {}
+                    }
+                    await ApiService().forwardJob(
+                      _currentJob.jobId,
+                      val,
+                      forwardQuantity: qty,
+                      deliveryChalanNumber: chalanCtrl.text.trim().isEmpty ? null : chalanCtrl.text.trim(),
+                      deliveryChalanDate: selectedDate,
+                    );
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $val!')));
+                    _refresh();
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                    setState(() => _isUpdating = false);
+                  }
+                },
+                child: const Text('Forward'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildExtractedNextSupplierUI() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Move to Next Supplier',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Extraction is completed. Forward this job to SKMT.',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1976D2),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: _isUpdating
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.forward_to_inbox),
+                label: const Text('Move to Next Supplier', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                onPressed: _isUpdating ? null : _showForwardToSKMTDialog,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _sendToSpare() async {
@@ -1066,7 +1242,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 ),
               )
             else ...[
-              const Text('Continue to Production', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.grey)),
+              Text(
+                _isRecoatingSKMT ? 'Move to Production' : 'Continue to Production',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 16),
             if (!_extractionCompletedYes)
               Row(
@@ -1103,7 +1282,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Enter Production Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(_isRecoatingSKMT ? 'Enter Production Details (from SKMT)' : 'Enter Production Details', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       TextButton.icon(
                         onPressed: () => setState(() => _extractionCompletedYes = false),
                         icon: const Icon(Icons.undo, size: 16, color: Colors.red),
@@ -1133,7 +1312,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(_extractionCompletedDate == null ? 'Select Extraction Completed Date' : DateFormat('dd-MM-yyyy').format(_extractionCompletedDate!)),
+                          Text(_extractionCompletedDate == null ? (_isRecoatingSKMT ? 'Select Return Date from SKMT' : 'Select Extraction Completed Date') : DateFormat('dd-MM-yyyy').format(_extractionCompletedDate!)),
                           const Icon(Icons.calendar_today, size: 16),
                         ],
                       ),

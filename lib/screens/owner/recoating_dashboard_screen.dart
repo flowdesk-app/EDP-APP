@@ -135,6 +135,10 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
 
     final arrivedJobs = _currentJobs.where((j) => j.status == 'Created' || j.status == 'Arrived').toList();
     final extractedJobs = _currentJobs.where((j) => j.status == 'Extracted').toList();
+    final skmtJobs = _currentJobs.where((j) => 
+      (j.status == 'At Supplier' || j.status == 'SKMT') && 
+      (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT')
+    ).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -169,6 +173,8 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
               () => _navToFiltered(context, 'Arrived', arrivedJobs, filter: (j) => j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived'))),
             _buildStatCard(context, 'Extracted', extractedJobs.length, Icons.layers_clear, Colors.orange, 
               () => _navToFiltered(context, 'Extracted', extractedJobs, filter: (j) => j.jobType == 'Re-coating' && j.status == 'Extracted')),
+            _buildStatCard(context, 'SKMT', skmtJobs.length, Icons.swap_horiz, Colors.deepPurple, 
+              () => _navToFiltered(context, 'SKMT', skmtJobs, filter: (j) => j.jobType == 'Re-coating' && (j.status == 'At Supplier' || j.status == 'SKMT') && (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT'))),
           ],
         ),
       ),
