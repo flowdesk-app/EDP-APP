@@ -5,6 +5,7 @@ import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
 import '../../widgets/job_type_badge.dart';
+import 'owner_edit_job_dialog.dart';
 
 class JobTimelineScreen extends StatefulWidget {
   final JobModel job;
@@ -73,6 +74,96 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+          setState(() => _isUpdating = false);
+        }
+      }
+    }
+  }
+
+  Future<void> _showOwnerEditDialog() async {
+    final updated = await OwnerEditJobDialog.show(context, _currentJob, isPendingAccess: !_currentJob.accessGranted);
+    if (updated == true) {
+      await _refresh();
+    }
+  }
+
+  Future<void> _showRejectJobDialog() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_outlined, color: Color(0xFFD32F2F)),
+            SizedBox(width: 8),
+            Text('Reject & Remove Job?'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Are you sure you want to reject Job #${_currentJob.jobId}?'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFCDD2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Customer: ${_currentJob.customerName ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text('Part Number: ${_currentJob.partNumber ?? 'N/A'}', style: const TextStyle(fontSize: 13)),
+                  Text('Quantity: ${_currentJob.quantity ?? 0}', style: const TextStyle(fontSize: 13)),
+                  if (_currentJob.requestedBy != null)
+                    Text('Requested by: ${_currentJob.requestedBy}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '⚠️ This will permanently remove the job and all its history from everywhere in the system. This action cannot be undone.',
+              style: TextStyle(fontSize: 12, color: Color(0xFFD32F2F), fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD32F2F),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reject & Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isUpdating = true);
+      try {
+        await ApiService().rejectJob(_currentJob.jobId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Job #${_currentJob.jobId} was rejected and permanently removed.'),
+              backgroundColor: const Color(0xFFD32F2F),
+            ),
+          );
+          Navigator.pop(context, true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to reject: $e')));
           setState(() => _isUpdating = false);
         }
       }
@@ -406,6 +497,12 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          if (_isOwner)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit Job Specifications',
+              onPressed: _isUpdating ? null : _showOwnerEditDialog,
+            ),
           const GlobalLogoutButton(),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _isUpdating ? null : _refresh),
         ],
@@ -471,16 +568,42 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                       ),
                     ),
                     if (_isOwner) ...[
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E7D32),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        icon: const Icon(Icons.check_circle_outline, size: 18),
-                        label: const Text('Grant Access Now'),
-                        onPressed: _showGrantAccessDialog,
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFE65100),
+                              side: const BorderSide(color: Color(0xFFE65100)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            label: const Text('Edit Job'),
+                            onPressed: _showOwnerEditDialog,
+                          ),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFD32F2F),
+                              side: const BorderSide(color: Color(0xFFD32F2F)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.delete_outline, size: 18),
+                            label: const Text('Reject & Delete'),
+                            onPressed: _showRejectJobDialog,
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E7D32),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.check_circle_outline, size: 18),
+                            label: const Text('Grant Access Now'),
+                            onPressed: _showGrantAccessDialog,
+                          ),
+                        ],
                       ),
                     ],
                   ],

@@ -357,6 +357,17 @@ class ApiService {
     }
   }
 
+  Future<void> rejectJob(String jobId) async {
+    await _loadToken();
+    final res = await http.put(
+      Uri.parse('$baseUrl/jobs/$jobId/reject'),
+      headers: _headers,
+    );
+    if (res.statusCode >= 400) {
+      throw Exception('Failed to reject job: ${res.body}');
+    }
+  }
+
   Future<void> updateJobStatus(String jobId, String status, {String? location, int? quantity, DateTime? extractionDate, DateTime? expectedExtractionDate, DateTime? extractionCompletedDate, DateTime? productionDate, DateTime? expectedProductionDate, String? inspectionReportNumber, String? invoiceNumber}) async {
     await _loadToken();
     final Map<String, dynamic> body = {

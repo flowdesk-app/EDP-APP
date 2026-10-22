@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../widgets/job_type_badge.dart';
 import '../../widgets/global_logout_button.dart';
 import 'job_timeline_screen.dart';
+import 'owner_edit_job_dialog.dart';
 
 class JobApprovalScreen extends StatefulWidget {
   final int initialTab;
@@ -166,6 +167,94 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to grant access: $e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _editJob(JobModel job) async {
+    final updated = await OwnerEditJobDialog.show(context, job, isPendingAccess: !job.accessGranted);
+    if (updated == true) {
+      _loadJobs();
+    }
+  }
+
+  Future<void> _rejectJob(JobModel job) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_outlined, color: Color(0xFFD32F2F)),
+            SizedBox(width: 8),
+            Text('Reject & Remove Job?'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Are you sure you want to reject Job #${job.jobId}?'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFCDD2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Customer: ${job.customerName ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text('Part Number: ${job.partNumber ?? 'N/A'}', style: const TextStyle(fontSize: 13)),
+                  Text('Quantity: ${job.quantity ?? 0}', style: const TextStyle(fontSize: 13)),
+                  if (job.requestedBy != null)
+                    Text('Requested by: ${job.requestedBy}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '⚠️ This will permanently remove the job and all its history from everywhere in the system. This action cannot be undone.',
+              style: TextStyle(fontSize: 12, color: Color(0xFFD32F2F), fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD32F2F),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reject & Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _api.rejectJob(job.jobId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Job #${job.jobId} was rejected and permanently removed.'),
+              backgroundColor: const Color(0xFFD32F2F),
+            ),
+          );
+          _loadJobs();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to reject job: $e')));
         }
       }
     }
@@ -404,8 +493,11 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 OutlinedButton.icon(
                   onPressed: () {
@@ -422,7 +514,26 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: () => _editJob(job),
+                  icon: const Icon(Icons.edit_outlined, size: 16),
+                  label: const Text('Edit'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFE65100),
+                    side: const BorderSide(color: Color(0xFFE65100)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _rejectJob(job),
+                  icon: const Icon(Icons.delete_outline, size: 16),
+                  label: const Text('Reject'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFD32F2F),
+                    side: const BorderSide(color: Color(0xFFD32F2F)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
                 ElevatedButton.icon(
                   onPressed: () => _grantAccess(job),
                   icon: const Icon(Icons.check_circle_outline, size: 16),
@@ -568,9 +679,22 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                OutlinedButton.icon(
+                  onPressed: () => _editJob(job),
+                  icon: const Icon(Icons.edit_outlined, size: 16),
+                  label: const Text('Edit Job'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFE65100),
+                    side: const BorderSide(color: Color(0xFFE65100)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
                 OutlinedButton.icon(
                   onPressed: () {
                     Navigator.push(

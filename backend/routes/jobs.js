@@ -223,6 +223,39 @@ router.put('/:jobId/grant-access', auth, async (req, res) => {
     }
 });
 
+// @route   PUT api/jobs/:jobId/reject
+// @desc    Reject and permanently remove a job and its history
+router.put('/:jobId/reject', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'owner') {
+            return res.status(403).json({ msg: 'Only the Owner can reject job requests.' });
+        }
+
+        let job = await Job.findOne({ jobId: req.params.jobId });
+        if (!job) {
+            job = await Job.findById(req.params.jobId).catch(() => null);
+        }
+        if (!job) {
+            return res.status(404).json({ msg: 'Job not found' });
+        }
+
+        await Job.findByIdAndDelete(job._id);
+        await JobMovement.deleteMany({ jobId: job.jobId }).catch(() => null);
+        await Notification.deleteMany({ jobId: job.jobId }).catch(() => null);
+
+        await AuditLog.create({
+            userId: req.user.id,
+            action: 'Job Request Rejected',
+            details: { jobId: job.jobId, customerName: job.customerName, partNumber: job.partNumber }
+        });
+
+        res.json({ msg: 'Job rejected and permanently removed from everywhere' });
+    } catch (err) {
+        console.error('Error rejecting job:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   PUT api/jobs/:id
 router.put('/:id', auth, async (req, res) => {
     try {
@@ -544,6 +577,8 @@ router.delete('/:id', auth, async (req, res) => {
         if (!job) return res.status(404).send('Job not found');
 
         await Job.findByIdAndDelete(job._id);
+        await JobMovement.deleteMany({ jobId: job.jobId }).catch(() => null);
+        await Notification.deleteMany({ jobId: job.jobId }).catch(() => null);
 
         await AuditLog.create({
             userId: req.user.id,
