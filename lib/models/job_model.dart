@@ -77,6 +77,11 @@ class JobModel {
   final DateTime? deliveryChalanDate;
   final bool isAssembly;
   final int? numberOfSets;
+  final bool accessGranted;
+  final bool accessRequested;
+  final String? requestedBy;
+  final DateTime? grantedAt;
+  final String? grantedBy;
 
   JobModel({
     this.id,
@@ -148,6 +153,11 @@ class JobModel {
     this.deliveryChalanDate,
     this.isAssembly = false,
     this.numberOfSets,
+    this.accessGranted = true,
+    this.accessRequested = false,
+    this.requestedBy,
+    this.grantedAt,
+    this.grantedBy,
   });
 
   JobModel copyWith({
@@ -220,6 +230,11 @@ class JobModel {
     DateTime? deliveryChalanDate,
     bool? isAssembly,
     int? numberOfSets,
+    bool? accessGranted,
+    bool? accessRequested,
+    String? requestedBy,
+    DateTime? grantedAt,
+    String? grantedBy,
   }) {
     return JobModel(
       id: id ?? this.id,
@@ -291,6 +306,11 @@ class JobModel {
       deliveryChalanDate: deliveryChalanDate ?? this.deliveryChalanDate,
       isAssembly: isAssembly ?? this.isAssembly,
       numberOfSets: numberOfSets ?? this.numberOfSets,
+      accessGranted: accessGranted ?? this.accessGranted,
+      accessRequested: accessRequested ?? this.accessRequested,
+      requestedBy: requestedBy ?? this.requestedBy,
+      grantedAt: grantedAt ?? this.grantedAt,
+      grantedBy: grantedBy ?? this.grantedBy,
     );
   }
 
@@ -364,6 +384,11 @@ class JobModel {
     forwardQuantity: json['forwardQuantity'],
     deliveryChalanNumber: json['deliveryChalanNumber'],
     deliveryChalanDate: json['deliveryChalanDate'] != null ? DateTime.parse(json['deliveryChalanDate']) : null,
+    accessGranted: json['accessGranted'] == null ? true : (json['accessGranted'] == true),
+    accessRequested: json['accessRequested'] == true,
+    requestedBy: json['requestedBy'] as String?,
+    grantedAt: json['grantedAt'] != null ? DateTime.parse(json['grantedAt']) : null,
+    grantedBy: json['grantedBy'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -436,5 +461,10 @@ class JobModel {
     'deliveryChalanDate': deliveryChalanDate?.toIso8601String(),
     'isAssembly': isAssembly,
     'numberOfSets': numberOfSets,
+    'accessGranted': accessGranted,
+    'accessRequested': accessRequested,
+    'requestedBy': requestedBy,
+    'grantedAt': grantedAt?.toIso8601String(),
+    'grantedBy': grantedBy,
   };
 }

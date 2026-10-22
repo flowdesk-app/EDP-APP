@@ -2,6 +2,7 @@ import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/job_model.dart';
+import '../../models/user_model.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/job_type_badge.dart';
 
@@ -25,6 +26,56 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
   void initState() {
     super.initState();
     _currentJobs = List.from(widget.jobs);
+  }
+
+  Future<void> _refresh() async {
+    try {
+      final jobs = await _api.getFilteredJobs();
+      if (mounted) {
+        setState(() {
+          if (widget.title == 'PO Not Given') {
+            _currentJobs = jobs.where((j) => j.poNotGiven == true).toList();
+          } else {
+            _currentJobs = jobs.where((j) => j.status == 'Blank Order' && j.sentToSpare != true).toList();
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error refreshing blank orders: $e');
+    }
+  }
+
+  Future<void> _showOwnerGrantDialog(JobModel job) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Grant Access?'),
+        content: Text('Job #${job.jobId} is currently pending access approval.\nWould you like to grant access now?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Grant Access'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _api.grantJobAccess(job.jobId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Access granted for #${job.jobId}'), backgroundColor: const Color(0xFF2E7D32)));
+          _refresh();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        }
+      }
+    }
   }
 
   Future<void> _pickDate(BuildContext context, DateTime? initialDate, Function(DateTime) onPicked) async {
@@ -340,7 +391,13 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                   Expanded(
                     child: Card(
                       margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      color: !job.accessGranted ? const Color(0xFFF0F0F0) : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: !job.accessGranted
+                            ? BorderSide(color: Colors.grey.shade400, width: 1.5)
+                            : BorderSide.none,
+                      ),
                       child: InkWell(
                         onTap: () {
                           if (_isEditing) {
@@ -351,6 +408,24 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                                 _selectedJobIds.add(job.jobId);
                               }
                             });
+                            return;
+                          }
+                          if (!job.accessGranted) {
+                            if (ApiService().currentUser?.role == UserRole.owner) {
+                              _showOwnerGrantDialog(job);
+                            } else {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  title: const Text('Access Pending'),
+                                  content: const Text('This job is awaiting Owner approval. You will be able to process and move it once the Owner grants access.'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+                                  ],
+                                ),
+                              );
+                            }
                             return;
                           }
                           if (widget.title == 'PO Not Given') {
@@ -367,6 +442,25 @@ class _BlankOrdersScreenState extends State<BlankOrdersScreen> {
                         Row(
                           children: [
                             JobTypeBadge(jobType: job.jobType ?? 'New'),
+                            if (!job.accessGranted) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.grey.shade500),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.lock_clock, size: 11, color: Colors.grey.shade800),
+                                    const SizedBox(width: 4),
+                                    Text('ACCESS PENDING', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
+                                  ],
+                                ),
+                              ),
+                            ],
                             if (job.isAssembly || (job.numberOfSets != null && job.numberOfSets! > 0)) ...[
                               const SizedBox(width: 8),
                               SetsBadge(numberOfSets: job.numberOfSets),

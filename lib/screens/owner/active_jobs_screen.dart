@@ -259,9 +259,14 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
                             },
                             child: Card(
                               margin: const EdgeInsets.only(bottom: 12),
+                              color: !job.accessGranted ? const Color(0xFFF0F0F0) : Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                side: _selectedJobIds.contains(job.jobId) ? const BorderSide(color: Color(0xFF29B6F6), width: 2) : BorderSide.none,
+                                side: _selectedJobIds.contains(job.jobId)
+                                    ? const BorderSide(color: Color(0xFF29B6F6), width: 2)
+                                    : (!job.accessGranted
+                                        ? BorderSide(color: Colors.grey.shade400, width: 1.5)
+                                        : BorderSide.none),
                               ),
                               child: Row(
                                 children: [
@@ -287,6 +292,25 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
                                           Row(
                                             children: [
                                               JobTypeBadge(jobType: job.jobType),
+                                              if (!job.accessGranted) ...[
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade300,
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    border: Border.all(color: Colors.grey.shade500),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(Icons.lock_clock, size: 11, color: Colors.grey.shade800),
+                                                      const SizedBox(width: 4),
+                                                      Text('ACCESS PENDING', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
                                               if (job.isAssembly || (job.numberOfSets != null && job.numberOfSets! > 0)) ...[
                                                 const SizedBox(width: 8),
                                                 SetsBadge(numberOfSets: job.numberOfSets),

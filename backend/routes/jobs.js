@@ -44,7 +44,23 @@ router.post('/', auth, async (req, res) => {
             payload.supplier = null;
             payload.supplierChain = [];
         }
-        const newJob = new Job({ ...payload, createdBy: req.user.id, initialDestinationName: payload.destinationName });
+        const isOwner = req.user && req.user.role === 'owner';
+        const accessGranted = isOwner;
+        const accessRequested = !isOwner;
+        const grantedAt = isOwner ? new Date() : null;
+        const grantedBy = isOwner ? 'Owner' : null;
+        const requestedBy = req.user ? req.user.role : 'user';
+
+        const newJob = new Job({
+            ...payload,
+            createdBy: req.user.id,
+            initialDestinationName: payload.destinationName,
+            accessGranted,
+            accessRequested,
+            requestedBy,
+            grantedAt,
+            grantedBy
+        });
         if (payload.createdAt) {
             newJob.createdAt = new Date(payload.createdAt);
         }
@@ -54,6 +70,14 @@ router.post('/', auth, async (req, res) => {
             location: 'EDP'
         }];
         const job = await newJob.save();
+
+        if (!isOwner) {
+            await Notification.create({
+                message: `Job Request: Job ${job.jobId} (${job.customerName || job.partNumber || job.jobType}) created by ${requestedBy}. Awaiting owner approval.`,
+                type: 'info',
+                jobId: job.jobId
+            }).catch(e => console.error('Notification error:', e));
+        }
 
         // Log the initial movement
         await JobMovement.create({
@@ -157,6 +181,48 @@ router.get('/by-jobid/:jobId', auth, async (req, res) => {
     }
 });
 
+// @route   PUT api/jobs/:jobId/grant-access
+// @desc    Grant owner access to a job
+router.put('/:jobId/grant-access', auth, async (req, res) => {
+    try {
+        if (req.user.role !== 'owner') {
+            return res.status(403).json({ msg: 'Only the Owner can grant access to jobs.' });
+        }
+
+        let job = await Job.findOne({ jobId: req.params.jobId });
+        if (!job) {
+            job = await Job.findById(req.params.jobId).catch(() => null);
+        }
+        if (!job) {
+            return res.status(404).json({ msg: 'Job not found' });
+        }
+
+        job.accessGranted = true;
+        job.accessRequested = false;
+        job.grantedAt = new Date();
+        job.grantedBy = 'Owner';
+
+        await job.save();
+
+        await AuditLog.create({
+            userId: req.user.id,
+            action: 'Job Access Granted',
+            details: { jobId: job.jobId }
+        });
+
+        await Notification.create({
+            message: `Job Access Granted: Owner approved Job ${job.jobId}.`,
+            type: 'info',
+            jobId: job.jobId
+        }).catch(e => console.error('Notification error:', e));
+
+        res.json(job);
+    } catch (err) {
+        console.error('Error granting job access:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   PUT api/jobs/:id
 router.put('/:id', auth, async (req, res) => {
     try {
@@ -166,7 +232,15 @@ router.put('/:id', auth, async (req, res) => {
         }
         if (!job) return res.status(404).send('Job not found');
 
-        job = await Job.findByIdAndUpdate(job._id, req.body, { new: true });
+        const updateData = { ...req.body };
+        if (req.user.role !== 'owner') {
+            delete updateData.accessGranted;
+            delete updateData.accessRequested;
+            delete updateData.grantedAt;
+            delete updateData.grantedBy;
+        }
+
+        job = await Job.findByIdAndUpdate(job._id, updateData, { new: true });
         
         await AuditLog.create({
             userId: req.user.id,

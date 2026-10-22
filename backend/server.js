@@ -8,12 +8,14 @@ const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 // require('./cron'); // Initialize cron jobs (DISABLED: delayed logic removed)
 const hashExistingPasswords = require('./scripts/hashPasswords');
+const migrateJobAccess = require('./scripts/migrateJobAccess');
 
 dotenv.config();
 
 // Connect DB and then run migrations
-connectDB().then(() => {
-    hashExistingPasswords();
+connectDB().then(async () => {
+    await hashExistingPasswords();
+    await migrateJobAccess();
 });
 
 const app = express();

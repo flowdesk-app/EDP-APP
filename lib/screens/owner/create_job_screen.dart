@@ -8,6 +8,7 @@ import '../../services/api_service.dart';
 import '../../models/company_storage.dart';
 import '../../models/job_model.dart';
 import '../../models/lead_model.dart';
+import '../../models/user_model.dart';
 import 'package:intl/intl.dart';
 import 'spare_at_edp_tabs_screen.dart';
 
@@ -303,7 +304,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
       if (mounted) {
         _hideLoadingDialog();
-        await _showSuccessPopupAndNavigate('Job Created Successfully!');
+        final isOwner = _api.currentUser?.role == UserRole.owner;
+        final msg = isOwner
+            ? 'Job Created Successfully!'
+            : 'Job Created Successfully!\nAccess request sent to Owner for approval.';
+        await _showSuccessPopupAndNavigate(msg);
       }
     } catch (e) {
       if (mounted) {
@@ -587,7 +592,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
       if (mounted) {
         _hideLoadingDialog();
-        await _showSuccessPopupAndNavigate('Job Created Successfully');
+        final isOwner = _api.currentUser?.role == UserRole.owner;
+        final msg = isOwner
+            ? 'Job Created Successfully'
+            : 'Job Created Successfully!\nAccess request sent to Owner for approval.';
+        await _showSuccessPopupAndNavigate(msg);
       }
     } catch (e) {
       if (mounted) {
@@ -1285,7 +1294,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       await _checkAndSaveStorage('Lapping Compound', lcPartNumber, lcDescription);
       if (mounted) {
         Navigator.pop(context); // loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job created successfully')));
+        final isOwner = _api.currentUser?.role == UserRole.owner;
+        final msg = isOwner
+            ? 'Job created successfully'
+            : 'Job created successfully. Request sent to Owner for approval.';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
         if (widget.onNavigateToDashboard != null) {
           widget.onNavigateToDashboard!();
           setState(() {

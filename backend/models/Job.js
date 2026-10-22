@@ -82,6 +82,11 @@ const jobSchema = new mongoose.Schema({
   deliveryChalanDate: { type: Date },
   isAssembly: { type: Boolean, default: false },
   numberOfSets: { type: Number },
+  accessGranted: { type: Boolean, default: false },
+  accessRequested: { type: Boolean, default: true },
+  requestedBy: { type: String },
+  grantedAt: { type: Date },
+  grantedBy: { type: String },
 }, { timestamps: true });
 
 jobSchema.index({ jobId: 1 });

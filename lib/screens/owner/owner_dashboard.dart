@@ -13,7 +13,9 @@ import '../../widgets/drawer_menu_button.dart';
 import 'package:intl/intl.dart';
 import 'alerts_screen.dart';
 import '../../models/notification_model.dart';
+import '../../models/user_model.dart';
 import 'job_timeline_screen.dart';
+import 'job_approval_screen.dart';
 
 class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
@@ -37,6 +39,8 @@ class OwnerDashboardState extends State<OwnerDashboard> {
   int _coatingArrivedCount = 0;
   int _blankOrders = 0;
   int _poNotGivenCount = 0;
+  int _pendingRequestCount = 0;
+  int _grantedCount = 0;
 
   String? _selectedMonth;
   String? _selectedDate;
@@ -61,11 +65,21 @@ class OwnerDashboardState extends State<OwnerDashboard> {
       
       final notifications = await _api.getNotifications();
 
+      int pendingCount = 0;
+      int grantedCount = 0;
+      if (ApiService().currentUser?.role == UserRole.owner) {
+        final allJobs = await _api.getFilteredJobs();
+        pendingCount = allJobs.where((j) => !j.accessGranted).length;
+        grantedCount = allJobs.where((j) => j.accessGranted && (j.grantedAt != null || j.grantedBy != null)).length;
+      }
+
       if (mounted) {
         setState(() {
           _currentJobs = jobs;
           _supplierNames = supplierNames;
           _alerts = notifications.take(5).toList();
+          _pendingRequestCount = pendingCount;
+          _grantedCount = grantedCount;
 
           _returnedJobs = jobs.where((j) => j.status == 'Returned').length;
           _poNotGivenCount = jobs.where((j) => j.poNotGiven == true).length;
@@ -347,7 +361,46 @@ class OwnerDashboardState extends State<OwnerDashboard> {
                 )).toList(),
                 ),
               ),
-            const SizedBox(height: 24),          ],
+            if (ApiService().currentUser?.role == UserRole.owner) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text('Access Approvals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'Request',
+                        _pendingRequestCount,
+                        Icons.pending_actions,
+                        const Color(0xFFE65100),
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const JobApprovalScreen(initialTab: 0)),
+                        ).then((_) => _load()),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Granted',
+                        _grantedCount,
+                        Icons.verified,
+                        const Color(0xFF2E7D32),
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const JobApprovalScreen(initialTab: 1)),
+                        ).then((_) => _load()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );

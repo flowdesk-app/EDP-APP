@@ -34,6 +34,50 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       (_currentJob.status == 'At Supplier' || _currentJob.status == 'SKMT') &&
       (_currentJob.supplier?.toUpperCase() == 'SKMT' ||
           _currentJob.currentLocation.toUpperCase() == 'SKMT');
+  bool get _isOwner => ApiService().currentUser?.role == UserRole.owner;
+
+  Future<void> _showGrantAccessDialog() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Grant Access?'),
+        content: Text('Are you sure you want to approve access for Job #${_currentJob.jobId}?\nThis will activate the job for Admin and Employees.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Grant Access'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isUpdating = true);
+      try {
+        await ApiService().grantJobAccess(_currentJob.jobId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Access granted for #${_currentJob.jobId}'),
+              backgroundColor: const Color(0xFF2E7D32),
+            ),
+          );
+          await _refresh();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+          setState(() => _isUpdating = false);
+        }
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -383,6 +427,66 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 ],
               ),
             ),
+            if (!_currentJob.accessGranted) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _isOwner ? const Color(0xFFFFF8E1) : const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isOwner ? const Color(0xFFFFB300) : Colors.grey.shade400,
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _isOwner ? Icons.admin_panel_settings : Icons.lock_clock,
+                          color: _isOwner ? const Color(0xFFE65100) : Colors.grey.shade800,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isOwner ? 'Owner Approval Required' : 'Access Pending Owner Approval',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _isOwner ? const Color(0xFFE65100) : Colors.grey.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _isOwner
+                          ? 'This job was created by ${_currentJob.requestedBy ?? 'Admin/Employee'} and is waiting for your access approval. Click below to grant access.'
+                          : 'This job was submitted for Owner approval. Actions and workflow are disabled until the Owner grants access.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _isOwner ? Colors.black87 : Colors.grey.shade700,
+                      ),
+                    ),
+                    if (_isOwner) ...[
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E7D32),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        icon: const Icon(Icons.check_circle_outline, size: 18),
+                        label: const Text('Grant Access Now'),
+                        onPressed: _showGrantAccessDialog,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             _buildSectionCard(
               title: 'General Information',
               icon: Icons.info_outline,
@@ -548,90 +652,92 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Delivered Quantity', '${_currentJob.deliveredQuantity ?? 0} units'),
                 ],
               ),
-            if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Created')
-              _buildExtractionProcessUI(),
-            if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Extracted')
-              _buildExtractedNextSupplierUI(),
-            if ((_currentJob.jobType == 'Re-coating' && _isRecoatingSKMT) ||
-                (_currentJob.jobType == 'Coating' && (_currentJob.status == 'Created' || _currentJob.status == 'Arrived')))
-              _buildExtractionCompletedUI(),
-            if (!_isRecoatingSKMT &&
-                (_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && 
-                (_currentJob.jobType != 'Coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Arrived')) && 
-                _currentJob.status != 'Delivered' && 
-                _currentJob.status != 'Closed' && 
-                _currentJob.status != 'Completed' && 
-                (_currentJob.status != 'Returned' || ((_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) - (_currentJob.returnedQuantity ?? 0) > 0)))
-              Padding(
-                padding: const EdgeInsets.only(top: 24),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E8E3E),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            if (_currentJob.accessGranted) ...[
+              if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Created')
+                _buildExtractionProcessUI(),
+              if (_currentJob.jobType == 'Re-coating' && _currentJob.status == 'Extracted')
+                _buildExtractedNextSupplierUI(),
+              if ((_currentJob.jobType == 'Re-coating' && _isRecoatingSKMT) ||
+                  (_currentJob.jobType == 'Coating' && (_currentJob.status == 'Created' || _currentJob.status == 'Arrived')))
+                _buildExtractionCompletedUI(),
+              if (!_isRecoatingSKMT &&
+                  (_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && 
+                  (_currentJob.jobType != 'Coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Arrived')) && 
+                  _currentJob.status != 'Delivered' && 
+                  _currentJob.status != 'Closed' && 
+                  _currentJob.status != 'Completed' && 
+                  (_currentJob.status != 'Returned' || ((_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) - (_currentJob.returnedQuantity ?? 0) > 0)))
+                Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E8E3E),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle_outline),
+                          label: const Text('Ready for delivery'),
+                          onPressed: _isUpdating ? null : () => _updateStatus('Completed'),
                         ),
-                        icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle_outline),
-                        label: const Text('Ready for delivery'),
-                        onPressed: _isUpdating ? null : () => _updateStatus('Completed'),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1976D2),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1976D2),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.forward_to_inbox),
+                          label: const Text('Next Supplier'),
+                          onPressed: _isUpdating ? null : _showForwardDialog,
                         ),
-                        icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.forward_to_inbox),
-                        label: const Text('Next Supplier'),
-                        onPressed: _isUpdating ? null : _showForwardDialog,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            if (_currentJob.status == 'Completed')
-              Padding(
-                padding: const EdgeInsets.only(top: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E8E3E),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.local_shipping),
-                    label: const Text('Confirm Delivery'),
-                    onPressed: _isUpdating ? null : _showConfirmDeliveryDialog,
+                    ],
                   ),
                 ),
-              ),
-            if ((_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && ((_currentJob.status == 'Completed' && (_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) > 0) || (_currentJob.deliveredQuantity ?? 0) > 0))
-              Padding(
-                padding: const EdgeInsets.only(top: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8E24AA),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              if (_currentJob.status == 'Completed')
+                Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E8E3E),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.local_shipping),
+                      label: const Text('Confirm Delivery'),
+                      onPressed: _isUpdating ? null : _showConfirmDeliveryDialog,
                     ),
-                    icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.assignment_return),
-                    label: const Text('Return Material'),
-                    onPressed: _isUpdating ? null : _showReturnDialog,
                   ),
                 ),
-              ),
+              if ((_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && ((_currentJob.status == 'Completed' && (_currentJob.quantity ?? 0) - (_currentJob.deliveredQuantity ?? 0) > 0) || (_currentJob.deliveredQuantity ?? 0) > 0))
+                Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8E24AA),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      icon: _isUpdating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.assignment_return),
+                      label: const Text('Return Material'),
+                      onPressed: _isUpdating ? null : _showReturnDialog,
+                    ),
+                  ),
+                ),
+            ],
           ],
         ),
       ),

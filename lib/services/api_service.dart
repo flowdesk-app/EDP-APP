@@ -338,6 +338,17 @@ class ApiService {
     }
   }
 
+  Future<void> grantJobAccess(String jobId) async {
+    await _loadToken();
+    final res = await http.put(
+      Uri.parse('$baseUrl/jobs/$jobId/grant-access'),
+      headers: _headers,
+    );
+    if (res.statusCode >= 400) {
+      throw Exception('Failed to grant job access: ${res.body}');
+    }
+  }
+
   Future<void> updateJobStatus(String jobId, String status, {String? location, int? quantity, DateTime? extractionDate, DateTime? expectedExtractionDate, DateTime? extractionCompletedDate, DateTime? productionDate, DateTime? expectedProductionDate, String? inspectionReportNumber, String? invoiceNumber}) async {
     await _loadToken();
     final Map<String, dynamic> body = {
