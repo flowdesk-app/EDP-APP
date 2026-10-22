@@ -39,14 +39,20 @@ const hashExistingPasswords = async () => {
         for (const defUser of defaultUsers) {
             const existing = await User.findOne({ email: defUser.email });
             if (!existing) {
-                const salt = await bcrypt.genSalt(10);
-                const hashedPassword = await bcrypt.hash(defUser.password, salt);
-                await User.create({ email: defUser.email, password: hashedPassword, role: defUser.role });
+                await User.create({ email: defUser.email, password: defUser.password, role: defUser.role });
                 console.log(`Created default user: ${defUser.email} (${defUser.role})`);
-            } else if (existing.role !== defUser.role) {
-                existing.role = defUser.role;
-                await existing.save();
-                console.log(`Updated user role: ${defUser.email} to ${defUser.role}`);
+            } else {
+                const isPwMatch = await bcrypt.compare(defUser.password, existing.password);
+                if (!isPwMatch) {
+                    existing.password = defUser.password;
+                    await existing.save();
+                    console.log(`Reset password for: ${defUser.email}`);
+                }
+                if (existing.role !== defUser.role) {
+                    existing.role = defUser.role;
+                    await existing.save();
+                    console.log(`Updated user role: ${defUser.email} to ${defUser.role}`);
+                }
             }
         }
     } catch (error) {
