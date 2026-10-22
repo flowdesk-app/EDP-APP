@@ -33,7 +33,9 @@ class ApiService {
     final roleStr = prefs.getString('auth_role');
     if (roleStr != null) {
       UserRole r = UserRole.employee;
-      if (roleStr == 'admin') {
+      if (roleStr == 'owner') {
+        r = UserRole.owner;
+      } else if (roleStr == 'admin') {
         r = UserRole.admin;
       } else if (roleStr == 'employee1') {
         r = UserRole.employee1;
@@ -72,7 +74,9 @@ class ApiService {
         await prefs.setString('auth_email', data['email']);
         
         UserRole r = UserRole.employee;
-        if (roleStr == 'admin') {
+        if (roleStr == 'owner') {
+          r = UserRole.owner;
+        } else if (roleStr == 'admin') {
           r = UserRole.admin;
         } else if (roleStr == 'employee1') {
           r = UserRole.employee1;

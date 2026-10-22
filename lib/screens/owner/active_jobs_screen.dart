@@ -43,7 +43,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
   void initState() {
     super.initState();
     _selectedSupplier = widget.initialFilterLocation;
-    _isAdmin = _api.currentUser?.role == UserRole.admin;
+    _isAdmin = _api.currentUser?.role == UserRole.admin || _api.currentUser?.role == UserRole.owner;
     _loadData();
   }
 

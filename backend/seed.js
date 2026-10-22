@@ -15,6 +15,7 @@ const seedDB = async () => {
     await Warehouse.deleteMany();
     await Job.deleteMany();
 
+    const owner = await User.create({ email: 'owner@flowdesk.com', password: 'password123', role: 'owner' });
     const admin = await User.create({ email: 'admin@flowdesk.com', password: 'password123', role: 'admin' });
     const employee = await User.create({ email: 'employee@flowdesk.com', password: 'password123', role: 'employee' });
 

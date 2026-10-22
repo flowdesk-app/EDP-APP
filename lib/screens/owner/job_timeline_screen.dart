@@ -39,7 +39,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
   void initState() {
     super.initState();
     _currentJob = widget.job;
-    _isAdmin = ApiService().currentUser?.role == UserRole.admin;
+    _isAdmin = ApiService().currentUser?.role == UserRole.admin || ApiService().currentUser?.role == UserRole.owner;
     _loadData();
   }
 

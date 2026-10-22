@@ -25,6 +25,30 @@ const hashExistingPasswords = async () => {
         if (updatedCount > 0) {
             console.log(`Migration Complete. Successfully hashed ${updatedCount} plain text passwords.`);
         }
+
+        // Ensure default users exist
+        const defaultUsers = [
+            { email: 'owner@flowdesk.com', password: 'password123', role: 'owner' },
+            { email: 'admin@flowdesk.com', password: 'password123', role: 'admin' },
+            { email: 'employee@flowdesk.com', password: 'password123', role: 'employee' },
+            { email: 'employee1@flowdesk.com', password: 'password123', role: 'employee1' },
+            { email: 'employee2@flowdesk.com', password: 'password123', role: 'employee2' },
+            { email: 'employee3@flowdesk.com', password: 'password123', role: 'employee3' },
+        ];
+
+        for (const defUser of defaultUsers) {
+            const existing = await User.findOne({ email: defUser.email });
+            if (!existing) {
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(defUser.password, salt);
+                await User.create({ email: defUser.email, password: hashedPassword, role: defUser.role });
+                console.log(`Created default user: ${defUser.email} (${defUser.role})`);
+            } else if (existing.role !== defUser.role) {
+                existing.role = defUser.role;
+                await existing.save();
+                console.log(`Updated user role: ${defUser.email} to ${defUser.role}`);
+            }
+        }
     } catch (error) {
         console.error('Password migration failed:', error);
     }

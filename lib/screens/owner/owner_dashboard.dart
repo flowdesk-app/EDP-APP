@@ -19,10 +19,11 @@ class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
 
   @override
-  State<OwnerDashboard> createState() => _OwnerDashboardState();
+  State<OwnerDashboard> createState() => OwnerDashboardState();
 }
 
-class _OwnerDashboardState extends State<OwnerDashboard> {
+class OwnerDashboardState extends State<OwnerDashboard> {
+  void reload() => _load();
   final ApiService _api = ApiService();
   bool _loading = true;
   List<JobModel> _currentJobs = [];

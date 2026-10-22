@@ -141,6 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 13, color: Color(0xFF5F6368)),
               ),
               const SizedBox(height: 8),
+              _demoHint('Owner', 'owner@flowdesk.com', 'password123'),
               _demoHint('Admin', 'admin@flowdesk.com', 'password123'),
               _demoHint('Employee 1 (Inventory)', 'employee1@flowdesk.com', 'password123'),
               _demoHint('Employee 2 (Production)', 'employee2@flowdesk.com', 'password123'),

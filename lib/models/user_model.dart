@@ -1,4 +1,4 @@
-enum UserRole { admin, employee, employee1, employee2, employee3 }
+enum UserRole { owner, admin, employee, employee1, employee2, employee3 }
 
 class UserModel {
   final String email;
@@ -15,7 +15,9 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     UserRole parsedRole = UserRole.employee;
-    if (json['role'] == 'admin') {
+    if (json['role'] == 'owner') {
+      parsedRole = UserRole.owner;
+    } else if (json['role'] == 'admin') {
       parsedRole = UserRole.admin;
     } else if (json['role'] == 'employee1') {
       parsedRole = UserRole.employee1;
