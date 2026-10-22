@@ -1,5 +1,6 @@
 import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import 'filtered_jobs_screen.dart';
@@ -23,18 +24,22 @@ class RecoatingDashboardScreen extends StatefulWidget {
 class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   List<JobModel> _currentJobs = [];
   bool _isLoading = false;
+  String? _selectedMonth;
+  String? _selectedDate;
 
   @override
   void initState() {
     super.initState();
     _currentJobs = widget.recoatingJobs;
+    _selectedMonth = widget.month ?? DateFormat('yyyy-MM').format(DateTime.now());
+    _selectedDate = widget.date;
     _fetchJobs();
   }
 
   Future<void> _fetchJobs() async {
     setState(() => _isLoading = true);
     try {
-      final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
+      final jobs = await ApiService().getFilteredJobs(month: _selectedMonth, date: _selectedDate);
       if (mounted) {
         setState(() {
           _currentJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
@@ -46,8 +51,32 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
     }
   }
 
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = DateFormat('yyyy-MM-dd').format(picked);
+        _selectedMonth = null;
+      });
+      _fetchJobs();
+    }
+  }
+
+  void _clearDateFilter() {
+    setState(() {
+      _selectedDate = null;
+      _selectedMonth = DateFormat('yyyy-MM').format(DateTime.now());
+    });
+    _fetchJobs();
+  }
+
   void _navToFiltered(BuildContext context, String title, List<JobModel> jobs, {bool Function(JobModel)? filter}) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter, month: widget.month, date: widget.date)))
+    Navigator.push(context, MaterialPageRoute(builder: (_) => FilteredJobsScreen(title: title, jobs: jobs, filter: filter, month: _selectedMonth, date: _selectedDate)))
       .then((_) => _fetchJobs());
   }
 
@@ -149,6 +178,14 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
         elevation: 0,
         actions: [
           const GlobalLogoutButton(),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF202124)),
+            onPressed: _isLoading ? null : _fetchJobs,
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined, color: Color(0xFF202124)),
+            onPressed: _selectDate,
+          ),
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.all(16.0),
@@ -162,19 +199,60 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: crossAxisCount,
-          shrinkWrap: true,
-          childAspectRatio: childAspectRatio,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildStatCard(context, 'Arrived', arrivedJobs.length, Icons.input, Colors.blueAccent, 
-              () => _navToFiltered(context, 'Arrived', arrivedJobs, filter: (j) => j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived'))),
-            _buildStatCard(context, 'Extracted', extractedJobs.length, Icons.layers_clear, Colors.orange, 
-              () => _navToFiltered(context, 'Extracted', extractedJobs, filter: (j) => j.jobType == 'Re-coating' && j.status == 'Extracted')),
-            _buildStatCard(context, 'SKMT', skmtJobs.length, Icons.swap_horiz, Colors.deepPurple, 
-              () => _navToFiltered(context, 'SKMT', skmtJobs, filter: (j) => j.jobType == 'Re-coating' && (j.status == 'At Supplier' || j.status == 'SKMT') && (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT'))),
+            Row(
+              children: [
+                if (_selectedDate != null) ...[
+                  Chip(
+                    label: Text(DateFormat('dd MMMM yyyy').format(DateTime.parse(_selectedDate!))),
+                    deleteIcon: const Icon(Icons.close, size: 18),
+                    onDeleted: _clearDateFilter,
+                  ),
+                ] else ...[
+                  DropdownButton<String>(
+                    value: _selectedMonth,
+                    underline: const SizedBox(),
+                    icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF202124)),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          _selectedMonth = newValue;
+                          _selectedDate = null;
+                        });
+                        _fetchJobs();
+                      }
+                    },
+                    items: List.generate(12, (index) {
+                      final d = DateTime(DateTime.now().year, DateTime.now().month - index, 1);
+                      final val = DateFormat('yyyy-MM').format(d);
+                      final text = DateFormat('MMMM yyyy').format(d);
+                      return DropdownMenuItem(value: val, child: Text(text));
+                    }),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: crossAxisCount,
+                shrinkWrap: true,
+                childAspectRatio: childAspectRatio,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                children: [
+                  _buildStatCard(context, 'Arrived', arrivedJobs.length, Icons.input, Colors.blueAccent, 
+                    () => _navToFiltered(context, 'Arrived', arrivedJobs, filter: (j) => j.jobType == 'Re-coating' && (j.status == 'Created' || j.status == 'Arrived'))),
+                  _buildStatCard(context, 'Extracted', extractedJobs.length, Icons.layers_clear, Colors.orange, 
+                    () => _navToFiltered(context, 'Extracted', extractedJobs, filter: (j) => j.jobType == 'Re-coating' && j.status == 'Extracted')),
+                  _buildStatCard(context, 'SKMT', skmtJobs.length, Icons.swap_horiz, Colors.deepPurple, 
+                    () => _navToFiltered(context, 'SKMT', skmtJobs, filter: (j) => j.jobType == 'Re-coating' && (j.status == 'At Supplier' || j.status == 'SKMT') && (j.supplier?.toUpperCase() == 'SKMT' || j.currentLocation.toUpperCase() == 'SKMT'))),
+                ],
+              ),
+            ),
           ],
         ),
       ),
