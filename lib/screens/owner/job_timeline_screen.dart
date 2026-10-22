@@ -825,27 +825,53 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
   }
 
   Future<void> _showForwardToSKMTDialog() async {
-    final ctrl = TextEditingController(text: 'SKMT');
     final qtyCtrl = TextEditingController(text: _currentJob.quantity?.toString() ?? '');
     final chalanCtrl = TextEditingController();
-    DateTime? selectedDate = DateTime.now();
+    DateTime? deliveryChalanDate = DateTime.now();
+
+    DateTime? extractionCompletedDate = DateTime.now();
+    DateTime? productionDate = DateTime.now();
+    DateTime? expectedProductionDate;
+
+    // Available destinations
+    final destinationOptions = <String>['SKMT', 'EDP Production'];
+    for (final s in _suppliers) {
+      if (!destinationOptions.any((opt) => opt.toLowerCase() == s.toLowerCase()) &&
+          s.toLowerCase() != 'edp' &&
+          s.toLowerCase() != 'edp production') {
+        destinationOptions.add(s);
+      }
+    }
+    String selectedDestination = 'SKMT';
 
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (sbContext, setStateSB) {
+          final isEDPProduction = selectedDestination.toLowerCase() == 'edp production';
+
           return AlertDialog(
-            title: const Text('Forward to Next Supplier'),
+            title: const Text('Move / Forward Job'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    controller: ctrl,
+                  DropdownButtonFormField<String>(
+                    value: selectedDestination,
                     decoration: const InputDecoration(
-                      labelText: 'Supplier Name',
+                      labelText: 'Select Destination',
                       border: OutlineInputBorder(),
                     ),
+                    items: destinationOptions.map((opt) => DropdownMenuItem(
+                      value: opt,
+                      child: Text(opt),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setStateSB(() => selectedDestination = val);
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -856,33 +882,117 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     ),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: chalanCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Delivery Chalan Number',
-                      border: OutlineInputBorder(),
+                  if (isEDPProduction) ...[
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final dt = await showDatePicker(
+                          context: sbContext,
+                          initialDate: extractionCompletedDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (dt != null) setStateSB(() => extractionCompletedDate = dt);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Extraction Completed Date',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(extractionCompletedDate != null ? DateFormat('dd-MM-yyyy').format(extractionCompletedDate!) : 'Select Date'),
+                            const Icon(Icons.calendar_today, size: 16),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  InkWell(
-                    onTap: () async {
-                      final dt = await showDatePicker(
-                        context: sbContext,
-                        initialDate: selectedDate ?? DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (dt != null) setStateSB(() => selectedDate = dt);
-                    },
-                    child: InputDecorator(
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final dt = await showDatePicker(
+                          context: sbContext,
+                          initialDate: productionDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (dt != null) setStateSB(() => productionDate = dt);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Production Date',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(productionDate != null ? DateFormat('dd-MM-yyyy').format(productionDate!) : 'Select Date'),
+                            const Icon(Icons.calendar_today, size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final dt = await showDatePicker(
+                          context: sbContext,
+                          initialDate: expectedProductionDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (dt != null) setStateSB(() => expectedProductionDate = dt);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Expected Production Completion Date',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(expectedProductionDate != null ? DateFormat('dd-MM-yyyy').format(expectedProductionDate!) : 'Select Date'),
+                            const Icon(Icons.calendar_today, size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: chalanCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'Delivery Chalan Date',
+                        labelText: 'Delivery Chalan Number',
                         border: OutlineInputBorder(),
                       ),
-                      child: Text(selectedDate != null ? DateFormat('dd-MM-yyyy').format(selectedDate!) : 'Select Date'),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final dt = await showDatePicker(
+                          context: sbContext,
+                          initialDate: deliveryChalanDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (dt != null) setStateSB(() => deliveryChalanDate = dt);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Delivery Chalan Date',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(deliveryChalanDate != null ? DateFormat('dd-MM-yyyy').format(deliveryChalanDate!) : 'Select Date'),
+                            const Icon(Icons.calendar_today, size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -890,40 +1000,69 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
               ElevatedButton(
                 onPressed: () async {
-                  String val = ctrl.text.trim();
-                  if (val.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter supplier name')));
-                    return;
-                  }
-                  int? qty = int.tryParse(qtyCtrl.text.trim());
-                  if (qty == null || qty <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter valid quantity')));
-                    return;
-                  }
-
-                  Navigator.pop(ctx);
-                  setState(() => _isUpdating = true);
-                  try {
-                    if (!_suppliers.any((s) => s.toLowerCase() == val.toLowerCase())) {
-                      try { await ApiService().addSupplier(val); } catch (_) {}
+                  if (isEDPProduction) {
+                    if (extractionCompletedDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Extraction Completed Date')));
+                      return;
                     }
-                    await ApiService().forwardJob(
-                      _currentJob.jobId,
-                      val,
-                      forwardQuantity: qty,
-                      deliveryChalanNumber: chalanCtrl.text.trim().isEmpty ? null : chalanCtrl.text.trim(),
-                      deliveryChalanDate: selectedDate,
-                    );
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $val!')));
-                    _refresh();
-                  } catch (e) {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                    setState(() => _isUpdating = false);
+                    if (productionDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Production Date')));
+                      return;
+                    }
+                    if (expectedProductionDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Production Completion Date')));
+                      return;
+                    }
+
+                    Navigator.pop(ctx);
+                    setState(() => _isUpdating = true);
+                    try {
+                      await ApiService().updateJobStatus(
+                        _currentJob.jobId,
+                        'Production',
+                        extractionCompletedDate: extractionCompletedDate,
+                        productionDate: productionDate,
+                        expectedProductionDate: expectedProductionDate,
+                      );
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Production!')));
+                      _refresh();
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                      setState(() => _isUpdating = false);
+                    }
+                  } else {
+                    int? qty = int.tryParse(qtyCtrl.text.trim());
+                    if (qty == null || qty <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter valid quantity')));
+                      return;
+                    }
+
+                    Navigator.pop(ctx);
+                    setState(() => _isUpdating = true);
+                    try {
+                      if (!_suppliers.any((s) => s.toLowerCase() == selectedDestination.toLowerCase())) {
+                        try { await ApiService().addSupplier(selectedDestination); } catch (_) {}
+                      }
+                      await ApiService().forwardJob(
+                        _currentJob.jobId,
+                        selectedDestination,
+                        forwardQuantity: qty,
+                        deliveryChalanNumber: chalanCtrl.text.trim().isEmpty ? null : chalanCtrl.text.trim(),
+                        deliveryChalanDate: deliveryChalanDate,
+                      );
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $selectedDestination!')));
+                      _refresh();
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                      setState(() => _isUpdating = false);
+                    }
                   }
                 },
-                child: const Text('Forward'),
+                child: Text(isEDPProduction ? 'Move to Production' : 'Forward'),
               ),
             ],
           );
@@ -946,12 +1085,12 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Move to Next Supplier',
+              'Move to Next Supplier / Production',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Extraction is completed. Forward this job to SKMT.',
+              'Extraction is completed. Forward this job to SKMT or move to EDP Production.',
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
             const SizedBox(height: 16),
@@ -967,7 +1106,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 icon: _isUpdating
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.forward_to_inbox),
-                label: const Text('Move to Next Supplier', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                label: const Text('Move to Next Supplier / Production', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                 onPressed: _isUpdating ? null : _showForwardToSKMTDialog,
               ),
             ),
