@@ -26,31 +26,36 @@ class ApiService {
   UserModel? currentUser;
 
   Future<void> _loadToken() async {
-    if (_token != null) return;
     final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
+    _token ??= prefs.getString('auth_token');
     
-    final roleStr = prefs.getString('auth_role');
-    if (roleStr != null) {
-      UserRole r = UserRole.employee;
-      if (roleStr == 'owner') {
-        r = UserRole.owner;
-      } else if (roleStr == 'admin') {
-        r = UserRole.admin;
-      } else if (roleStr == 'employee1') {
-        r = UserRole.employee1;
-      } else if (roleStr == 'employee2') {
-        r = UserRole.employee2;
-      } else if (roleStr == 'employee3') {
-        r = UserRole.employee3;
-      }
+    if (currentUser == null) {
+      final roleStr = prefs.getString('auth_role');
+      if (roleStr != null) {
+        UserRole r = UserRole.employee;
+        if (roleStr == 'owner') {
+          r = UserRole.owner;
+        } else if (roleStr == 'admin') {
+          r = UserRole.admin;
+        } else if (roleStr == 'employee1') {
+          r = UserRole.employee1;
+        } else if (roleStr == 'employee2') {
+          r = UserRole.employee2;
+        } else if (roleStr == 'employee3') {
+          r = UserRole.employee3;
+        }
 
-      currentUser = UserModel(
-        email: prefs.getString('auth_email') ?? '',
-        password: '',
-        role: r,
-      );
+        currentUser = UserModel(
+          email: prefs.getString('auth_email') ?? '',
+          password: '',
+          role: r,
+        );
+      }
     }
+  }
+
+  Future<void> ensureInitialized() async {
+    await _loadToken();
   }
 
   Map<String, String> get _headers => {
@@ -69,6 +74,9 @@ class ApiService {
         final data = jsonDecode(res.body);
         _token = data['token'];
         final prefs = await SharedPreferences.getInstance();
+        if (_token != null) {
+          await prefs.setString('auth_token', _token!);
+        }
         final roleStr = data['role'] ?? 'employee';
         await prefs.setString('auth_role', roleStr);
         await prefs.setString('auth_email', data['email']);

@@ -17,6 +17,7 @@ import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../login_screen.dart';
 import 'storage_screen.dart';
+import 'job_approval_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -39,6 +40,18 @@ class _MainLayoutState extends State<MainLayout> {
     super.initState();
     _role = ApiService().currentUser?.role ?? UserRole.employee;
     _buildDestinationsAndScreens();
+    _initRole();
+  }
+
+  Future<void> _initRole() async {
+    await ApiService().ensureInitialized();
+    final updatedRole = ApiService().currentUser?.role ?? UserRole.employee;
+    if (updatedRole != _role && mounted) {
+      setState(() {
+        _role = updatedRole;
+        _buildDestinationsAndScreens();
+      });
+    }
   }
 
   void _buildDestinationsAndScreens() {
@@ -72,6 +85,25 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.storage_outlined), selectedIcon: Icon(Icons.storage), label: Text('Database')),
       ];
+
+      if (_role == UserRole.owner) {
+        _screens.addAll([
+          const JobApprovalScreen(initialTab: 0), // 11. Request
+          const JobApprovalScreen(initialTab: 1), // 12. Granted
+        ]);
+        _destinations.addAll([
+          const NavigationRailDestination(
+            icon: Icon(Icons.pending_actions_outlined),
+            selectedIcon: Icon(Icons.pending_actions),
+            label: Text('Request'),
+          ),
+          const NavigationRailDestination(
+            icon: Icon(Icons.verified_outlined),
+            selectedIcon: Icon(Icons.verified),
+            label: Text('Granted'),
+          ),
+        ]);
+      }
     } else if (_role == UserRole.employee1) {
       _screens = [
         const SpareProductionDashboardScreen(),
@@ -160,7 +192,7 @@ class _MainLayoutState extends State<MainLayout> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: _screens[_currentIndex],
+            child: _currentIndex < _screens.length ? _screens[_currentIndex] : const SizedBox(),
           ),
         ],
       ),
@@ -214,7 +246,7 @@ class _MainLayoutState extends State<MainLayout> {
           ],
         ),
       ),
-      body: _screens[_currentIndex],
+      body: _currentIndex < _screens.length ? _screens[_currentIndex] : const SizedBox(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex >= _destinations.take(4).length ? 0 : _currentIndex,
         type: BottomNavigationBarType.fixed,

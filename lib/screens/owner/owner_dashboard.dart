@@ -58,6 +58,7 @@ class OwnerDashboardState extends State<OwnerDashboard> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
+      await _api.ensureInitialized();
       final jobs = await _api.getFilteredJobs(month: _selectedMonth, date: _selectedDate);
 
       final suppliers = await _api.getSuppliers();
@@ -286,6 +287,40 @@ class OwnerDashboardState extends State<OwnerDashboard> {
                       _buildStatCard('Coating Arrived', _coatingArrivedCount, Icons.layers, Colors.brown, () => _navToFiltered('Coating Arrived', _currentJobs.where((j) => j.jobType == 'Coating' && (j.status == 'Created' || j.status == 'Arrived')).toList())),
                     ],
                   ),
+                  if (ApiService().currentUser?.role == UserRole.owner) ...[
+                    const SizedBox(height: 20),
+                    const Text('Access Approvals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            'Request',
+                            _pendingRequestCount,
+                            Icons.pending_actions,
+                            const Color(0xFFE65100),
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const JobApprovalScreen(initialTab: 0)),
+                            ).then((_) => _load()),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Granted',
+                            _grantedCount,
+                            Icons.verified,
+                            const Color(0xFF2E7D32),
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const JobApprovalScreen(initialTab: 1)),
+                            ).then((_) => _load()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -361,44 +396,6 @@ class OwnerDashboardState extends State<OwnerDashboard> {
                 )).toList(),
                 ),
               ),
-            if (ApiService().currentUser?.role == UserRole.owner) ...[
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('Access Approvals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF202124))),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        'Request',
-                        _pendingRequestCount,
-                        Icons.pending_actions,
-                        const Color(0xFFE65100),
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const JobApprovalScreen(initialTab: 0)),
-                        ).then((_) => _load()),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        'Granted',
-                        _grantedCount,
-                        Icons.verified,
-                        const Color(0xFF2E7D32),
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const JobApprovalScreen(initialTab: 1)),
-                        ).then((_) => _load()),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
             const SizedBox(height: 24),
           ],
         ),
