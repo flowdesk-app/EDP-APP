@@ -14,6 +14,36 @@ import 'spare_at_edp_tabs_screen.dart';
 
 enum FlowType { none, newJob, recoating, coating, lappingCompound }
 
+class RecoatingBatchItem {
+  final TextEditingController partNumberCtrl;
+  final TextEditingController descriptionCtrl;
+  final TextEditingController gritSizeCtrl;
+  final TextEditingController quantityCtrl;
+  final TextEditingController numberOfSetsCtrl;
+  bool isAssembly;
+
+  RecoatingBatchItem({
+    required String partNumber,
+    required String description,
+    String gritSize = '',
+    String quantity = '',
+    this.isAssembly = false,
+    String numberOfSets = '',
+  })  : partNumberCtrl = TextEditingController(text: partNumber),
+        descriptionCtrl = TextEditingController(text: description),
+        gritSizeCtrl = TextEditingController(text: gritSize),
+        quantityCtrl = TextEditingController(text: quantity),
+        numberOfSetsCtrl = TextEditingController(text: numberOfSets);
+
+  void dispose() {
+    partNumberCtrl.dispose();
+    descriptionCtrl.dispose();
+    gritSizeCtrl.dispose();
+    quantityCtrl.dispose();
+    numberOfSetsCtrl.dispose();
+  }
+}
+
 class CreateJobScreen extends StatefulWidget {
   final String? initialCustomerName;
   final String? leadId; // Not strictly needed anymore from New Status, but kept for signature
@@ -32,6 +62,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
   // Shared controllers
   final _customerNameCtrl = TextEditingController();
+
+  // Re-coating Batch Items
+  final List<RecoatingBatchItem> _recoatingBatchItems = [];
 
   // Assembly State
   bool _isAssembly = false;
@@ -80,6 +113,30 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       _customerNameCtrl.text = widget.initialCustomerName!;
     }
     _fetchData();
+  }
+
+  @override
+  void dispose() {
+    for (final b in _recoatingBatchItems) {
+      b.dispose();
+    }
+    _customerNameCtrl.dispose();
+    _numberOfSetsCtrl.dispose();
+    _highConcentrationCtrl.dispose();
+    _standardConcentrationCtrl.dispose();
+    _micronsCtrl.dispose();
+    _micronColorCtrl.dispose();
+    _micronSizeCtrl.dispose();
+    _syringeQuantityCtrl.dispose();
+    _wheelSizeCtrl.dispose();
+    _gritSizeCtrl.dispose();
+    _assignedWorkerCtrl.dispose();
+    _partNumberCtrl.dispose();
+    _quantityCtrl.dispose();
+    _edpPoNumberCtrl.dispose();
+    _returnableGatePassNumberCtrl.dispose();
+    _poNumberCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -151,6 +208,10 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         setState(() {
           _flowType = FlowType.none;
           _currentStep = 0;
+          for (final b in _recoatingBatchItems) {
+            b.dispose();
+          }
+          _recoatingBatchItems.clear();
           _customerNameCtrl.clear();
           _wheelSizeCtrl.clear();
           _gritSizeCtrl.clear();
@@ -170,14 +231,62 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Name is required')));
       return;
     }
-    if (_wheelSizeCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Description is required')));
-      return;
+
+    final isRecoatingBatch = _flowType == FlowType.recoating && _recoatingBatchItems.isNotEmpty;
+
+    if (!isRecoatingBatch) {
+      if (_wheelSizeCtrl.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Description is required')));
+        return;
+      }
+      if (_gritSizeCtrl.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grit Size is required')));
+        return;
+      }
+      if (_partNumberCtrl.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Part Number is required')));
+        return;
+      }
+      if (_quantityCtrl.text.trim().isEmpty || int.tryParse(_quantityCtrl.text.trim()) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Valid Quantity is required')));
+        return;
+      }
+      if (_isAssembly) {
+        final sets = int.tryParse(_numberOfSetsCtrl.text.trim());
+        if (sets == null || sets <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly')));
+          return;
+        }
+      }
+    } else {
+      for (int i = 0; i < _recoatingBatchItems.length; i++) {
+        final item = _recoatingBatchItems[i];
+        if (item.partNumberCtrl.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Part Number is required for Item #${i + 1}')));
+          return;
+        }
+        if (item.quantityCtrl.text.trim().isEmpty || int.tryParse(item.quantityCtrl.text.trim()) == null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Quantity is required for Item #${i + 1}')));
+          return;
+        }
+        if (item.descriptionCtrl.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Description is required for Item #${i + 1}')));
+          return;
+        }
+        if (item.gritSizeCtrl.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Grit Size is required for Item #${i + 1}')));
+          return;
+        }
+        if (item.isAssembly) {
+          final sets = int.tryParse(item.numberOfSetsCtrl.text.trim());
+          if (sets == null || sets <= 0) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Number of Sets required for Item #${i + 1}')));
+            return;
+          }
+        }
+      }
     }
-    if (_gritSizeCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grit Size is required')));
-      return;
-    }
+
     if (_assignedWorkerCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Person Responsible is required')));
       return;
@@ -187,23 +296,6 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       return;
     }
 
-    if (_partNumberCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Part Number is required')));
-      return;
-    }
-    if (_quantityCtrl.text.trim().isEmpty || int.tryParse(_quantityCtrl.text.trim()) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Valid Quantity is required')));
-      return;
-    }
-
-    if (_isAssembly) {
-      final sets = int.tryParse(_numberOfSetsCtrl.text.trim());
-      if (sets == null || sets <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly')));
-        return;
-      }
-    }
-    
     // Returnable gate pass fields only required for Re-coating, Coating, Lapping Compound
     if (_flowType != FlowType.newJob || widget.initialCustomerName != null) {
       if (_receivedDate == null) {
@@ -230,6 +322,61 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
     _showLoadingDialog();
     try {
+      if (isRecoatingBatch) {
+        final baseTimestamp = DateTime.now().millisecondsSinceEpoch;
+        int createdCount = 0;
+
+        for (int i = 0; i < _recoatingBatchItems.length; i++) {
+          final bItem = _recoatingBatchItems[i];
+          final generatedJobId = 'JOB-${(baseTimestamp + i).toString().substring(5)}';
+
+          final job = JobModel(
+            jobId: generatedJobId,
+            partNumber: bItem.partNumberCtrl.text.trim(),
+            quantity: int.tryParse(bItem.quantityCtrl.text.trim()),
+            isAssembly: bItem.isAssembly,
+            numberOfSets: bItem.isAssembly ? int.tryParse(bItem.numberOfSetsCtrl.text.trim()) : null,
+            jobType: 'Re-coating',
+            customerName: _customerNameCtrl.text.trim(),
+            wheelSize: bItem.descriptionCtrl.text.trim(),
+            diamondPowderGritSize: bItem.gritSizeCtrl.text.trim(),
+            assignedWorker: _assignedWorkerCtrl.text.trim(),
+            deliveryDate: _deliveryDate,
+            customerOrderDate: _customerOrderDate,
+            receivedDate: _receivedDate,
+            negotiationDone: false,
+            purchaseOrderReceived: _purchaseOrderReceived,
+            purchaseOrderNumber: _poNumberCtrl.text.trim().isEmpty ? null : _poNumberCtrl.text.trim(),
+            purchaseOrderDate: _purchaseOrderDate,
+            edpPurchaseOrderNumber: _edpPoNumberCtrl.text.trim().isEmpty ? null : _edpPoNumberCtrl.text.trim(),
+            edpPurchaseOrderDate: _edpPoDate,
+            poNotGiven: _purchaseOrderReceived == false,
+            returnableGatePassNumber: _returnableGatePassNumberCtrl.text.trim().isEmpty ? null : _returnableGatePassNumberCtrl.text.trim(),
+            returnableGatePassDate: _returnableGatePassDate,
+            status: 'Created',
+            currentLocation: 'EDP',
+            createdDate: _createdDate,
+            destinationType: 'Customer',
+            destinationName: _customerNameCtrl.text.trim(),
+          );
+
+          await _api.createJob(job);
+          await _checkAndSaveStorage(_customerNameCtrl.text.trim(), bItem.partNumberCtrl.text.trim(), bItem.descriptionCtrl.text.trim());
+          createdCount++;
+        }
+
+        if (mounted) {
+          _hideLoadingDialog();
+          final isOwner = _api.currentUser?.role == UserRole.owner;
+          final msg = isOwner
+              ? 'Successfully created $createdCount Re-coating jobs!'
+              : 'Successfully created $createdCount Re-coating jobs!\nAccess requests sent to Owner for approval.';
+          await _showSuccessPopupAndNavigate(msg);
+        }
+        return;
+      }
+
+      // Single item flow
       final generatedJobId = 'JOB-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
       
       String jobType = 'Re-coating';
@@ -629,15 +776,58 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   Future<void> _handleStorageSelection() async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => const StorageSelectionDialog(),
+      builder: (context) => StorageSelectionDialog(
+        allowMultiSelect: _flowType == FlowType.recoating,
+      ),
     );
 
     if (result != null) {
       final companyName = result['company'] as String;
-      final item = result['item'] as ItemDatabaseModel;
+      final rawItems = result['items'];
 
       setState(() {
         _customerNameCtrl.text = companyName;
+
+        if (_flowType == FlowType.recoating && rawItems is List && rawItems.isNotEmpty) {
+          final itemsList = rawItems.cast<ItemDatabaseModel>();
+
+          for (final b in _recoatingBatchItems) {
+            b.dispose();
+          }
+          _recoatingBatchItems.clear();
+
+          if (itemsList.length > 1) {
+            for (final item in itemsList) {
+              final desc = item.description ?? '';
+              final gritRegExp = RegExp(r'Grit\s*[:-]?\s*([0-9/]+)', caseSensitive: false);
+              final match = gritRegExp.firstMatch(desc);
+              final grit = (match != null && match.groupCount >= 1) ? match.group(1)! : '';
+
+              _recoatingBatchItems.add(RecoatingBatchItem(
+                partNumber: item.itemName,
+                description: desc,
+                gritSize: grit,
+              ));
+            }
+            final first = itemsList.first;
+            _partNumberCtrl.text = first.itemName;
+            _wheelSizeCtrl.text = first.description ?? '';
+            final gritRegExp = RegExp(r'Grit\s*[:-]?\s*([0-9/]+)', caseSensitive: false);
+            final match = gritRegExp.firstMatch(_wheelSizeCtrl.text);
+            _gritSizeCtrl.text = (match != null && match.groupCount >= 1) ? match.group(1)! : '';
+            return;
+          } else if (itemsList.length == 1) {
+            final item = itemsList.first;
+            _partNumberCtrl.text = item.itemName;
+            _wheelSizeCtrl.text = item.description ?? '';
+            final gritRegExp = RegExp(r'Grit\s*[:-]?\s*([0-9/]+)', caseSensitive: false);
+            final match = gritRegExp.firstMatch(_wheelSizeCtrl.text);
+            _gritSizeCtrl.text = (match != null && match.groupCount >= 1) ? match.group(1)! : '';
+            return;
+          }
+        }
+
+        final item = result['item'] as ItemDatabaseModel;
         final desc = item.description ?? '';
         
         if (_flowType == FlowType.lappingCompound) {
@@ -688,6 +878,193 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         }
       });
     }
+  }
+
+  Future<void> _addMoreFromDatabase() async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const StorageSelectionDialog(allowMultiSelect: true),
+    );
+
+    if (result != null && result['items'] != null) {
+      final rawItems = result['items'] as List;
+      final selectedItems = rawItems.cast<ItemDatabaseModel>();
+      setState(() {
+        for (final item in selectedItems) {
+          final desc = item.description ?? '';
+          final gritRegExp = RegExp(r'Grit\s*[:-]?\s*([0-9/]+)', caseSensitive: false);
+          final match = gritRegExp.firstMatch(desc);
+          final grit = (match != null && match.groupCount >= 1) ? match.group(1)! : '';
+
+          _recoatingBatchItems.add(RecoatingBatchItem(
+            partNumber: item.itemName,
+            description: desc,
+            gritSize: grit,
+          ));
+        }
+      });
+    }
+  }
+
+  Widget _buildBatchItemAssemblyWidget(RecoatingBatchItem item) {
+    if (item.isAssembly) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3E0),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFFFB74D)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.layers, size: 18, color: Color(0xFFE65100)),
+            const SizedBox(width: 8),
+            const Text(
+              'Assembly Sets: ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFE65100)),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 80,
+              child: TextField(
+                controller: item.numberOfSetsCtrl,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  hintText: 'e.g. 2',
+                  border: OutlineInputBorder(),
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  item.isAssembly = false;
+                  item.numberOfSetsCtrl.clear();
+                });
+              },
+              icon: const Icon(Icons.close, size: 14, color: Colors.red),
+              label: const Text('Remove', style: TextStyle(color: Colors.red, fontSize: 12)),
+            ),
+          ],
+        ),
+      );
+    }
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: () {
+          setState(() {
+            item.isAssembly = true;
+          });
+        },
+        icon: const Icon(Icons.add_circle_outline, size: 14, color: Color(0xFFE65100)),
+        label: const Text('Include Assembly for this item', style: TextStyle(color: Color(0xFFE65100), fontSize: 12, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
+  Widget _buildRecoatingBatchItemCard(RecoatingBatchItem item, int index) {
+    return Container(
+      key: ValueKey(item),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0288D1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'Item #${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                tooltip: 'Remove Item',
+                onPressed: () {
+                  setState(() {
+                    item.dispose();
+                    _recoatingBatchItems.removeAt(index);
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: _buildAutocomplete(
+                  item.partNumberCtrl,
+                  'Part Number *',
+                  _getSuggestions('Part Number'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 1,
+                child: TextField(
+                  controller: item.quantityCtrl,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'Quantity *',
+                    hintText: 'e.g. 1',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          _buildBatchItemAssemblyWidget(item),
+          const SizedBox(height: 12),
+          _buildAutocomplete(
+            item.descriptionCtrl,
+            'Description *',
+            _getSuggestions('Description'),
+          ),
+          const SizedBox(height: 12),
+          _buildAutocomplete(
+            item.gritSizeCtrl,
+            'Grit Size *',
+            _getSuggestions('Grit Size'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAssemblyButton() {
@@ -1336,9 +1713,33 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         title: const Text('Customer Details'),
         isActive: _currentStep >= 0,
         content: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildTopActionRow(showAssembly: true),
-          _buildCreatedDateSelector(),
+            if (_recoatingBatchItems.isNotEmpty) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF86EFAC)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${_recoatingBatchItems.length} items loaded from database for ${_customerNameCtrl.text}. Proceed to Wheel Details to configure each item.',
+                        style: const TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            _buildCreatedDateSelector(),
             const SizedBox(height: 16),
             _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
             const SizedBox(height: 12),
@@ -1368,31 +1769,104 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       Step(
         title: const Text('Wheel Details'),
         isActive: _currentStep >= 1,
-        content: Column(
-          children: [
-            _buildAutocomplete(_partNumberCtrl, 'Part Number', _getSuggestions('Part Number')),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _quantityCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
-            ),
-            _buildSetsField(),
-            if (!_isAssembly)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: _handleAssemblyToggle,
-                  icon: const Icon(Icons.add_circle_outline, size: 14, color: Color(0xFFE65100)),
-                  label: const Text('Include Assembly for this job', style: TextStyle(color: Color(0xFFE65100), fontSize: 12, fontWeight: FontWeight.w600)),
-                ),
+        content: _recoatingBatchItems.isNotEmpty
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F9FF),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFBAE6FD)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.layers_outlined, color: Color(0xFF0288D1), size: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Batch Re-coating: ${_recoatingBatchItems.length} parts selected. Enter quantities and details for each item below.',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF0C4A6E),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  for (int i = 0; i < _recoatingBatchItems.length; i++)
+                    _buildRecoatingBatchItemCard(_recoatingBatchItems[i], i),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _addMoreFromDatabase,
+                          icon: const Icon(Icons.add_shopping_cart, size: 18),
+                          label: const Text('Add from Database'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0288D1),
+                            side: const BorderSide(color: Color(0xFF0288D1)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _recoatingBatchItems.add(RecoatingBatchItem(
+                                partNumber: '',
+                                description: '',
+                                gritSize: '',
+                              ));
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Add Blank Part'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF475569),
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  _buildAutocomplete(_partNumberCtrl, 'Part Number', _getSuggestions('Part Number')),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _quantityCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+                  ),
+                  _buildSetsField(),
+                  if (!_isAssembly)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: _handleAssemblyToggle,
+                        icon: const Icon(Icons.add_circle_outline, size: 14, color: Color(0xFFE65100)),
+                        label: const Text('Include Assembly for this job', style: TextStyle(color: Color(0xFFE65100), fontSize: 12, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  _buildAutocomplete(_wheelSizeCtrl, 'Description', _getSuggestions('Description')),
+                  const SizedBox(height: 12),
+                  _buildAutocomplete(_gritSizeCtrl, 'Grit Size', _getSuggestions('Grit Size')),
+                ],
               ),
-            const SizedBox(height: 12),
-            _buildAutocomplete(_wheelSizeCtrl, 'Description', _getSuggestions('Description')),
-            const SizedBox(height: 12),
-            _buildAutocomplete(_gritSizeCtrl, 'Grit Size', _getSuggestions('Grit Size')),
-          ],
-        ),
       ),
       Step(
         title: const Text('Assignment & Delivery'),
@@ -1460,20 +1934,82 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         isActive: _currentStep >= 3,
         content: Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.shade200),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Customer: ${_customerNameCtrl.text}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('Description: ${_wheelSizeCtrl.text} | Grit Size: ${_gritSizeCtrl.text}'),
-              const SizedBox(height: 8),
+              Text('Customer: ${_customerNameCtrl.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 6),
+              if (_returnableGatePassNumberCtrl.text.trim().isNotEmpty) ...[
+                Text('RGP Number: ${_returnableGatePassNumberCtrl.text.trim()} | Date: ${_returnableGatePassDate != null ? DateFormat('dd-MM-yyyy').format(_returnableGatePassDate!) : "N/A"}'),
+                const SizedBox(height: 6),
+              ],
+              Text('Received Date: ${_receivedDate != null ? DateFormat('dd-MM-yyyy').format(_receivedDate!) : "N/A"}'),
+              const SizedBox(height: 6),
               Text('Person Responsible: ${_assignedWorkerCtrl.text}'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text('Expected Delivery Date: ${_deliveryDate != null ? DateFormat('dd-MM-yyyy').format(_deliveryDate!) : "Not Set"}'),
-              if (_isAssembly) ...[
-                const SizedBox(height: 8),
-                Text('Assembly: Yes (${_numberOfSetsCtrl.text.trim().isEmpty ? "0" : _numberOfSetsCtrl.text.trim()} Sets)', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFE65100))),
+              const SizedBox(height: 6),
+              Text('PO Received: ${_purchaseOrderReceived == true ? "Yes (${_poNumberCtrl.text.trim()})" : "No"}'),
+              const Divider(height: 24, thickness: 1),
+              if (_recoatingBatchItems.isNotEmpty) ...[
+                Row(
+                  children: [
+                    const Icon(Icons.playlist_add_check, color: Color(0xFF0288D1), size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${_recoatingBatchItems.length} Separate Jobs to be Created:',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0C4A6E)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                for (int i = 0; i < _recoatingBatchItems.length; i++) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '#${i + 1} - Part: ${_recoatingBatchItems[i].partNumberCtrl.text.trim()}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                            ),
+                            Text(
+                              'Qty: ${_recoatingBatchItems[i].quantityCtrl.text.trim()}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0288D1)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text('Desc: ${_recoatingBatchItems[i].descriptionCtrl.text.trim()}', style: const TextStyle(fontSize: 12)),
+                        Text('Grit: ${_recoatingBatchItems[i].gritSizeCtrl.text.trim()}', style: const TextStyle(fontSize: 12)),
+                        if (_recoatingBatchItems[i].isAssembly)
+                          Text('Assembly: Yes (${_recoatingBatchItems[i].numberOfSetsCtrl.text.trim()} Sets)', style: const TextStyle(fontSize: 12, color: Color(0xFFE65100), fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ] else ...[
+                Text('Part Number: ${_partNumberCtrl.text} | Qty: ${_quantityCtrl.text}'),
+                const SizedBox(height: 6),
+                Text('Description: ${_wheelSizeCtrl.text} | Grit Size: ${_gritSizeCtrl.text}'),
+                if (_isAssembly) ...[
+                  const SizedBox(height: 6),
+                  Text('Assembly: Yes (${_numberOfSetsCtrl.text.trim().isEmpty ? "0" : _numberOfSetsCtrl.text.trim()} Sets)', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFE65100))),
+                ],
               ],
             ],
           ),
@@ -1501,6 +2037,10 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               onPressed: () => setState(() {
                 _flowType = FlowType.none;
                 _currentStep = 0;
+                for (final b in _recoatingBatchItems) {
+                  b.dispose();
+                }
+                _recoatingBatchItems.clear();
                 _customerNameCtrl.clear();
                 _wheelSizeCtrl.clear();
                 _gritSizeCtrl.clear();
@@ -1535,9 +2075,45 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                       return;
                     }
                   } else if (_currentStep == 1) {
-                    if (_partNumberCtrl.text.trim().isEmpty || _quantityCtrl.text.trim().isEmpty || _wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields in this step')));
-                      return;
+                    if (_flowType == FlowType.recoating && _recoatingBatchItems.isNotEmpty) {
+                      for (int i = 0; i < _recoatingBatchItems.length; i++) {
+                        final item = _recoatingBatchItems[i];
+                        if (item.partNumberCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Part Number is required for Item #${i + 1}')));
+                          return;
+                        }
+                        if (item.quantityCtrl.text.trim().isEmpty || int.tryParse(item.quantityCtrl.text.trim()) == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Quantity is required for Item #${i + 1}')));
+                          return;
+                        }
+                        if (item.descriptionCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Description is required for Item #${i + 1}')));
+                          return;
+                        }
+                        if (item.gritSizeCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Grit Size is required for Item #${i + 1}')));
+                          return;
+                        }
+                        if (item.isAssembly) {
+                          final sets = int.tryParse(item.numberOfSetsCtrl.text.trim());
+                          if (sets == null || sets <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Number of Sets required for Item #${i + 1}')));
+                            return;
+                          }
+                        }
+                      }
+                    } else {
+                      if (_partNumberCtrl.text.trim().isEmpty || _quantityCtrl.text.trim().isEmpty || _wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields in this step')));
+                        return;
+                      }
+                      if (_isAssembly) {
+                        final sets = int.tryParse(_numberOfSetsCtrl.text.trim());
+                        if (sets == null || sets <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly')));
+                          return;
+                        }
+                      }
                     }
                   } else if (_currentStep == 2) {
                     if (_assignedWorkerCtrl.text.trim().isEmpty || _deliveryDate == null || _purchaseOrderReceived == null) {

@@ -5,7 +5,9 @@ import '../../services/api_service.dart';
 import '../../utils/company_utils.dart';
 
 class StorageSelectionDialog extends StatefulWidget {
-  const StorageSelectionDialog({Key? key}) : super(key: key);
+  final bool allowMultiSelect;
+
+  const StorageSelectionDialog({super.key, this.allowMultiSelect = false});
 
   @override
   State<StorageSelectionDialog> createState() => _StorageSelectionDialogState();
@@ -15,6 +17,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   CompanyStorage? _selectedCompany;
   List<ItemDatabaseModel> _items = [];
   List<ItemDatabaseModel> _filteredItems = [];
+  final Set<ItemDatabaseModel> _selectedItems = {};
   bool _isLoading = false;
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _descSearchCtrl = TextEditingController();
@@ -42,6 +45,7 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
   Future<void> _fetchItems(CompanyStorage company) async {
     setState(() {
       _selectedCompany = company;
+      _selectedItems.clear();
       _isLoading = true;
       _searchCtrl.clear();
       _descSearchCtrl.clear();
@@ -86,10 +90,44 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
     });
   }
 
+  bool _isItemSelected(ItemDatabaseModel item) {
+    return _selectedItems.any((i) => i.itemId == item.itemId && i.itemName == item.itemName);
+  }
+
+  void _toggleSelection(ItemDatabaseModel item) {
+    setState(() {
+      if (_isItemSelected(item)) {
+        _selectedItems.removeWhere((i) => i.itemId == item.itemId && i.itemName == item.itemName);
+      } else {
+        _selectedItems.add(item);
+      }
+    });
+  }
+
   void _confirmSelection(ItemDatabaseModel item) {
+    if (widget.allowMultiSelect) {
+      if (!_isItemSelected(item)) {
+        _selectedItems.add(item);
+      }
+      Navigator.of(context).pop({
+        'company': _selectedCompany!.name,
+        'items': _selectedItems.toList(),
+        'item': item,
+      });
+    } else {
+      Navigator.of(context).pop({
+        'company': _selectedCompany!.name,
+        'item': item,
+      });
+    }
+  }
+
+  void _confirmMultiSelection() {
+    if (_selectedItems.isEmpty) return;
     Navigator.of(context).pop({
       'company': _selectedCompany!.name,
-      'item': item,
+      'items': _selectedItems.toList(),
+      'item': _selectedItems.first,
     });
   }
 
@@ -291,23 +329,83 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
                       },
                     ),
         ),
+        if (widget.allowMultiSelect) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F9FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFBAE6FD)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.playlist_add_check, color: Color(0xFF0288D1), size: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${_selectedItems.length} item(s) selected',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0C4A6E)),
+                    ),
+                    if (_selectedItems.isNotEmpty) ...[
+                      const SizedBox(width: 12),
+                      TextButton(
+                        onPressed: () => setState(() => _selectedItems.clear()),
+                        child: const Text('Clear All', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: _selectedItems.isEmpty ? null : _confirmMultiSelection,
+                  icon: const Icon(Icons.check, size: 18),
+                  label: Text(
+                    _selectedItems.isEmpty
+                        ? 'Select Items to Add'
+                        : 'Confirm Selection (${_selectedItems.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0288D1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildItemCard(ItemDatabaseModel item) {
+    final isSelected = widget.allowMultiSelect && _isItemSelected(item);
+
     return InkWell(
-      onTap: () => _showItemDetails(item),
+      onTap: () {
+        if (widget.allowMultiSelect) {
+          _toggleSelection(item);
+        } else {
+          _showItemDetails(item);
+        }
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? const Color(0xFFE0F2FE) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0288D1) : Colors.grey[200]!,
+            width: isSelected ? 2 : 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha((0.02 * 255).toInt()),
+              color: isSelected ? const Color(0xFF0288D1).withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.02),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -320,13 +418,20 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (widget.allowMultiSelect) ...[
+                  Checkbox(
+                    value: isSelected,
+                    activeColor: const Color(0xFF0288D1),
+                    onChanged: (_) => _toggleSelection(item),
+                  ),
+                ],
                 Expanded(
                   child: Text(
                     item.itemName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: Color(0xFF1E293B),
+                      color: isSelected ? const Color(0xFF0369A1) : const Color(0xFF1E293B),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -348,16 +453,22 @@ class _StorageSelectionDialogState extends State<StorageSelectionDialog> {
                       ),
                     ),
                   ),
+                if (widget.allowMultiSelect)
+                  IconButton(
+                    icon: const Icon(Icons.info_outline, size: 18, color: Colors.grey),
+                    tooltip: 'View details',
+                    onPressed: () => _showItemDetails(item),
+                  ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildInfoRow(Icons.tag, 'ID: ${item.itemId}'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _buildInfoRow(Icons.inventory_2_outlined, 'Vendor: ${item.vendor ?? 'N/A'}'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _buildInfoRow(Icons.pin_drop_outlined, 'SKU: ${item.sku ?? 'N/A'}'),
             if (item.description != null && item.description!.trim().isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               _buildInfoRow(Icons.description_outlined, 'Desc: ${item.description!.replaceAll('\n', ' ').trim()}', maxLines: 2),
             ],
           ],
