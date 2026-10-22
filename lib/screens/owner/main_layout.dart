@@ -87,22 +87,16 @@ class _MainLayoutState extends State<MainLayout> {
       ];
 
       if (_role == UserRole.owner) {
-        _screens.addAll([
-          const JobApprovalScreen(initialTab: 0), // 11. Request
-          const JobApprovalScreen(initialTab: 1), // 12. Granted
-        ]);
-        _destinations.addAll([
+        _screens.add(
+          const JobApprovalScreen(), // 11. Approvals
+        );
+        _destinations.add(
           const NavigationRailDestination(
-            icon: Icon(Icons.pending_actions_outlined),
-            selectedIcon: Icon(Icons.pending_actions),
-            label: Text('Request'),
+            icon: Icon(Icons.fact_check_outlined),
+            selectedIcon: Icon(Icons.fact_check),
+            label: Text('Approvals'),
           ),
-          const NavigationRailDestination(
-            icon: Icon(Icons.verified_outlined),
-            selectedIcon: Icon(Icons.verified),
-            label: Text('Granted'),
-          ),
-        ]);
+        );
       }
     } else if (_role == UserRole.employee1) {
       _screens = [

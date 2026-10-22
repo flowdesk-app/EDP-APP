@@ -31,6 +31,14 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
   }
 
   @override
+  void didUpdateWidget(covariant JobApprovalScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab && widget.initialTab != _tabController.index) {
+      _tabController.animateTo(widget.initialTab);
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     _searchCtrl.dispose();
