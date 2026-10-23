@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../models/user_model.dart';
 import '../../widgets/job_type_badge.dart';
 import 'owner_edit_job_dialog.dart';
+import '../../utils/positive_number_formatter.dart';
 
 class JobTimelineScreen extends StatefulWidget {
   final JobModel job;
@@ -233,6 +235,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
         content: TextField(
           controller: ctrl,
           keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            const PositiveNumberInputFormatter(),
+          ],
           decoration: InputDecoration(
             labelText: 'Enter amount (Max: $available)',
             border: const OutlineInputBorder(),
@@ -331,6 +337,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     controller: qtyCtrl,
                     decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      const PositiveNumberInputFormatter(),
+                    ],
                   ),
                   if (isExternal) ...[
                     const SizedBox(height: 12),
@@ -369,7 +379,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     val = 'EDP';
                   }
                   
-                  int? qty = int.tryParse(qtyCtrl.text);
+                  int? qty = int.tryParse(qtyCtrl.text.trim());
+                  if (qtyCtrl.text.trim().isNotEmpty && (qty == null || qty <= 0)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red),
+                    );
+                    return;
+                  }
                   
                   Navigator.pop(ctx);
                   setState(() => _isUpdating = true);
@@ -420,6 +436,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               TextField(
                 controller: qtyCtrl,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  const PositiveNumberInputFormatter(),
+                ],
                 decoration: InputDecoration(
                   labelText: 'Quantity (Max: $available)',
                   border: const OutlineInputBorder(),

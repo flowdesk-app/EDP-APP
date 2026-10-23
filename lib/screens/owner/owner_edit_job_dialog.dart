@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../models/job_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/job_type_badge.dart';
+import '../../utils/positive_number_formatter.dart';
 
 class OwnerEditJobDialog extends StatefulWidget {
   final JobModel job;
@@ -328,10 +330,14 @@ class _OwnerEditJobDialogState extends State<OwnerEditJobDialog> {
                                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                               ),
                               keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                const PositiveNumberInputFormatter(),
+                              ],
                               validator: (val) {
                                 if (val == null || val.trim().isEmpty) return 'Quantity is required';
                                 if (int.tryParse(val.trim()) == null || int.parse(val.trim()) <= 0) {
-                                  return 'Enter a valid positive number';
+                                  return 'Quantity must be greater than 0 (cannot be 0)';
                                 }
                                 return null;
                               },
@@ -369,11 +375,15 @@ class _OwnerEditJobDialogState extends State<OwnerEditJobDialog> {
                             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                           ),
                           keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            const PositiveNumberInputFormatter(),
+                          ],
                           validator: (val) {
                             if (_isAssembly) {
                               if (val == null || val.trim().isEmpty) return 'Number of sets is required';
                               if (int.tryParse(val.trim()) == null || int.parse(val.trim()) <= 0) {
-                                return 'Enter a valid positive number';
+                                return 'Number of sets must be greater than 0 (cannot be 0)';
                               }
                             }
                             return null;
@@ -545,6 +555,19 @@ class _OwnerEditJobDialogState extends State<OwnerEditJobDialog> {
                                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                                 ),
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  const PositiveNumberInputFormatter(),
+                                ],
+                                validator: (val) {
+                                  if (val != null && val.trim().isNotEmpty) {
+                                    final q = int.tryParse(val.trim());
+                                    if (q == null || q <= 0) {
+                                      return 'Quantity must be greater than 0 (cannot be 0)';
+                                    }
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
                             const SizedBox(width: 16),

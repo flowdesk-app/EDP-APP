@@ -11,6 +11,7 @@ import '../../models/lead_model.dart';
 import '../../models/user_model.dart';
 import 'package:intl/intl.dart';
 import 'spare_at_edp_tabs_screen.dart';
+import '../../utils/positive_number_formatter.dart';
 
 enum FlowType { none, newJob, recoating, coating, lappingCompound }
 
@@ -247,14 +248,15 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Part Number is required')));
         return;
       }
-      if (_quantityCtrl.text.trim().isEmpty || int.tryParse(_quantityCtrl.text.trim()) == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Valid Quantity is required')));
+      final qty = int.tryParse(_quantityCtrl.text.trim());
+      if (qty == null || qty <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
         return;
       }
       if (_isAssembly) {
         final sets = int.tryParse(_numberOfSetsCtrl.text.trim());
         if (sets == null || sets <= 0) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly (cannot be 0)'), backgroundColor: Colors.red));
           return;
         }
       }
@@ -265,8 +267,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Part Number is required for Item #${i + 1}')));
           return;
         }
-        if (item.quantityCtrl.text.trim().isEmpty || int.tryParse(item.quantityCtrl.text.trim()) == null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Quantity is required for Item #${i + 1}')));
+        final itemQty = int.tryParse(item.quantityCtrl.text.trim());
+        if (itemQty == null || itemQty <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Quantity for Item #${i + 1} must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
           return;
         }
         if (item.descriptionCtrl.text.trim().isEmpty) {
@@ -672,6 +675,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill Customer, Part Number, and Quantity')));
       return;
     }
+    final qty = int.tryParse(_quantityCtrl.text.trim());
+    if (qty == null || qty <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
+      return;
+    }
     if (_wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill Description and Grit Size')));
       return;
@@ -687,7 +695,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     if (_isAssembly) {
       final sets = int.tryParse(_numberOfSetsCtrl.text.trim());
       if (sets == null || sets <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly (cannot be 0)'), backgroundColor: Colors.red));
         return;
       }
     }
@@ -930,7 +938,10 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               child: TextField(
                 controller: item.numberOfSetsCtrl,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  const PositiveNumberInputFormatter(),
+                ],
                 decoration: const InputDecoration(
                   isDense: true,
                   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -1039,12 +1050,30 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                 child: TextField(
                   controller: item.quantityCtrl,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    const PositiveNumberInputFormatter(),
+                  ],
+                  decoration: InputDecoration(
                     labelText: 'Quantity *',
                     hintText: 'e.g. 1',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    errorText: (item.quantityCtrl.text.trim().isNotEmpty && (int.tryParse(item.quantityCtrl.text.trim()) ?? 0) <= 0)
+                        ? 'Cannot be 0'
+                        : null,
                   ),
+                  onChanged: (_) => setState(() {}),
+                  onSubmitted: (val) {
+                    final q = int.tryParse(val.trim());
+                    if (q == null || q <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Quantity must be greater than 0 (cannot be 0)'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
             ],
@@ -1221,7 +1250,10 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               controller: tempCtrl,
               autofocus: true,
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                const PositiveNumberInputFormatter(),
+              ],
               decoration: const InputDecoration(
                 labelText: 'Number of Sets *',
                 hintText: 'e.g. 2',
@@ -1313,7 +1345,10 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           TextField(
             controller: _numberOfSetsCtrl,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              const PositiveNumberInputFormatter(),
+            ],
             decoration: const InputDecoration(
               labelText: 'Number of Sets *',
               hintText: 'e.g. 2',
@@ -1373,7 +1408,30 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           TextField(
             controller: _quantityCtrl,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              const PositiveNumberInputFormatter(),
+            ],
+            decoration: InputDecoration(
+              labelText: 'Quantity *',
+              hintText: 'Enter quantity (min: 1)',
+              border: const OutlineInputBorder(),
+              errorText: (_quantityCtrl.text.trim().isNotEmpty && (int.tryParse(_quantityCtrl.text.trim()) ?? 0) <= 0)
+                  ? 'Quantity must be greater than 0 (cannot be 0)'
+                  : null,
+            ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (val) {
+              final q = int.tryParse(val.trim());
+              if (q == null || q <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Quantity must be greater than 0 (cannot be 0)'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
           ),
           _buildSetsField(),
           const SizedBox(height: 12),
@@ -1511,7 +1569,30 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           TextField(
             controller: _syringeQuantityCtrl,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Syringe Quantity', border: OutlineInputBorder()),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              const PositiveNumberInputFormatter(),
+            ],
+            decoration: InputDecoration(
+              labelText: 'Syringe Quantity *',
+              hintText: 'Enter quantity (min: 1)',
+              border: const OutlineInputBorder(),
+              errorText: (_syringeQuantityCtrl.text.trim().isNotEmpty && (int.tryParse(_syringeQuantityCtrl.text.trim()) ?? 0) <= 0)
+                  ? 'Syringe Quantity must be greater than 0 (cannot be 0)'
+                  : null,
+            ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (val) {
+              final q = int.tryParse(val.trim());
+              if (q == null || q <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Syringe Quantity must be greater than 0 (cannot be 0)'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
           ),
           const SizedBox(height: 12),
           const Text('Base Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -1624,7 +1705,11 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     if (_micronsCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Microns required'))); return; }
     if (_micronColorCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Micron Color required'))); return; }
     if (_micronSizeCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Micron Size required'))); return; }
-    if (_syringeQuantityCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syringe Quantity required'))); return; }
+    final syringeQty = int.tryParse(_syringeQuantityCtrl.text.trim());
+    if (syringeQty == null || syringeQty <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syringe Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
+      return;
+    }
     if (_baseType == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select Base Type'))); return; }
     if (_assignedWorkerCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Person Responsible required'))); return; }
     if (_customerNameCtrl.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Name required'))); return; }
@@ -1849,7 +1934,30 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   TextField(
                     controller: _quantityCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      const PositiveNumberInputFormatter(),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: 'Quantity *',
+                      hintText: 'Enter quantity (min: 1)',
+                      border: const OutlineInputBorder(),
+                      errorText: (_quantityCtrl.text.trim().isNotEmpty && (int.tryParse(_quantityCtrl.text.trim()) ?? 0) <= 0)
+                          ? 'Quantity must be greater than 0 (cannot be 0)'
+                          : null,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    onSubmitted: (val) {
+                      final q = int.tryParse(val.trim());
+                      if (q == null || q <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Quantity must be greater than 0 (cannot be 0)'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
                   ),
                   _buildSetsField(),
                   if (!_isAssembly)
@@ -2082,8 +2190,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Part Number is required for Item #${i + 1}')));
                           return;
                         }
-                        if (item.quantityCtrl.text.trim().isEmpty || int.tryParse(item.quantityCtrl.text.trim()) == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Quantity is required for Item #${i + 1}')));
+                        final itemQty = int.tryParse(item.quantityCtrl.text.trim());
+                        if (itemQty == null || itemQty <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Quantity for Item #${i + 1} must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
                           return;
                         }
                         if (item.descriptionCtrl.text.trim().isEmpty) {
@@ -2097,20 +2206,29 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                         if (item.isAssembly) {
                           final sets = int.tryParse(item.numberOfSetsCtrl.text.trim());
                           if (sets == null || sets <= 0) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Number of Sets required for Item #${i + 1}')));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Valid Number of Sets required for Item #${i + 1} (cannot be 0)'), backgroundColor: Colors.red));
                             return;
                           }
                         }
                       }
                     } else {
-                      if (_partNumberCtrl.text.trim().isEmpty || _quantityCtrl.text.trim().isEmpty || _wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields in this step')));
+                      if (_partNumberCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Part Number is required')));
+                        return;
+                      }
+                      final qty = int.tryParse(_quantityCtrl.text.trim());
+                      if (qty == null || qty <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
+                        return;
+                      }
+                      if (_wheelSizeCtrl.text.trim().isEmpty || _gritSizeCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill Description and Grit Size')));
                         return;
                       }
                       if (_isAssembly) {
                         final sets = int.tryParse(_numberOfSetsCtrl.text.trim());
                         if (sets == null || sets <= 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly')));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid Number of Sets for Assembly (cannot be 0)'), backgroundColor: Colors.red));
                           return;
                         }
                       }

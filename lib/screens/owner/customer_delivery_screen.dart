@@ -1,5 +1,7 @@
+import 'package:flutter/services.dart';
 import '../../widgets/global_logout_button.dart';
 import 'package:flutter/material.dart';
+import '../../utils/positive_number_formatter.dart';
 
 class CustomerDeliveryScreen extends StatefulWidget {
   const CustomerDeliveryScreen({super.key});
@@ -16,6 +18,11 @@ class _CustomerDeliveryScreenState extends State<CustomerDeliveryScreen> {
   final _noteCtrl = TextEditingController();
   
   void _deliverMaterial() async {
+    final qty = int.tryParse(_qtyCtrl.text.trim());
+    if (qty == null || qty <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red));
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Delivery Recorded!')));
     setState(() {
       _customerCtrl.clear();
@@ -60,7 +67,11 @@ class _CustomerDeliveryScreenState extends State<CustomerDeliveryScreen> {
                 TextField(
                   controller: _qtyCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    const PositiveNumberInputFormatter(),
+                  ],
+                  decoration: const InputDecoration(labelText: 'Quantity *', border: OutlineInputBorder()),
                 ),
                 const SizedBox(height: 16),
                 TextField(
