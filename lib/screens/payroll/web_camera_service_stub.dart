@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WebCameraService {
+  String? lastError;
   bool get isSupported => false;
   bool get isCameraActive => false;
 

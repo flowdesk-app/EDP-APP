@@ -76,12 +76,15 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
   }
 
   Future<void> _startStream() async {
+    setState(() {
+      _errorMessage = null;
+    });
     final active = await _camera.startCamera();
     if (mounted) {
       setState(() {
         _cameraActive = active;
         if (!active) {
-          _errorMessage = 'Webcam not available. You can also use the Quick Punch buttons below.';
+          _errorMessage = _camera.lastError ?? 'Webcam not available. Please allow camera permissions in your browser address bar.';
         } else {
           _errorMessage = null;
         }
@@ -339,23 +342,52 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
             _camera.buildVideoView(_viewId)
           else
             Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.videocam_outlined, size: 64, color: Colors.white24),
-                  const SizedBox(height: 12),
-                  Text(
-                    _errorMessage ?? 'Connecting to company camera...',
-                    style: const TextStyle(color: Colors.white60, fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _startStream,
-                    icon: const Icon(Icons.refresh, size: 16),
-                    label: const Text('Retry Camera'),
-                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
-                  ),
-                ],
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 380),
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161E28).withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF37474F)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.videocam_off_outlined, size: 52, color: Color(0xFFFFA000)),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Webcam Permission Needed',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _errorMessage ?? 'Please click the lock or camera icon in your browser URL bar to Allow camera access for this site.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: _startStream,
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: const Text('Allow / Retry Camera'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0288D1),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        elevation: 4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -372,54 +404,55 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
             ),
           ),
 
-          // Biometric Face Target Oval & Crosshairs
-          Positioned.fill(
-            child: Center(
-              child: Container(
-                width: 280,
-                height: 360,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: _scanning ? const Color(0xFF00E676) : const Color(0xFF29B6F6).withValues(alpha: 0.8),
-                    width: 2.5,
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.elliptical(280, 360)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_scanning ? const Color(0xFF00E676) : const Color(0xFF29B6F6)).withValues(alpha: 0.25),
-                      blurRadius: 20,
-                      spreadRadius: 2,
+          // Biometric Face Target Oval & Crosshairs (Only shown when camera is active)
+          if (_cameraActive)
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  width: 280,
+                  height: 360,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _scanning ? const Color(0xFF00E676) : const Color(0xFF29B6F6).withValues(alpha: 0.8),
+                      width: 2.5,
                     ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    // Corner targeting brackets
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          _scanning ? 'MATCHING BIOMETRIC...' : 'ALIGN FACE IN FRAME',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                            color: _scanning ? const Color(0xFF00E676) : const Color(0xFF29B6F6),
+                    borderRadius: const BorderRadius.all(Radius.elliptical(280, 360)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_scanning ? const Color(0xFF00E676) : const Color(0xFF29B6F6)).withValues(alpha: 0.25),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Corner targeting brackets
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            _scanning ? 'MATCHING BIOMETRIC...' : 'ALIGN FACE IN FRAME',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: _scanning ? const Color(0xFF00E676) : const Color(0xFF29B6F6),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
           // Mode Selector (Top Left of camera)
           Positioned(
