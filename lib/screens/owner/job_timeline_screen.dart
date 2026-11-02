@@ -1107,7 +1107,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedDestination,
+                    initialValue: selectedDestination,
                     decoration: const InputDecoration(
                       labelText: 'Select Destination',
                       border: OutlineInputBorder(),

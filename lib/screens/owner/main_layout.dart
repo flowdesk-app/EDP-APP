@@ -18,6 +18,8 @@ import '../../services/api_service.dart';
 import '../login_screen.dart';
 import 'storage_screen.dart';
 import 'job_approval_screen.dart';
+import 'estimates_screen.dart';
+import '../../widgets/estimate_auth_dialog.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -97,6 +99,16 @@ class _MainLayoutState extends State<MainLayout> {
             label: Text('Approvals'),
           ),
         );
+        _screens.add(
+          const EstimatesScreen(), // 12. Estimates
+        );
+        _destinations.add(
+          const NavigationRailDestination(
+            icon: Icon(Icons.calculate_outlined),
+            selectedIcon: Icon(Icons.calculate),
+            label: Text('Estimates'),
+          ),
+        );
       }
     } else if (_role == UserRole.employee1) {
       _screens = [
@@ -164,7 +176,11 @@ class _MainLayoutState extends State<MainLayout> {
                   child: IntrinsicHeight(
                     child: NavigationRail(
                       selectedIndex: _currentIndex,
-                      onDestinationSelected: (int index) {
+                      onDestinationSelected: (int index) async {
+                        if (index < _screens.length && _screens[index] is EstimatesScreen) {
+                          final auth = await EstimateAuthService.ensureAuthorized(context);
+                          if (!auth) return;
+                        }
                         if (index == 0) {
                           _dashboardKey.currentState?.reload();
                         }
@@ -213,11 +229,16 @@ class _MainLayoutState extends State<MainLayout> {
                 title: _destinations[index].label,
                 selected: _currentIndex == index,
                 selectedColor: const Color(0xFF29B6F6),
-                onTap: () {
+                onTap: () async {
+                  if (index < _screens.length && _screens[index] is EstimatesScreen) {
+                    final auth = await EstimateAuthService.ensureAuthorized(context);
+                    if (!auth) return;
+                  }
                   if (index == 0) {
                     _dashboardKey.currentState?.reload();
                   }
                   setState(() => _currentIndex = index);
+                  if (!mounted) return;
                   Navigator.pop(context); // Close drawer
                 },
               );

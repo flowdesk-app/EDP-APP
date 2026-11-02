@@ -11,6 +11,7 @@ import '../models/notification_model.dart';
 import '../models/lead_model.dart';
 import '../models/raw_material_model.dart';
 import '../models/item_database_model.dart';
+import '../models/estimate_model.dart';
 import 'package:flutter/foundation.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -958,7 +959,7 @@ class ApiService {
       }),
     );
     if (res.statusCode != 200) {
-      print('Failed to save item to database: ${res.body}');
+      debugPrint('Failed to save item to database: ${res.body}');
     }
   }
 
@@ -972,7 +973,7 @@ class ApiService {
         mergeDynamicCompanies(dynamicCompanies);
       }
     } catch (e) {
-      print('Error fetching companies: $e');
+      debugPrint('Error fetching companies: $e');
     }
   }
 
@@ -993,7 +994,91 @@ class ApiService {
         mergeDynamicCompanies([CompanyStorage.fromJson(data)]);
       }
     } catch (e) {
-      print('Error creating company: $e');
+      debugPrint('Error creating company: $e');
+    }
+  }
+
+  // --- Estimates API ---
+  Future<List<EstimateModel>> getEstimates({String? jobId, String? search}) async {
+    await _loadToken();
+    try {
+      final queryParams = <String, String>{};
+      if (jobId != null && jobId.isNotEmpty) queryParams['jobId'] = jobId;
+      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+
+      final uri = Uri.parse('$baseUrl/estimates').replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(res.body);
+        return data.map((e) => EstimateModel.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching estimates: $e');
+    }
+    return [];
+  }
+
+  Future<EstimateModel?> getEstimateByJobId(String jobId) async {
+    await _loadToken();
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/estimates/job/$jobId'), headers: _headers);
+      if (res.statusCode == 200) {
+        return EstimateModel.fromJson(jsonDecode(res.body));
+      }
+    } catch (e) {
+      debugPrint('Error fetching estimate by jobId: $e');
+    }
+    return null;
+  }
+
+  Future<EstimateModel?> getEstimateById(String id) async {
+    await _loadToken();
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/estimates/$id'), headers: _headers);
+      if (res.statusCode == 200) {
+        return EstimateModel.fromJson(jsonDecode(res.body));
+      }
+    } catch (e) {
+      debugPrint('Error fetching estimate by id: $e');
+    }
+    return null;
+  }
+
+  Future<EstimateModel> saveEstimate(EstimateModel estimate) async {
+    await _loadToken();
+    if (estimate.id != null && estimate.id!.isNotEmpty) {
+      // Update
+      final res = await http.put(
+        Uri.parse('$baseUrl/estimates/${estimate.id}'),
+        headers: _headers,
+        body: jsonEncode(estimate.toJson()),
+      );
+      if (res.statusCode == 200) {
+        return EstimateModel.fromJson(jsonDecode(res.body));
+      }
+      throw Exception('Failed to update estimate: ${res.body}');
+    } else {
+      // Create
+      final res = await http.post(
+        Uri.parse('$baseUrl/estimates'),
+        headers: _headers,
+        body: jsonEncode(estimate.toJson()),
+      );
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        return EstimateModel.fromJson(jsonDecode(res.body));
+      }
+      throw Exception('Failed to create estimate: ${res.body}');
+    }
+  }
+
+  Future<bool> deleteEstimate(String id) async {
+    await _loadToken();
+    try {
+      final res = await http.delete(Uri.parse('$baseUrl/estimates/$id'), headers: _headers);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error deleting estimate: $e');
+      return false;
     }
   }
 }
