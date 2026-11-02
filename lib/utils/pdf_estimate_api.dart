@@ -12,249 +12,417 @@ class PdfEstimateApi {
     final numFmt = NumberFormat('0.00');
     final dateFmt = DateFormat('dd-MMM-yyyy');
 
-    // PAGE 1: PRICE CALCULATION SHEET
+    const double colA = 48.4;
+    const double colB = 123.0;
+    const double colC = 100.5;
+    const double colD = 42.7;
+    const double colEG = 139.9;
+    const double colH = 55.5;
+
+    const borderSide = pw.BorderSide(color: PdfColors.black, width: 0.75);
+
+    pw.Widget cellA(double height) {
+      return pw.Container(
+        width: colA,
+        height: height,
+        decoration: const pw.BoxDecoration(
+          border: pw.Border(
+            top: borderSide,
+            bottom: borderSide,
+            left: borderSide,
+            right: borderSide,
+          ),
+        ),
+      );
+    }
+
+    pw.Widget cell({
+      required double width,
+      required double height,
+      required pw.Widget child,
+      pw.Alignment alignment = pw.Alignment.centerLeft,
+      pw.EdgeInsets padding = const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      bool borderRight = true,
+      bool borderBottom = true,
+      bool borderTop = true,
+      bool borderLeft = true,
+    }) {
+      return pw.Container(
+        width: width,
+        height: height,
+        padding: padding,
+        alignment: alignment,
+        decoration: pw.BoxDecoration(
+          border: pw.Border(
+            top: borderTop ? borderSide : pw.BorderSide.none,
+            bottom: borderBottom ? borderSide : pw.BorderSide.none,
+            left: borderLeft ? borderSide : pw.BorderSide.none,
+            right: borderRight ? borderSide : pw.BorderSide.none,
+          ),
+        ),
+        child: child,
+      );
+    }
+
+    final calcNoStr = estimate.calculationNo.isNotEmpty ? estimate.calculationNo : '000001089';
+    final dateStr = dateFmt.format(estimate.date);
+    final customerStr = estimate.customerName.isNotEmpty ? estimate.customerName : 'M/s.';
+    final itemDescStr = estimate.itemDescription?.isNotEmpty == true ? estimate.itemDescription! : '';
+    final drgNoStr = estimate.drawingNo?.isNotEmpty == true ? 'DRG No: ${estimate.drawingNo}' : '';
+    final typeStr = estimate.type.isNotEmpty ? estimate.type : 'R';
+
+    String calcNotesStr;
+    if (estimate.calculationsNotes != null && estimate.calculationsNotes!.isNotEmpty) {
+      calcNotesStr = estimate.calculationsNotes!;
+    } else if (estimate.effectiveCoatingArea > 0) {
+      calcNotesStr = 'Area = ${estimate.effectiveCoatingArea.toStringAsFixed(2)}';
+    } else {
+      calcNotesStr = '';
+    }
+
+    // PAGE 1: PRICE CALCULATION SHEET (exact format matching the official quotation sheet)
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        pageFormat: PdfPageFormat.letter,
+        margin: const pw.EdgeInsets.only(left: 50.4, top: 53.6, right: 51.6, bottom: 60.0),
         build: (context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // TOP HEADER TABLE
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2.2),
-                  1: const pw.FlexColumnWidth(2.8),
-                  2: const pw.FlexColumnWidth(1.2),
-                  3: const pw.FlexColumnWidth(1.8),
-                },
+              // Row 1: Calculation No & Date (h=15.8)
+              pw.Row(
                 children: [
-                  // Row 1: Calculation No & Date
-                  pw.TableRow(
-                    children: [
-                      _cell('Calulation No:', isBold: true),
-                      _cell(estimate.calculationNo.isNotEmpty ? estimate.calculationNo : '000001089'),
-                      _cell('Date:', isBold: true),
-                      _cell(dateFmt.format(estimate.date)),
-                    ],
+                  cellA(15.8),
+                  cell(
+                    width: colB,
+                    height: 15.8,
+                    child: pw.Text('Calulation No:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
                   ),
-                  // Row 2: Customer
-                  pw.TableRow(
-                    children: [
-                      _cell('Customer:', isBold: true),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                        child: pw.Text(
-                          estimate.customerName.isNotEmpty ? estimate.customerName : 'M/s.',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-                        ),
-                      ),
-                      _cell(''),
-                      _cell(''),
-                    ],
+                  cell(
+                    width: colC,
+                    height: 15.8,
+                    child: pw.Text(calcNoStr, style: const pw.TextStyle(fontSize: 11.5)),
+                  ),
+                  cell(
+                    width: colD,
+                    height: 15.8,
+                    child: pw.Text('Date:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                  ),
+                  cell(
+                    width: colEG + colH,
+                    height: 15.8,
+                    child: pw.Text(dateStr, style: const pw.TextStyle(fontSize: 11.5)),
                   ),
                 ],
               ),
 
-              // ITEM DESCRIPTION & TYPE BOX
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(6.2),
-                  1: const pw.FlexColumnWidth(1.8),
-                },
+              // Row 2: Customer (h=30.0)
+              pw.Row(
                 children: [
-                  pw.TableRow(
-                    children: [
-                      pw.Container(
-                        padding: const pw.EdgeInsets.all(6),
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text('Item Description:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, decoration: pw.TextDecoration.underline)),
-                            pw.SizedBox(height: 3),
-                            pw.Text(
-                              estimate.itemDescription?.isNotEmpty == true ? estimate.itemDescription! : 'N/A',
-                              style: const pw.TextStyle(fontSize: 9),
-                            ),
-                            if (estimate.drawingNo != null && estimate.drawingNo!.isNotEmpty) ...[
-                              pw.SizedBox(height: 4),
-                              pw.Text('DRG No: ${estimate.drawingNo}', style: const pw.TextStyle(fontSize: 9)),
-                            ],
-                          ],
-                        ),
-                      ),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Column(
-                          mainAxisAlignment: pw.MainAxisAlignment.center,
-                          crossAxisAlignment: pw.CrossAxisAlignment.center,
-                          children: [
-                            pw.Text('Type', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                            pw.SizedBox(height: 4),
-                            pw.Text(
-                              estimate.type.isNotEmpty ? estimate.type : 'R',
-                              style: pw.TextStyle(fontSize: 32, fontWeight: pw.FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  cellA(30.0),
+                  cell(
+                    width: colB,
+                    height: 30.0,
+                    borderTop: false,
+                    child: pw.Text('Customer:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
                   ),
-                  // Drawing / Notes Row
-                  pw.TableRow(
-                    children: [
-                      pw.Container(
-                        padding: const pw.EdgeInsets.all(6),
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text('Drawing:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
-                            pw.Text('SEE OVERLEAF', style: const pw.TextStyle(fontSize: 9)),
-                          ],
-                        ),
-                      ),
-                      _cell(''),
-                    ],
-                  ),
-                  // Calculations Notes
-                  pw.TableRow(
-                    children: [
-                      pw.Container(
-                        padding: const pw.EdgeInsets.all(6),
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text('Calculations', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
-                            if (estimate.calculationsNotes != null && estimate.calculationsNotes!.isNotEmpty)
-                              pw.Text(estimate.calculationsNotes!, style: const pw.TextStyle(fontSize: 8.5))
-                            else
-                              pw.Text('Area = ${estimate.effectiveCoatingArea.toStringAsFixed(2)} sq cm', style: const pw.TextStyle(fontSize: 8.5)),
-                          ],
-                        ),
-                      ),
-                      _cell(''),
-                    ],
+                  cell(
+                    width: colC + colD + colEG + colH,
+                    height: 30.0,
+                    borderTop: false,
+                    child: pw.Text(customerStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ),
                 ],
               ),
 
-              pw.SizedBox(height: 12),
-
-              // MAIN COST BREAKDOWN TABLE
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(3.8),
-                  1: const pw.FlexColumnWidth(2.2),
-                  2: const pw.FlexColumnWidth(2.0),
-                },
+              // Row 3: Item Description Header (h=14.6)
+              pw.Row(
                 children: [
-                  _costRow('Eff. Area of Coating', estimate.effectiveCoatingArea > 0 ? numFmt.format(estimate.effectiveCoatingArea) : '-'),
-                  _costRow('Diamond requirement', '${numFmt.format(estimate.diamondRequirement)} cts'),
-                  _costRow('Diamond cost', numFmt.format(estimate.diamondCost)),
-                  _costRow('Blank cost', numFmt.format(estimate.blankCost)),
-                  _costRow('Grinding Cost', numFmt.format(estimate.grindingCost)),
-                  _costRow('Extraction', numFmt.format(estimate.extractionCost)),
-                  _costRow('Balancing Cost', numFmt.format(estimate.balancingCost)),
-                  _costRow('Transportation Cost', numFmt.format(estimate.transportationCost)),
-                  _dividerRow(),
-                  _costRow('Sub-Total(incl margin)', numFmt.format(estimate.subTotalInclMargin), isBold: true),
-                  _costRow('Process Cost', numFmt.format(estimate.processCost)),
-                  _totalRow('Total', numFmt.format(estimate.totalCost), isBold: true),
-                  _costRow('Provision for discount', numFmt.format(estimate.provisionForDiscount)),
+                  cellA(14.6),
+                  cell(
+                    width: colB + colC + colD + colEG,
+                    height: 14.6,
+                    borderTop: false,
+                    child: pw.Text(
+                      'Item Description:',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8, decoration: pw.TextDecoration.underline),
+                    ),
+                  ),
+                  cell(
+                    width: colH,
+                    height: 14.6,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('Type', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                  ),
                 ],
               ),
+
+              // Rows 4-7: Item Description text + DRG No + Type 'R' / 'N' (h=58.9)
+              pw.Row(
+                children: [
+                  cellA(58.9),
+                  cell(
+                    width: colB + colC + colD + colEG,
+                    height: 58.9,
+                    borderTop: false,
+                    alignment: pw.Alignment.topLeft,
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        if (itemDescStr.isNotEmpty)
+                          pw.Text(itemDescStr, style: const pw.TextStyle(fontSize: 9.5)),
+                        if (drgNoStr.isNotEmpty) ...[
+                          pw.SizedBox(height: 2),
+                          pw.Text(drgNoStr, style: const pw.TextStyle(fontSize: 9.5)),
+                        ],
+                      ],
+                    ),
+                  ),
+                  cell(
+                    width: colH,
+                    height: 58.9,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text(typeStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 38)),
+                  ),
+                ],
+              ),
+
+              // Rows 8-19: Drawing (h=157.5)
+              pw.Row(
+                children: [
+                  cellA(157.5),
+                  cell(
+                    width: colB + colC + colD + colEG + colH,
+                    height: 157.5,
+                    borderTop: false,
+                    alignment: pw.Alignment.topLeft,
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('Drawing:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                        pw.SizedBox(height: 12),
+                        pw.Text('SEE OVERLEAF', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // Row 20: Calculations Header (h=15.4)
+              pw.Row(
+                children: [
+                  cellA(15.4),
+                  cell(
+                    width: colB + colC + colD + colEG + colH,
+                    height: 15.4,
+                    borderTop: false,
+                    child: pw.Text('Calculations', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                  ),
+                ],
+              ),
+
+              // Rows 21-25: Calculations Notes (h=64.1)
+              pw.Row(
+                children: [
+                  cellA(64.1),
+                  cell(
+                    width: colB + colC + colD + colEG + colH,
+                    height: 64.1,
+                    borderTop: false,
+                    alignment: pw.Alignment.topLeft,
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Text(calcNotesStr, style: const pw.TextStyle(fontSize: 9.5)),
+                  ),
+                ],
+              ),
+
+              // Rows 26-38: 13 Cost breakdown rows (each h=24.75)
+              ...[
+                {'label': 'Eff. Area of Coating', 'val': estimate.effectiveCoatingArea > 0 ? numFmt.format(estimate.effectiveCoatingArea) : '', 'unit': '', 'bold': false},
+                {'label': 'Diamond requirement', 'val': estimate.diamondRequirement > 0 ? numFmt.format(estimate.diamondRequirement) : '', 'unit': estimate.diamondRequirement > 0 ? 'cts' : '', 'bold': false},
+                {'label': 'Diamond cost', 'val': numFmt.format(estimate.diamondCost), 'unit': '', 'bold': false},
+                {'label': 'Blank cost', 'val': numFmt.format(estimate.blankCost), 'unit': '', 'bold': false},
+                {'label': 'Grinding Cost', 'val': numFmt.format(estimate.grindingCost), 'unit': '', 'bold': false},
+                {'label': 'Extraction', 'val': numFmt.format(estimate.extractionCost), 'unit': '', 'bold': false},
+                {'label': 'Balancing Cost', 'val': numFmt.format(estimate.balancingCost), 'unit': '', 'bold': false},
+                {'label': 'Transportation Cost', 'val': numFmt.format(estimate.transportationCost), 'unit': '', 'bold': false},
+                {'label': '', 'val': '', 'unit': '', 'bold': false}, // Empty divider row
+                {'label': 'Sub-Total(incl margin)', 'val': numFmt.format(estimate.subTotalInclMargin), 'unit': '', 'bold': true},
+                {'label': 'Process Cost', 'val': numFmt.format(estimate.processCost), 'unit': '', 'bold': false},
+                {'label': 'Total', 'val': numFmt.format(estimate.totalCost), 'unit': '', 'bold': true, 'total': true},
+                {'label': 'Provision for discount', 'val': numFmt.format(estimate.provisionForDiscount), 'unit': '', 'bold': false},
+              ].map((r) {
+                final isTotal = r['total'] == true;
+                final isBold = r['bold'] == true;
+                final label = r['label'] as String;
+                final val = r['val'] as String;
+                final unit = r['unit'] as String;
+
+                return pw.Row(
+                  children: [
+                    cellA(24.75),
+                    cell(
+                      width: colB,
+                      height: 24.75,
+                      borderTop: false,
+                      alignment: isTotal ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
+                      child: pw.Text(
+                        label,
+                        style: pw.TextStyle(fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal, fontSize: 9.8),
+                      ),
+                    ),
+                    cell(
+                      width: colC,
+                      height: 24.75,
+                      borderTop: false,
+                      alignment: pw.Alignment.centerRight,
+                      child: pw.Text(
+                        val,
+                        style: pw.TextStyle(fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal, fontSize: 9.8),
+                      ),
+                    ),
+                    cell(
+                      width: colD,
+                      height: 24.75,
+                      borderTop: false,
+                      child: pw.Text(unit, style: const pw.TextStyle(fontSize: 9.8)),
+                    ),
+                    cell(
+                      width: colEG,
+                      height: 24.75,
+                      borderTop: false,
+                      child: pw.Text(''),
+                    ),
+                    cell(
+                      width: colH,
+                      height: 24.75,
+                      borderTop: false,
+                      child: pw.Text(''),
+                    ),
+                  ],
+                );
+              }),
             ],
           );
         },
       ),
     );
 
-    // PAGE 2: QUOTATION PRICE & TERMS
+    // PAGE 2: QUOTATION TERMS
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        pageFormat: PdfPageFormat.letter,
+        margin: const pw.EdgeInsets.only(left: 50.4, top: 53.6, right: 51.6, bottom: 60.0),
         build: (context) {
+          const double p2ColDEF = 133.8;
+          const double p2ColGH = 104.3;
+
           final discountStr = estimate.discountPercentage > 0 ? '${estimate.discountPercentage.toStringAsFixed(0)}%' : '10%';
           final minOrdStr = estimate.minOrderQty?.isNotEmpty == true ? estimate.minOrderQty! : '1 set';
           final deliveryStr = estimate.delivery?.isNotEmpty == true ? estimate.delivery! : '4 - 6 Weeks';
+          final qtnNoAndDateStr = estimate.qtnNoAndDate?.isNotEmpty == true ? estimate.qtnNoAndDate! : '';
 
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2.5),
-                  1: const pw.FlexColumnWidth(2.0),
-                  2: const pw.FlexColumnWidth(2.5),
-                  3: const pw.FlexColumnWidth(2.5),
-                },
+              // Row 1: Header (h=24.5)
+              pw.Row(
                 children: [
-                  // Row 1: Headers
-                  pw.TableRow(
-                    children: [
-                      _cell('QTN PRICE', isBold: true, align: pw.TextAlign.center),
-                      _cell('Discount', isBold: true, align: pw.TextAlign.center),
-                      _cell('Min. Ord Qty', isBold: true, align: pw.TextAlign.center),
-                      _cell('Delivery', isBold: true, align: pw.TextAlign.center),
-                    ],
+                  cellA(24.5),
+                  cell(
+                    width: colB,
+                    height: 24.5,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('QTN PRICE', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
                   ),
-                  // Row 2: Values
-                  pw.TableRow(
-                    children: [
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                        child: pw.Text(
-                          numFmt.format(estimate.qtnPrice),
-                          textAlign: pw.TextAlign.center,
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                        child: pw.Text(
-                          discountStr,
-                          textAlign: pw.TextAlign.center,
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                        child: pw.Text(
-                          minOrdStr,
-                          textAlign: pw.TextAlign.center,
-                          style: const pw.TextStyle(fontSize: 10),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                        child: pw.Text(
-                          deliveryStr,
-                          textAlign: pw.TextAlign.center,
-                          style: const pw.TextStyle(fontSize: 10),
-                        ),
-                      ),
-                    ],
+                  cell(
+                    width: colC,
+                    height: 24.5,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('Discount', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
                   ),
-                  // Row 3: QTN NO & Date
-                  pw.TableRow(
-                    children: [
-                      _cell('QTN NO & Date', isBold: true, align: pw.TextAlign.center),
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                        child: pw.Text(
-                          estimate.qtnNoAndDate?.isNotEmpty == true ? estimate.qtnNoAndDate! : '',
-                          style: const pw.TextStyle(fontSize: 10),
-                        ),
-                      ),
-                      _cell(''),
-                      _cell(''),
-                    ],
+                  cell(
+                    width: p2ColDEF,
+                    height: 24.5,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('Min. Ord Qty', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                  ),
+                  cell(
+                    width: p2ColGH,
+                    height: 24.5,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('Delivery', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                  ),
+                ],
+              ),
+
+              // Row 2: Values (h=24.5)
+              pw.Row(
+                children: [
+                  cellA(24.5),
+                  cell(
+                    width: colB,
+                    height: 24.5,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text(
+                      numFmt.format(estimate.qtnPrice),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13.6),
+                    ),
+                  ),
+                  cell(
+                    width: colC,
+                    height: 24.5,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text(
+                      discountStr,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13.6),
+                    ),
+                  ),
+                  cell(
+                    width: p2ColDEF,
+                    height: 24.5,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text(
+                      minOrdStr,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13.6),
+                    ),
+                  ),
+                  cell(
+                    width: p2ColGH,
+                    height: 24.5,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text(
+                      deliveryStr,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13.6),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Row 3: QTN NO & Date (h=26.3)
+              pw.Row(
+                children: [
+                  cellA(26.3),
+                  cell(
+                    width: colB,
+                    height: 26.3,
+                    borderTop: false,
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('QTN NO & Date', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                  ),
+                  cell(
+                    width: colC + p2ColDEF + p2ColGH,
+                    height: 26.3,
+                    borderTop: false,
+                    child: pw.Text(qtnNoAndDateStr, style: const pw.TextStyle(fontSize: 10)),
                   ),
                 ],
               ),
@@ -265,86 +433,6 @@ class PdfEstimateApi {
     );
 
     return pdf.save();
-  }
-
-  static pw.Widget _cell(String text, {bool isBold = false, pw.TextAlign align = pw.TextAlign.left}) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: pw.Text(
-        text,
-        textAlign: align,
-        style: pw.TextStyle(
-          fontSize: 9.5,
-          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-        ),
-      ),
-    );
-  }
-
-  static pw.TableRow _costRow(String label, String value, {bool isBold = false}) {
-    return pw.TableRow(
-      children: [
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4.5),
-          child: pw.Text(
-            label,
-            style: pw.TextStyle(fontSize: 9.5, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal),
-          ),
-        ),
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
-          alignment: pw.Alignment.centerRight,
-          child: pw.Text(
-            value,
-            textAlign: pw.TextAlign.right,
-            style: pw.TextStyle(fontSize: 9.5, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal),
-          ),
-        ),
-        pw.Container(
-          padding: const pw.EdgeInsets.all(4.5),
-          child: pw.Text(''),
-        ),
-      ],
-    );
-  }
-
-  static pw.TableRow _totalRow(String label, String value, {bool isBold = false}) {
-    return pw.TableRow(
-      children: [
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4.5),
-          alignment: pw.Alignment.centerRight,
-          child: pw.Text(
-            label,
-            textAlign: pw.TextAlign.right,
-            style: pw.TextStyle(fontSize: 9.5, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal),
-          ),
-        ),
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
-          alignment: pw.Alignment.centerRight,
-          child: pw.Text(
-            value,
-            textAlign: pw.TextAlign.right,
-            style: pw.TextStyle(fontSize: 9.5, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal),
-          ),
-        ),
-        pw.Container(
-          padding: const pw.EdgeInsets.all(4.5),
-          child: pw.Text(''),
-        ),
-      ],
-    );
-  }
-
-  static pw.TableRow _dividerRow() {
-    return pw.TableRow(
-      children: [
-        pw.Container(height: 1, color: PdfColors.black),
-        pw.Container(height: 1, color: PdfColors.black),
-        pw.Container(height: 1, color: PdfColors.black),
-      ],
-    );
   }
 
   static Future<void> printOrShare(EstimateModel estimate) async {
