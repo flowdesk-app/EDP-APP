@@ -58,6 +58,7 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
   late TextEditingController _discountPercentageCtrl;
   late TextEditingController _qtnPriceCtrl;
   bool _customQtnPriceOverridden = false;
+  bool _hasDiscount = false;
 
   late TextEditingController _minOrderQtyCtrl;
   late TextEditingController _deliveryCtrl;
@@ -154,7 +155,9 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
     // Discounts
     _discountProvisionPercentage = est?.discountProvisionPercentage ?? 15.0;
     _discountProvisionCtrl = TextEditingController(text: _discountProvisionPercentage.toStringAsFixed(0));
-    _discountPercentageCtrl = TextEditingController(text: (est?.discountPercentage ?? 10.0).toStringAsFixed(0));
+    final initDiscount = est?.discountPercentage ?? 0.0;
+    _hasDiscount = est != null && initDiscount > 0;
+    _discountPercentageCtrl = TextEditingController(text: _hasDiscount ? initDiscount.toStringAsFixed(0) : '');
 
     final initQtn = est?.qtnPrice ?? 0.0;
     _qtnPriceCtrl = TextEditingController(text: initQtn > 0 ? initQtn.toStringAsFixed(0) : '');
@@ -234,7 +237,12 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
     _discountProvisionCtrl.text = '15';
     _provisionForDiscount = EstimateCalculator.calculateProvisionForDiscount(_totalCost, _discountProvisionPercentage);
 
-    _suggestedQtnPrice = EstimateCalculator.roundQtnPrice(_provisionForDiscount);
+    if (_hasDiscount) {
+      final discount = double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0;
+      _suggestedQtnPrice = EstimateCalculator.calculateDiscountedQtnPrice(_provisionForDiscount, discount);
+    } else {
+      _suggestedQtnPrice = EstimateCalculator.roundQtnPrice(_provisionForDiscount);
+    }
 
     if (syncQtnPrice || !_customQtnPriceOverridden) {
       _qtnPriceCtrl.text = _suggestedQtnPrice.toStringAsFixed(0);
@@ -253,7 +261,7 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
     final balancing = double.tryParse(_balancingCostCtrl.text.trim()) ?? 0.0;
     final transport = double.tryParse(_transportationCostCtrl.text.trim()) ?? 0.0;
     final process = double.tryParse(_processCostCtrl.text.trim()) ?? 0.0;
-    final discount = double.tryParse(_discountPercentageCtrl.text.trim()) ?? 10.0;
+    final discount = _hasDiscount ? (double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0) : 0.0;
     final qtn = double.tryParse(_qtnPriceCtrl.text.trim()) ?? _suggestedQtnPrice;
 
     return EstimateModel(
@@ -711,19 +719,6 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-
-                // Area calculations formula notes
-                TextField(
-                  controller: _notesCtrl,
-                  maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Calculations & Formula Notes (Optional)',
-                    hintText: 'e.g. Area = (pi()/400)*((360+3)^2-(240-3)^2) = 593.46, Effective = 535.86',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                ),
               ],
             ),
           ),
@@ -850,72 +845,6 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
-
-        // Quotation Terms Card (MOQ, Delivery, etc.)
-        Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.handshake_outlined, color: Color(0xFF0288D1), size: 20),
-                    const SizedBox(width: 8),
-                    const Text('Quotation Terms & Delivery', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _minOrderQtyCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Min. Order Qty (MOQ)',
-                          hintText: 'e.g. 1 or 48750',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _deliveryCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Delivery Terms',
-                          hintText: 'e.g. 10% or 4-6 weeks',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _qtnNoDateCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'QTN No & Date (Optional)',
-                          hintText: 'e.g. QTN/26/104',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -923,8 +852,9 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
   // --- SECTION 3: SUMMARY & MARGIN / DISCOUNT COLUMN ---
   Widget _buildSummaryColumn() {
     final currentQtnPrice = double.tryParse(_qtnPriceCtrl.text.trim()) ?? _suggestedQtnPrice;
-    final discount = double.tryParse(_discountPercentageCtrl.text.trim()) ?? 10.0;
-    // With 15% discount buffer and 10% discount: 25% base + (15% - 10%) = 30% margin on final price
+    final discount = _hasDiscount ? (double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0) : 0.0;
+    // With 15% discount buffer: if no discount, margin is 25% + 15% = 40%.
+    // If discount D%: 25% + (15% - D%)
     final effectiveFinalMargin = 25.0 + (15.0 - discount);
 
     return Column(
@@ -1028,46 +958,153 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
 
                 const SizedBox(height: 14),
 
-                // Discount and Override Price
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        controller: _discountPercentageCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Discount %',
-                          hintText: '10',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: _qtnPriceCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          const PositiveNumberInputFormatter(),
-                        ],
-                        decoration: const InputDecoration(
-                          labelText: 'QTN Price (₹) *',
-                          hintText: '68170',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) {
-                          _customQtnPriceOverridden = true;
-                          setState(() {});
+                // DISCOUNT SECTION (OPTIONAL)
+                if (!_hasDiscount) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _hasDiscount = true;
+                            if (_discountPercentageCtrl.text.trim().isEmpty) {
+                              _discountPercentageCtrl.text = '10'; // default suggested value
+                            }
+                            _customQtnPriceOverridden = false;
+                            _recalculate(syncQtnPrice: true);
+                          });
                         },
+                        icon: const Icon(Icons.add_circle_outline, size: 16, color: Color(0xFF0288D1)),
+                        label: const Text('Add Discount (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0288D1))),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF0288D1)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
                       ),
+                      const Text('No discount applied', style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic)),
+                    ],
+                  ),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFECACA)),
                     ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.percent, size: 16, color: Color(0xFFDC2626)),
+                                SizedBox(width: 6),
+                                Text('Customer Discount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF991B1B))),
+                              ],
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _hasDiscount = false;
+                                  _discountPercentageCtrl.clear();
+                                  _customQtnPriceOverridden = false;
+                                  _recalculate(syncQtnPrice: true);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.close, size: 14, color: Color(0xFFDC2626)),
+                                    SizedBox(width: 4),
+                                    Text('Remove', style: TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextField(
+                                controller: _discountPercentageCtrl,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                decoration: const InputDecoration(
+                                  labelText: 'Discount %',
+                                  hintText: 'e.g. 5 or 10',
+                                  border: OutlineInputBorder(),
+                                  isDense: true,
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  suffixText: '%',
+                                ),
+                                onChanged: (_) {
+                                  _customQtnPriceOverridden = false;
+                                  _recalculate(syncQtnPrice: true);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text('Discount Amount:', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                  Text(
+                                    '- ${currencyFormatter.format(_provisionForDiscount * ((double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0) / 100.0))}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFDC2626)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 14),
+
+                // QTN Price field
+                TextField(
+                  controller: _qtnPriceCtrl,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    const PositiveNumberInputFormatter(),
                   ],
+                  decoration: InputDecoration(
+                    labelText: 'Final QTN Price (₹) *',
+                    hintText: 'e.g. 82590',
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    suffixIcon: _customQtnPriceOverridden
+                        ? IconButton(
+                            tooltip: 'Reset to calculated price',
+                            icon: const Icon(Icons.refresh, size: 18),
+                            onPressed: () {
+                              setState(() {
+                                _customQtnPriceOverridden = false;
+                                _recalculate(syncQtnPrice: true);
+                              });
+                            },
+                          )
+                        : null,
+                  ),
+                  onChanged: (_) {
+                    _customQtnPriceOverridden = true;
+                    setState(() {});
+                  },
                 ),
               ],
             ),
@@ -1123,7 +1160,9 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '15% discount buffer provisioned | Discount offered: ${discount.toStringAsFixed(0)}% | Final Margin on QTN: ${effectiveFinalMargin.toStringAsFixed(0)}%',
+                _hasDiscount && discount > 0
+                    ? '15% discount buffer provisioned | Discount offered: ${discount.toStringAsFixed(0)}% | Final Margin on QTN: ${effectiveFinalMargin.toStringAsFixed(0)}%'
+                    : '15% discount buffer fully retained | No customer discount | Final Margin on QTN: 40%',
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
               ),
             ],

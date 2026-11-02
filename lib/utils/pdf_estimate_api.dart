@@ -321,7 +321,7 @@ class PdfEstimateApi {
           const double p2ColDEF = 133.8;
           const double p2ColGH = 104.3;
 
-          final discountStr = estimate.discountPercentage > 0 ? '${estimate.discountPercentage.toStringAsFixed(0)}%' : '10%';
+          final discountStr = estimate.discountPercentage > 0 ? '${estimate.discountPercentage.toStringAsFixed(0)}%' : '';
           final minOrdStr = estimate.minOrderQty?.isNotEmpty == true ? estimate.minOrderQty! : '1 set';
           final deliveryStr = estimate.delivery?.isNotEmpty == true ? estimate.delivery! : '4 - 6 Weeks';
           final qtnNoAndDateStr = estimate.qtnNoAndDate?.isNotEmpty == true ? estimate.qtnNoAndDate! : '';

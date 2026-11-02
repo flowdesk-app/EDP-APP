@@ -114,4 +114,14 @@ class EstimateCalculator {
     if (provisionForDiscount <= 0) return 0.0;
     return (provisionForDiscount / 10.0).round() * 10.0;
   }
+
+  /// Calculates final QTN price with optional discount percentage
+  /// If discount <= 0: roundQtnPrice(provisionForDiscount)
+  /// If discount > 0: roundQtnPrice(provisionForDiscount * (1 - discount / 100))
+  static double calculateDiscountedQtnPrice(double provisionForDiscount, double discountPercentage) {
+    if (provisionForDiscount <= 0) return 0.0;
+    if (discountPercentage <= 0) return roundQtnPrice(provisionForDiscount);
+    final discounted = provisionForDiscount * (1.0 - (discountPercentage / 100.0));
+    return roundQtnPrice(discounted);
+  }
 }
