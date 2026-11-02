@@ -59,7 +59,10 @@ class OwnerDashboardState extends State<OwnerDashboard> {
     setState(() => _loading = true);
     try {
       await _api.ensureInitialized();
-      final jobs = await _api.getFilteredJobs(month: _selectedMonth, date: _selectedDate);
+      final jobs = await _api.getFilteredJobs(
+        month: (_selectedMonth == 'ALL' || _selectedMonth == null) ? null : _selectedMonth,
+        date: _selectedDate,
+      );
 
       final suppliers = await _api.getSuppliers();
       final supplierNames = suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
@@ -222,12 +225,15 @@ class OwnerDashboardState extends State<OwnerDashboard> {
                             underline: const SizedBox(),
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
                             icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF202124)),
-                            items: List.generate(12, (index) {
-                              final date = DateTime(DateTime.now().year, DateTime.now().month - index, 1);
-                              final value = DateFormat('yyyy-MM').format(date);
-                              final label = DateFormat('MMMM yyyy').format(date);
-                              return DropdownMenuItem(value: value, child: Text(label));
-                            }),
+                            items: [
+                              const DropdownMenuItem(value: 'ALL', child: Text('All Months')),
+                              ...List.generate(12, (index) {
+                                final date = DateTime(DateTime.now().year, DateTime.now().month - index, 1);
+                                final value = DateFormat('yyyy-MM').format(date);
+                                final label = DateFormat('MMMM yyyy').format(date);
+                                return DropdownMenuItem(value: value, child: Text(label));
+                              }),
+                            ],
                             onChanged: (val) {
                               setState(() => _selectedMonth = val);
                               _load();

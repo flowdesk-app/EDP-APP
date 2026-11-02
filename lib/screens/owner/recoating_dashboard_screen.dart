@@ -39,7 +39,10 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   Future<void> _fetchJobs() async {
     setState(() => _isLoading = true);
     try {
-      final jobs = await ApiService().getFilteredJobs(month: _selectedMonth, date: _selectedDate);
+      final jobs = await ApiService().getFilteredJobs(
+        month: (_selectedMonth == 'ALL' || _selectedMonth == null) ? null : _selectedMonth,
+        date: _selectedDate,
+      );
       if (mounted) {
         setState(() {
           _currentJobs = jobs.where((j) => j.jobType == 'Re-coating').toList();
@@ -225,12 +228,15 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
                         _fetchJobs();
                       }
                     },
-                    items: List.generate(12, (index) {
-                      final d = DateTime(DateTime.now().year, DateTime.now().month - index, 1);
-                      final val = DateFormat('yyyy-MM').format(d);
-                      final text = DateFormat('MMMM yyyy').format(d);
-                      return DropdownMenuItem(value: val, child: Text(text));
-                    }),
+                    items: [
+                      const DropdownMenuItem(value: 'ALL', child: Text('All Months')),
+                      ...List.generate(12, (index) {
+                        final d = DateTime(DateTime.now().year, DateTime.now().month - index, 1);
+                        final val = DateFormat('yyyy-MM').format(d);
+                        final text = DateFormat('MMMM yyyy').format(d);
+                        return DropdownMenuItem(value: val, child: Text(text));
+                      }),
+                    ],
                   ),
                 ],
               ],

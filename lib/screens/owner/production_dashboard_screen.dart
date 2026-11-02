@@ -41,7 +41,10 @@ class _ProductionDashboardScreenState extends State<ProductionDashboardScreen> {
     try {
       final suppliers = await ApiService().getSuppliers();
       final supplierNames = suppliers.map((s) => s.supplierName.toLowerCase()).toSet();
-      final jobs = await ApiService().getFilteredJobs(month: widget.month, date: widget.date);
+      final jobs = await ApiService().getFilteredJobs(
+        month: (widget.month == 'ALL' || widget.month == null) ? null : widget.month,
+        date: widget.date,
+      );
       if (mounted) {
         setState(() {
           _suppliers = suppliers;

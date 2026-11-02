@@ -70,7 +70,10 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
   Future<void> _refreshJobs() async {
     setState(() => _isRefreshing = true);
     try {
-      final allJobs = await _api.getFilteredJobs(month: widget.month, date: widget.date);
+      final allJobs = await _api.getFilteredJobs(
+        month: (widget.month == 'ALL' || widget.month == null) ? null : widget.month,
+        date: widget.date,
+      );
       List<JobModel> freshJobs = [];
       if (widget.filter != null) {
         freshJobs = allJobs.where((j) => j.status != 'Removed').where(widget.filter!).toList();
