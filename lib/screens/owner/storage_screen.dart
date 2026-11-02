@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/company_storage.dart';
 import '../../models/item_database_model.dart';
+import '../../models/user_model.dart';
 import 'company_items_screen.dart';
 import '../../services/api_service.dart';
 
@@ -15,6 +16,8 @@ class _StorageScreenState extends State<StorageScreen> {
   String _searchQuery = '';
   bool _isDeleteMode = false;
   bool _isLoading = false;
+
+  bool get _isOwner => ApiService().currentUser?.role == UserRole.owner;
 
   @override
   void initState() {
@@ -134,14 +137,16 @@ class _StorageScreenState extends State<StorageScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
-                // Delete Option at the top
-                _buildTopDeleteOption(),
+                if (_isOwner) ...[
+                  const SizedBox(width: 12),
+                  // Delete Option at the top (Owner only)
+                  _buildTopDeleteOption(),
+                ],
               ],
             ),
 
-            // Active Delete Mode banner
-            if (_isDeleteMode) ...[
+            // Active Delete Mode banner (Owner only)
+            if (_isOwner && _isDeleteMode) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -350,11 +355,12 @@ class _StorageScreenState extends State<StorageScreen> {
               ),
             ),
           ),
-          // Delete trash button (top right of each card)
-          Positioned(
-            top: 6,
-            right: 6,
-            child: _isDeleteMode
+          // Delete trash button (top right of each card, owner only)
+          if (_isOwner)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: _isDeleteMode
                 ? InkWell(
                     onTap: () => _confirmDeleteCompany(company),
                     borderRadius: BorderRadius.circular(20),

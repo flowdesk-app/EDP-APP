@@ -91,9 +91,13 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// Delete single item from database by ID, itemId, or itemName
+// Delete single item from database by ID, itemId, or itemName (Owner only)
 router.delete('/:identifier', auth, async (req, res) => {
   try {
+    if (req.user && req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Access denied: Only owner can delete from database' });
+    }
+
     const mongoose = require('mongoose');
     const identifier = decodeURIComponent(req.params.identifier).trim();
     if (!identifier) {
@@ -122,9 +126,13 @@ router.delete('/:identifier', auth, async (req, res) => {
   }
 });
 
-// Bulk delete items by ids or itemNames
+// Bulk delete items by ids or itemNames (Owner only)
 router.post('/bulk-delete', auth, async (req, res) => {
   try {
+    if (req.user && req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Access denied: Only owner can delete from database' });
+    }
+
     const mongoose = require('mongoose');
     const { ids, names } = req.body;
     let deletedCount = 0;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/item_database_model.dart';
+import '../../models/user_model.dart';
 import '../../utils/company_utils.dart';
 
 import '../../services/api_service.dart';
@@ -21,6 +22,8 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   List<ItemDatabaseModel> _items = [];
   bool _isLoading = true;
   bool _isDeleteMode = false;
+
+  bool get _isOwner => ApiService().currentUser?.role == UserRole.owner;
 
   @override
   void initState() {
@@ -235,33 +238,34 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                         ),
                       ),
                     ),
-                    OutlinedButton.icon(
-                      icon: Icon(
-                        _isDeleteMode ? Icons.check_circle : Icons.delete_outline,
-                        size: 16,
-                        color: _isDeleteMode ? Colors.white : Colors.red[700],
-                      ),
-                      label: Text(
-                        _isDeleteMode ? 'Done' : 'Delete Option',
-                        style: TextStyle(
+                    if (_isOwner)
+                      OutlinedButton.icon(
+                        icon: Icon(
+                          _isDeleteMode ? Icons.check_circle : Icons.delete_outline,
+                          size: 16,
                           color: _isDeleteMode ? Colors.white : Colors.red[700],
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
                         ),
+                        label: Text(
+                          _isDeleteMode ? 'Done' : 'Delete Option',
+                          style: TextStyle(
+                            color: _isDeleteMode ? Colors.white : Colors.red[700],
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: _isDeleteMode ? Colors.red[700] : Colors.red[50],
+                          side: BorderSide(color: _isDeleteMode ? Colors.red[800]! : Colors.red[300]!),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () => setState(() => _isDeleteMode = !_isDeleteMode),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: _isDeleteMode ? Colors.red[700] : Colors.red[50],
-                        side: BorderSide(color: _isDeleteMode ? Colors.red[800]! : Colors.red[300]!),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () => setState(() => _isDeleteMode = !_isDeleteMode),
-                    ),
                   ],
                 ),
               ],
             ),
-            if (_isDeleteMode) ...[
+            if (_isOwner && _isDeleteMode) ...[
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -380,19 +384,21 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                       ),
                     ),
                   ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    size: 18,
-                    color: _isDeleteMode ? Colors.red[700] : Colors.grey[400],
+                if (_isOwner) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: _isDeleteMode ? Colors.red[700] : Colors.grey[400],
+                    ),
+                    tooltip: 'Delete item from database',
+                    splashRadius: 16,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => _confirmDeleteItem(item),
                   ),
-                  tooltip: 'Delete item from database',
-                  splashRadius: 16,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => _confirmDeleteItem(item),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 16),
@@ -463,19 +469,20 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                   const Divider(),
                   const SizedBox(height: 12),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: _isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
                     children: [
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.delete_forever, color: Colors.red),
-                        label: const Text('Delete from Database', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.red),
+                      if (_isOwner)
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.delete_forever, color: Colors.red),
+                          label: const Text('Delete from Database', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _confirmDeleteItem(item);
+                          },
                         ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _confirmDeleteItem(item);
-                        },
-                      ),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         child: const Text('Close'),

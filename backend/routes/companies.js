@@ -39,9 +39,13 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// Delete company from database by name or ID
+// Delete company from database by name or ID (Owner only)
 router.delete('/:identifier', auth, async (req, res) => {
   try {
+    if (req.user && req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Access denied: Only owner can delete from database' });
+    }
+
     const identifier = decodeURIComponent(req.params.identifier).trim();
     if (!identifier) {
       return res.status(400).json({ error: 'Company identifier is required' });
