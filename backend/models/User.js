@@ -5,7 +5,13 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['owner', 'admin', 'employee', 'employee1', 'employee2', 'employee3', 'payroll'], required: true },
+  name: { type: String },
+  department: { type: String },
   supplierId: { type: String, ref: 'Supplier' },
+  isFaceEnrolled: { type: Boolean, default: false },
+  faceEmbeddings: { type: [Number], default: [] },
+  facePhotoUrl: { type: String },
+  lastEnrolledAt: { type: Date },
 }, { timestamps: true });
 
 // Hash password before saving

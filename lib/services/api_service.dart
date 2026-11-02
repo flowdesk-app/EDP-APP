@@ -13,6 +13,7 @@ import '../models/raw_material_model.dart';
 import '../models/item_database_model.dart';
 import '../models/estimate_model.dart';
 import '../models/delivery_challan_model.dart';
+import '../models/attendance_model.dart';
 import 'package:flutter/foundation.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -1275,6 +1276,158 @@ class ApiService {
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('Error deleting delivery challan: $e');
+      return false;
+    }
+  }
+
+  // --- Attendance & Face Recognition Methods ---
+
+  Future<List<EnrolledEmployeeModel>> getEnrolledEmployees() async {
+    await _loadToken();
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/attendance/enrolled-employees'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        return data.map((json) => EnrolledEmployeeModel.fromJson(json)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching enrolled employees: $e');
+    }
+    return [];
+  }
+
+  Future<bool> enrollEmployeeFace({
+    required String email,
+    required List<double> faceEmbeddings,
+    String? facePhotoUrl,
+    String? name,
+    String? department,
+  }) async {
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/attendance/enroll-face'),
+        headers: _headers,
+        body: jsonEncode({
+          'email': email,
+          'faceEmbeddings': faceEmbeddings,
+          'facePhotoUrl': facePhotoUrl,
+          'name': name,
+          'department': department,
+        }),
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error enrolling face: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> recordAttendanceScan({
+    required String email,
+    String scanType = 'auto',
+    String scanMethod = 'face_recognition',
+    String? notes,
+  }) async {
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/attendance/scan'),
+        headers: _headers,
+        body: jsonEncode({
+          'email': email,
+          'scanType': scanType,
+          'scanMethod': scanMethod,
+          'notes': notes,
+        }),
+      );
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
+      } else {
+        final err = jsonDecode(res.body);
+        return {
+          'success': false,
+          'error': err['error'] ?? 'Scan failed with status ${res.statusCode}',
+        };
+      }
+    } catch (e) {
+      debugPrint('Error recording attendance scan: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  Future<List<AttendanceModel>> getTodayAttendance() async {
+    await _loadToken();
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/attendance/today'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        return data.map((j) => AttendanceModel.fromJson(j)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching today attendance: $e');
+    }
+    return [];
+  }
+
+  Future<List<AttendanceModel>> getAttendanceHistory({
+    String? date,
+    String? month,
+    String? email,
+  }) async {
+    await _loadToken();
+    try {
+      final params = <String, String>{};
+      if (date != null) params['date'] = date;
+      if (month != null) params['month'] = month;
+      if (email != null) params['email'] = email;
+
+      final uri = Uri.parse('$baseUrl/attendance/history').replace(queryParameters: params);
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        return data.map((j) => AttendanceModel.fromJson(j)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching attendance history: $e');
+    }
+    return [];
+  }
+
+  Future<List<MonthlyAttendanceSummary>> getAttendanceSummary({String? month}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/attendance/summary').replace(
+        queryParameters: month != null ? {'month': month} : null,
+      );
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> summaryList = data['summary'] ?? [];
+        return summaryList.map((j) => MonthlyAttendanceSummary.fromJson(j)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching attendance summary: $e');
+    }
+    return [];
+  }
+
+  Future<bool> deleteAttendanceRecord(String id) async {
+    await _loadToken();
+    try {
+      final res = await http.delete(
+        Uri.parse('$baseUrl/attendance/$id'),
+        headers: _headers,
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error deleting attendance record: $e');
       return false;
     }
   }
