@@ -104,6 +104,7 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
   List<JobModel> get _grantedJobs {
     return _allJobs.where((j) {
       if (!j.accessGranted) return false;
+      if (j.grantedAt == null && j.grantedBy == null) return false;
       if (j.status == 'Removed') return false;
 
       // Filter by Job Type

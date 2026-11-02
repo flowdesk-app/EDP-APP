@@ -160,8 +160,8 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
     _qtnPriceCtrl = TextEditingController(text: initQtn > 0 ? initQtn.toStringAsFixed(0) : '');
     _customQtnPriceOverridden = est != null && est.qtnPrice > 0;
 
-    _minOrderQtyCtrl = TextEditingController(text: est?.minOrderQty ?? '');
-    _deliveryCtrl = TextEditingController(text: est?.delivery ?? '10%');
+    _minOrderQtyCtrl = TextEditingController(text: est?.minOrderQty ?? '1 set');
+    _deliveryCtrl = TextEditingController(text: est?.delivery ?? '4 - 6 Weeks');
     _qtnNoDateCtrl = TextEditingController(text: est?.qtnNoAndDate ?? '');
   }
 
@@ -223,13 +223,15 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
       transportationCost: transport,
     );
 
-    _marginPercentage = double.tryParse(_marginCtrl.text.trim()) ?? 25.0;
+    _marginPercentage = 25.0; // Fixed at 25%
+    _marginCtrl.text = '25';
     _subTotalInclMargin = EstimateCalculator.calculateSubTotalInclMargin(_directCostSum, _marginPercentage);
 
     final process = double.tryParse(_processCostCtrl.text.trim()) ?? 0.0;
     _totalCost = EstimateCalculator.calculateTotal(_subTotalInclMargin, process);
 
-    _discountProvisionPercentage = double.tryParse(_discountProvisionCtrl.text.trim()) ?? 15.0;
+    _discountProvisionPercentage = 15.0; // Fixed at 15%
+    _discountProvisionCtrl.text = '15';
     _provisionForDiscount = EstimateCalculator.calculateProvisionForDiscount(_totalCost, _discountProvisionPercentage);
 
     _suggestedQtnPrice = EstimateCalculator.roundQtnPrice(_provisionForDiscount);
@@ -920,64 +922,15 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
 
   // --- SECTION 3: SUMMARY & MARGIN / DISCOUNT COLUMN ---
   Widget _buildSummaryColumn() {
+    final currentQtnPrice = double.tryParse(_qtnPriceCtrl.text.trim()) ?? _suggestedQtnPrice;
+    final discount = double.tryParse(_discountPercentageCtrl.text.trim()) ?? 10.0;
+    // With 15% discount buffer and 10% discount: 25% base + (15% - 10%) = 30% margin on final price
+    final effectiveFinalMargin = 25.0 + (15.0 - discount);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Quotation Price Highlight Banner
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0288D1), Color(0xFF0369A1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0288D1).withValues(alpha: 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('FINAL QUOTATION PRICE (QTN)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    shortCurrency.format(double.tryParse(_qtnPriceCtrl.text.trim()) ?? _suggestedQtnPrice),
-                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${_marginPercentage.toStringAsFixed(0)}% Margin',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Provisioned for ${_discountProvisionPercentage.toStringAsFixed(0)}% discount buffer | Discount offered: ${_discountPercentageCtrl.text}%',
-                style: const TextStyle(color: Colors.white70, fontSize: 11),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Cost Calculation Step-by-Step Card
+        // Cost Calculation Step-by-Step Card (PRICE BUILD-UP FIRST)
         Card(
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -993,28 +946,18 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                 const Text('Price Build-Up', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 14),
 
-                // Margin % Configuration
+                // Profit Margin (Fixed at 25%)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Profit Margin %:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                    Row(
-                      children: [
-                        _buildPresetChip('20%', 20.0, _marginPercentage, (v) {
-                          _marginCtrl.text = v.toStringAsFixed(0);
-                          _recalculate(syncQtnPrice: true);
-                        }),
-                        const SizedBox(width: 6),
-                        _buildPresetChip('25%', 25.0, _marginPercentage, (v) {
-                          _marginCtrl.text = v.toStringAsFixed(0);
-                          _recalculate(syncQtnPrice: true);
-                        }),
-                        const SizedBox(width: 6),
-                        _buildPresetChip('30%', 30.0, _marginPercentage, (v) {
-                          _marginCtrl.text = v.toStringAsFixed(0);
-                          _recalculate(syncQtnPrice: true);
-                        }),
-                      ],
+                    const Text('Profit Margin:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('25% (Fixed)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0288D1))),
                     ),
                   ],
                 ),
@@ -1026,9 +969,9 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                   subtitle: 'Diamond + Materials',
                 ),
                 _buildSummaryLine(
-                  label: 'Sub-Total (incl. ${_marginPercentage.toStringAsFixed(0)}% margin)',
+                  label: 'Sub-Total (incl. 25% margin)',
                   value: currencyFormatter.format(_subTotalInclMargin),
-                  subtitle: 'Direct Costs ÷ ${(1.0 - _marginPercentage / 100).toStringAsFixed(2)}',
+                  subtitle: 'Direct Costs ÷ 0.75',
                   isHighlighted: true,
                 ),
 
@@ -1059,23 +1002,18 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
 
                 const Divider(height: 20),
 
-                // Provision for Discount
+                // Provision for Discount (Fixed at 15%)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Provision for Discount:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                    Row(
-                      children: [
-                        _buildPresetChip('15%', 15.0, _discountProvisionPercentage, (v) {
-                          _discountProvisionCtrl.text = v.toStringAsFixed(0);
-                          _recalculate(syncQtnPrice: true);
-                        }),
-                        const SizedBox(width: 6),
-                        _buildPresetChip('20%', 20.0, _discountProvisionPercentage, (v) {
-                          _discountProvisionCtrl.text = v.toStringAsFixed(0);
-                          _recalculate(syncQtnPrice: true);
-                        }),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('15% (Fixed)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFD97706))),
                     ),
                   ],
                 ),
@@ -1084,7 +1022,7 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                 _buildSummaryLine(
                   label: 'Provision for Discount',
                   value: currencyFormatter.format(_provisionForDiscount),
-                  subtitle: 'Total ÷ ${(1.0 - _discountProvisionPercentage / 100).toStringAsFixed(2)}',
+                  subtitle: 'Total ÷ 0.85',
                   isHighlighted: true,
                 ),
 
@@ -1135,30 +1073,63 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
             ),
           ),
         ),
-      ],
-    );
-  }
 
-  Widget _buildPresetChip(String label, double value, double current, Function(double) onSelected) {
-    final isSelected = (value - current).abs() < 0.5;
-    return InkWell(
-      onTap: () => onSelected(value),
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0288D1) : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : Colors.black87,
+        const SizedBox(height: 16),
+
+        // FINAL QUOTATION PRICE CARD (NOW PROMINENTLY AT THE BOTTOM OF THE FLOW)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0288D1), Color(0xFF01579B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0288D1).withValues(alpha: 0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('FINAL QUOTATION PRICE (QTN)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E7D32),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF81C784)),
+                    ),
+                    child: Text(
+                      '${effectiveFinalMargin.toStringAsFixed(0)}% Final Margin',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                shortCurrency.format(currentQtnPrice),
+                style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '15% discount buffer provisioned | Discount offered: ${discount.toStringAsFixed(0)}% | Final Margin on QTN: ${effectiveFinalMargin.toStringAsFixed(0)}%',
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+            ],
           ),
         ),
-      ),
+      ],
     );
   }
 
