@@ -75,7 +75,7 @@ class PdfEstimateApi {
     if (estimate.calculationsNotes != null && estimate.calculationsNotes!.isNotEmpty) {
       calcNotesStr = estimate.calculationsNotes!;
     } else if (estimate.effectiveCoatingArea > 0) {
-      calcNotesStr = 'Area = ${estimate.effectiveCoatingArea.toStringAsFixed(2)}';
+      calcNotesStr = 'Area = ${estimate.effectiveCoatingArea.toStringAsFixed(2)} sq.cm';
     } else {
       calcNotesStr = '';
     }
@@ -84,7 +84,7 @@ class PdfEstimateApi {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.letter,
-        margin: const pw.EdgeInsets.only(left: 50.4, top: 53.6, right: 51.6, bottom: 60.0),
+        margin: const pw.EdgeInsets.only(left: 50.4, top: 40.0, right: 51.6, bottom: 40.0),
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -116,21 +116,28 @@ class PdfEstimateApi {
                 ],
               ),
 
-              // Row 2: Customer (h=30.0)
+              // Row 2: Customer (h=26.0)
               pw.Row(
                 children: [
-                  cellA(30.0),
+                  cellA(26.0),
                   cell(
                     width: colB,
-                    height: 30.0,
+                    height: 26.0,
                     borderTop: false,
                     child: pw.Text('Customer:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
                   ),
                   cell(
                     width: colC + colD + colEG + colH,
-                    height: 30.0,
+                    height: 26.0,
                     borderTop: false,
-                    child: pw.Text(customerStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    child: pw.ClipRect(
+                      child: pw.Text(
+                        customerStr,
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+                        maxLines: 2,
+                        overflow: pw.TextOverflow.clip,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -168,16 +175,29 @@ class PdfEstimateApi {
                     borderTop: false,
                     alignment: pw.Alignment.topLeft,
                     padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        if (itemDescStr.isNotEmpty)
-                          pw.Text(itemDescStr, style: const pw.TextStyle(fontSize: 9.5)),
-                        if (drgNoStr.isNotEmpty) ...[
-                          pw.SizedBox(height: 2),
-                          pw.Text(drgNoStr, style: const pw.TextStyle(fontSize: 9.5)),
+                    child: pw.ClipRect(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          if (itemDescStr.isNotEmpty)
+                            pw.Text(
+                              itemDescStr,
+                              style: const pw.TextStyle(fontSize: 8.8, lineSpacing: 1.2),
+                              maxLines: 3,
+                              overflow: pw.TextOverflow.clip,
+                            ),
+                          if (drgNoStr.isNotEmpty) ...[
+                            pw.SizedBox(height: 2),
+                            pw.Text(
+                              drgNoStr,
+                              style: pw.TextStyle(fontSize: 8.8, fontWeight: pw.FontWeight.bold),
+                              maxLines: 1,
+                              overflow: pw.TextOverflow.clip,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   cell(
@@ -185,18 +205,18 @@ class PdfEstimateApi {
                     height: 58.9,
                     borderTop: false,
                     alignment: pw.Alignment.center,
-                    child: pw.Text(typeStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 38)),
+                    child: pw.Text(typeStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 36)),
                   ),
                 ],
               ),
 
-              // Rows 8-19: Drawing (h=157.5)
+              // Rows 8-19: Drawing (h=142.0)
               pw.Row(
                 children: [
-                  cellA(157.5),
+                  cellA(142.0),
                   cell(
                     width: colB + colC + colD + colEG + colH,
-                    height: 157.5,
+                    height: 142.0,
                     borderTop: false,
                     alignment: pw.Alignment.topLeft,
                     padding: const pw.EdgeInsets.all(4),
@@ -204,8 +224,12 @@ class PdfEstimateApi {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Drawing:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
-                        pw.SizedBox(height: 12),
+                        pw.SizedBox(height: 10),
                         pw.Text('SEE OVERLEAF', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9.8)),
+                        if (estimate.drawingNo?.isNotEmpty == true) ...[
+                          pw.SizedBox(height: 4),
+                          pw.Text('DRG No: ${estimate.drawingNo}', style: const pw.TextStyle(fontSize: 9.0)),
+                        ],
                       ],
                     ),
                   ),
@@ -225,22 +249,29 @@ class PdfEstimateApi {
                 ],
               ),
 
-              // Rows 21-25: Calculations Notes (h=64.1)
+              // Rows 21-25: Calculations Notes (h=55.0)
               pw.Row(
                 children: [
-                  cellA(64.1),
+                  cellA(55.0),
                   cell(
                     width: colB + colC + colD + colEG + colH,
-                    height: 64.1,
+                    height: 55.0,
                     borderTop: false,
                     alignment: pw.Alignment.topLeft,
                     padding: const pw.EdgeInsets.all(4),
-                    child: pw.Text(calcNotesStr, style: const pw.TextStyle(fontSize: 9.5)),
+                    child: pw.ClipRect(
+                      child: pw.Text(
+                        calcNotesStr,
+                        style: const pw.TextStyle(fontSize: 9.0),
+                        maxLines: 3,
+                        overflow: pw.TextOverflow.clip,
+                      ),
+                    ),
                   ),
                 ],
               ),
 
-              // Rows 26-38: 13 Cost breakdown rows (each h=24.75)
+              // Rows 26-38: 13 Cost breakdown rows (each h=24.0)
               ...[
                 {'label': 'Eff. Area of Coating', 'val': estimate.effectiveCoatingArea > 0 ? numFmt.format(estimate.effectiveCoatingArea) : '', 'unit': '', 'bold': false},
                 {'label': 'Diamond requirement', 'val': estimate.diamondRequirement > 0 ? numFmt.format(estimate.diamondRequirement) : '', 'unit': estimate.diamondRequirement > 0 ? 'cts' : '', 'bold': false},
@@ -264,10 +295,10 @@ class PdfEstimateApi {
 
                 return pw.Row(
                   children: [
-                    cellA(24.75),
+                    cellA(24.0),
                     cell(
                       width: colB,
-                      height: 24.75,
+                      height: 24.0,
                       borderTop: false,
                       alignment: isTotal ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
                       child: pw.Text(
@@ -277,7 +308,7 @@ class PdfEstimateApi {
                     ),
                     cell(
                       width: colC,
-                      height: 24.75,
+                      height: 24.0,
                       borderTop: false,
                       alignment: pw.Alignment.centerRight,
                       child: pw.Text(
@@ -287,19 +318,19 @@ class PdfEstimateApi {
                     ),
                     cell(
                       width: colD,
-                      height: 24.75,
+                      height: 24.0,
                       borderTop: false,
                       child: pw.Text(unit, style: const pw.TextStyle(fontSize: 9.8)),
                     ),
                     cell(
                       width: colEG,
-                      height: 24.75,
+                      height: 24.0,
                       borderTop: false,
                       child: pw.Text(''),
                     ),
                     cell(
                       width: colH,
-                      height: 24.75,
+                      height: 24.0,
                       borderTop: false,
                       child: pw.Text(''),
                     ),
@@ -316,12 +347,13 @@ class PdfEstimateApi {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.letter,
-        margin: const pw.EdgeInsets.only(left: 50.4, top: 53.6, right: 51.6, bottom: 60.0),
+        margin: const pw.EdgeInsets.only(left: 50.4, top: 40.0, right: 51.6, bottom: 40.0),
         build: (context) {
           const double p2ColDEF = 133.8;
           const double p2ColGH = 104.3;
 
-          final discountStr = estimate.discountPercentage > 0 ? '${estimate.discountPercentage.toStringAsFixed(0)}%' : '';
+          final displayQtn = estimate.qtnPrice > 0 ? estimate.qtnPrice : estimate.provisionForDiscount;
+          final discountStr = estimate.discountPercentage > 0 ? '${estimate.discountPercentage.toStringAsFixed(0)}%' : '-';
           final minOrdStr = estimate.minOrderQty?.isNotEmpty == true ? estimate.minOrderQty! : '1 set';
           final deliveryStr = estimate.delivery?.isNotEmpty == true ? estimate.delivery! : '4 - 6 Weeks';
           final qtnNoAndDateStr = estimate.qtnNoAndDate?.isNotEmpty == true ? estimate.qtnNoAndDate! : '';
@@ -370,7 +402,7 @@ class PdfEstimateApi {
                     borderTop: false,
                     alignment: pw.Alignment.center,
                     child: pw.Text(
-                      numFmt.format(estimate.qtnPrice),
+                      numFmt.format(displayQtn),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13.6),
                     ),
                   ),

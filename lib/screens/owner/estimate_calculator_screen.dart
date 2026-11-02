@@ -95,18 +95,54 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
     _customerNameCtrl = TextEditingController(text: customer);
 
     String desc = est?.itemDescription ?? '';
-    if (desc.isEmpty && job != null) {
-      final parts = <String>[];
-      if (job.partNumber != null) parts.add(job.partNumber!);
-      if (job.wheelSize != null && job.wheelSize!.isNotEmpty) parts.add(job.wheelSize!);
-      if (job.diamondPowderGritSize != null && job.diamondPowderGritSize!.isNotEmpty) {
-        parts.add('Grit ${job.diamondPowderGritSize}');
-      }
-      desc = parts.join(' - ');
-    }
-    _itemDescCtrl = TextEditingController(text: desc);
+    String drgNo = est?.drawingNo ?? '';
 
-    _drawingNoCtrl = TextEditingController(text: est?.drawingNo ?? '');
+    if (job != null) {
+      final wheelSize = job.wheelSize ?? '';
+      final partNo = job.partNumber ?? '';
+      final partDesc = job.partDescription ?? '';
+
+      // Check if drawing number is present in wheelSize or partNumber or partDescription
+      if (drgNo.isEmpty) {
+        final drgRegex = RegExp(r'(?:DRG\s*NO|Drg\.?\s*No\.?|DRG)[:;\s]+([A-Za-z0-9_\-\.\/]+)', caseSensitive: false);
+        final match = drgRegex.firstMatch(wheelSize) ?? drgRegex.firstMatch(partNo) ?? drgRegex.firstMatch(partDesc);
+        if (match != null) {
+          drgNo = match.group(1)?.trim() ?? '';
+        }
+      }
+
+      if (desc.isEmpty) {
+        // Extract clean item description from wheelSize / partDescription
+        final drgRegex = RegExp(r'(?:DRG\s*NO|Drg\.?\s*No\.?|DRG)[:;\s]+([A-Za-z0-9_\-\.\/]+)', caseSensitive: false);
+        final lines = wheelSize.split(RegExp(r'[\r\n]+')).map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+        String? cleanWheelDesc;
+        for (final line in lines) {
+          if (!drgRegex.hasMatch(line) &&
+              !line.toLowerCase().startsWith('material') &&
+              !line.toLowerCase().startsWith('line item') &&
+              !line.toLowerCase().startsWith('item code')) {
+            cleanWheelDesc = line;
+            break;
+          }
+        }
+
+        final parts = <String>[];
+        if (cleanWheelDesc != null && cleanWheelDesc.isNotEmpty) {
+          parts.add(cleanWheelDesc);
+        } else if (partDesc.isNotEmpty) {
+          parts.add(partDesc);
+        } else if (partNo.isNotEmpty) {
+          parts.add(partNo);
+        } else if (wheelSize.isNotEmpty) {
+          parts.add(lines.isNotEmpty ? lines.first : wheelSize);
+        }
+
+        desc = parts.join(' - ');
+      }
+    }
+
+    _itemDescCtrl = TextEditingController(text: desc);
+    _drawingNoCtrl = TextEditingController(text: drgNo);
 
     String initType = est?.type ?? 'N';
     if (est == null && job != null) {
