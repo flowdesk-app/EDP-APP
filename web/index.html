@@ -48,6 +48,62 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <script>
+    window._currentCameraStream = null;
+
+    window.startWebcam = function(callback) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        if (callback) callback({ success: false, error: 'Webcam not supported in this browser' });
+        return;
+      }
+      if (window._currentCameraStream) {
+        if (callback) callback({ success: true });
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+        .then(function(stream) {
+          window._currentCameraStream = stream;
+          if (callback) callback({ success: true });
+        })
+        .catch(function(err) {
+          console.warn('getUserMedia error:', err);
+          if (callback) callback({ success: false, error: (err.name || 'Error') + ': ' + (err.message || err.toString()) });
+        });
+    };
+
+    window.stopWebcam = function() {
+      if (window._currentCameraStream) {
+        window._currentCameraStream.getTracks().forEach(function(t) { t.stop(); });
+        window._currentCameraStream = null;
+      }
+    };
+
+    window.attachWebcamToVideo = function(videoEl) {
+      if (window._currentCameraStream && videoEl) {
+        videoEl.srcObject = window._currentCameraStream;
+        videoEl.play().catch(function(e) { console.warn('video play warning:', e); });
+      }
+    };
+
+    window.captureWebcamFrame = function(videoEl) {
+      if (!videoEl || !window._currentCameraStream) return null;
+      try {
+        const w = videoEl.videoWidth || 640;
+        const h = videoEl.videoHeight || 480;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(w, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(videoEl, 0, 0, w, h);
+        return canvas.toDataUrl('image/jpeg', 0.85);
+      } catch (e) {
+        console.error('Frame capture error:', e);
+        return null;
+      }
+    };
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

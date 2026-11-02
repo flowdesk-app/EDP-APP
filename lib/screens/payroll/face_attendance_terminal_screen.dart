@@ -100,7 +100,7 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
     super.dispose();
   }
 
-  Future<void> _captureAndVerifyCameraFrame() async {
+  Future<void> _captureAndVerifyCameraFrame({bool forcePicker = false}) async {
     if (_scanning) return;
     setState(() {
       _scanning = true;
@@ -108,16 +108,21 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
     });
 
     try {
-      final snapshot = _camera.captureSnapshotBase64();
+      String? snapshot;
+      if (!forcePicker && _cameraActive) {
+        snapshot = _camera.captureSnapshotBase64();
+      }
+
       if (snapshot == null) {
+        setState(() => _scanning = false);
+        snapshot = await _camera.pickAndCaptureSnapshotBase64();
+        if (snapshot == null) {
+          return;
+        }
         setState(() {
-          _scanning = false;
-          _lastPunchResult = {
-            'success': false,
-            'message': 'Webcam not active. Please allow browser camera access, or click a quick employee button below.',
-          };
+          _scanning = true;
+          _lastPunchResult = null;
         });
-        return;
       }
 
       final res = await _api.verifyCameraFrame(
@@ -374,17 +379,35 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                       style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: _startStream,
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('Allow / Retry Camera'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0288D1),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        elevation: 4,
-                      ),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _startStream,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('Allow / Retry Camera'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0288D1),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                            elevation: 4,
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _captureAndVerifyCameraFrame(forcePicker: true),
+                          icon: const Icon(Icons.photo_camera, size: 18),
+                          label: const Text('Snap / Upload Photo'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Color(0xFF29B6F6)),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -492,12 +515,16 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
               right: 0,
               child: Center(
                 child: ElevatedButton.icon(
-                  onPressed: _captureAndVerifyCameraFrame,
-                  icon: const Icon(Icons.camera_alt, size: 24),
+                  onPressed: () => _captureAndVerifyCameraFrame(forcePicker: !_cameraActive),
+                  icon: Icon(_cameraActive ? Icons.camera_alt : Icons.photo_camera, size: 24),
                   label: Text(
-                    _scanMode == 'in'
-                        ? 'SCAN ENTRY (CLOCK-IN)'
-                        : (_scanMode == 'out' ? 'SCAN EXIT (CLOCK-OUT)' : 'SCAN FACE ATTENDANCE'),
+                    _cameraActive
+                        ? (_scanMode == 'in'
+                            ? 'SCAN ENTRY (CLOCK-IN)'
+                            : (_scanMode == 'out' ? 'SCAN EXIT (CLOCK-OUT)' : 'SCAN FACE ATTENDANCE'))
+                        : (_scanMode == 'in'
+                            ? 'SNAP / UPLOAD ENTRY (CLOCK-IN)'
+                            : (_scanMode == 'out' ? 'SNAP / UPLOAD EXIT (CLOCK-OUT)' : 'SNAP / UPLOAD FOR ATTENDANCE')),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.8),
                   ),
                   style: ElevatedButton.styleFrom(

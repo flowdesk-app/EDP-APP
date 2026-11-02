@@ -17,6 +17,10 @@ class WebCameraService {
     return null;
   }
 
+  Future<String?> pickAndCaptureSnapshotBase64() async {
+    return null;
+  }
+
   Widget buildVideoView(String viewId) {
     return const SizedBox();
   }
