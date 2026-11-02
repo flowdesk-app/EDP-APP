@@ -1132,4 +1132,25 @@ class ApiService {
       return false;
     }
   }
+
+  Future<List<EstimateModel>> autoSyncRepeatEstimates() async {
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/estimates/auto-sync-repeats'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['created'] is List) {
+          return (data['created'] as List)
+              .map((e) => EstimateModel.fromJson(e))
+              .toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error auto-syncing repeat estimates: $e');
+    }
+    return [];
+  }
 }

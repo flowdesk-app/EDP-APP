@@ -11,11 +11,13 @@ import '../../utils/positive_number_formatter.dart';
 class EstimateCalculatorScreen extends StatefulWidget {
   final JobModel? initialJob;
   final EstimateModel? existingEstimate;
+  final EstimateModel? matchingTemplate;
 
   const EstimateCalculatorScreen({
     super.key,
     this.initialJob,
     this.existingEstimate,
+    this.matchingTemplate,
   });
 
   @override
@@ -85,17 +87,23 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
 
   void _initControllers() {
     final est = widget.existingEstimate;
+    final template = widget.matchingTemplate;
     final job = widget.initialJob;
+    final source = est ?? template;
 
     final initialCalcNo = est?.calculationNo ?? '00000112';
     _calcNoCtrl = TextEditingController(text: initialCalcNo);
-    _date = est?.date ?? DateTime.now();
+    _date = est?.date ?? job?.receivedDate ?? job?.customerOrderDate ?? job?.createdDate ?? DateTime.now();
 
-    final customer = est?.customerName ?? job?.customerName ?? '';
+    final customer = est?.customerName ?? job?.customerName ?? template?.customerName ?? '';
     _customerNameCtrl = TextEditingController(text: customer);
 
     String desc = est?.itemDescription ?? '';
     String drgNo = est?.drawingNo ?? '';
+
+    if (drgNo.isEmpty && template?.drawingNo != null && template!.drawingNo!.isNotEmpty) {
+      drgNo = template.drawingNo!;
+    }
 
     if (job != null) {
       final wheelSize = job.wheelSize ?? '';
@@ -141,11 +149,15 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
       }
     }
 
+    if (desc.isEmpty && template?.itemDescription != null && template!.itemDescription!.isNotEmpty) {
+      desc = template.itemDescription!;
+    }
+
     _itemDescCtrl = TextEditingController(text: desc);
     _drawingNoCtrl = TextEditingController(text: drgNo);
 
-    String initType = est?.type ?? 'N';
-    if (est == null && job != null) {
+    String initType = source?.type ?? 'N';
+    if (source == null && job != null) {
       if (job.jobType == 'Re-coating') {
         initType = 'R';
       } else if (job.jobType == 'Coating') {
@@ -156,52 +168,52 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
     }
     _type = initType;
 
-    _notesCtrl = TextEditingController(text: est?.calculationsNotes ?? '');
+    _notesCtrl = TextEditingController(text: source?.calculationsNotes ?? '');
 
     // Area
-    _areaCtrl = TextEditingController(text: est != null ? est.effectiveCoatingArea.toString() : '535.86');
+    _areaCtrl = TextEditingController(text: source != null ? source.effectiveCoatingArea.toString() : '535.86');
 
     // Grit
     String detectedGrit = '30/40';
-    if (est?.gritSize != null && est!.gritSize!.isNotEmpty) {
-      detectedGrit = est.gritSize!;
+    if (source?.gritSize != null && source!.gritSize!.isNotEmpty) {
+      detectedGrit = source.gritSize!;
     } else if (job?.diamondPowderGritSize != null) {
       final d = EstimateCalculator.detectGritSize(job!.diamondPowderGritSize);
       if (d != null) detectedGrit = d;
     }
     _selectedGrit = detectedGrit;
 
-    final initialFactor = est?.factor ?? EstimateCalculator.getFactorForGrit(_selectedGrit);
+    final initialFactor = source?.factor ?? EstimateCalculator.getFactorForGrit(_selectedGrit);
     _factorCtrl = TextEditingController(text: initialFactor.toStringAsFixed(2));
 
-    _diamondRateCtrl = TextEditingController(text: (est?.diamondRate ?? 25.0).toStringAsFixed(2));
+    _diamondRateCtrl = TextEditingController(text: (source?.diamondRate ?? 25.0).toStringAsFixed(2));
 
     // Operational costs
-    _blankCostCtrl = TextEditingController(text: (est?.blankCost ?? (_type == 'N' ? 30000.0 : 0.0)).toStringAsFixed(0));
-    _grindingCostCtrl = TextEditingController(text: (est?.grindingCost ?? 0.0).toStringAsFixed(0));
-    _extractionCostCtrl = TextEditingController(text: (est?.extractionCost ?? 0.0).toStringAsFixed(0));
-    _balancingCostCtrl = TextEditingController(text: (est?.balancingCost ?? 3000.0).toStringAsFixed(0));
-    _transportationCostCtrl = TextEditingController(text: (est?.transportationCost ?? 1000.0).toStringAsFixed(0));
+    _blankCostCtrl = TextEditingController(text: (source?.blankCost ?? (_type == 'N' ? 30000.0 : 0.0)).toStringAsFixed(0));
+    _grindingCostCtrl = TextEditingController(text: (source?.grindingCost ?? 0.0).toStringAsFixed(0));
+    _extractionCostCtrl = TextEditingController(text: (source?.extractionCost ?? 0.0).toStringAsFixed(0));
+    _balancingCostCtrl = TextEditingController(text: (source?.balancingCost ?? 3000.0).toStringAsFixed(0));
+    _transportationCostCtrl = TextEditingController(text: (source?.transportationCost ?? 1000.0).toStringAsFixed(0));
 
     // Margins
-    _marginPercentage = est?.marginPercentage ?? 25.0;
+    _marginPercentage = source?.marginPercentage ?? 25.0;
     _marginCtrl = TextEditingController(text: _marginPercentage.toStringAsFixed(0));
-    _processCostCtrl = TextEditingController(text: (est?.processCost ?? 5000.0).toStringAsFixed(0));
+    _processCostCtrl = TextEditingController(text: (source?.processCost ?? 5000.0).toStringAsFixed(0));
 
     // Discounts
-    _discountProvisionPercentage = est?.discountProvisionPercentage ?? 15.0;
+    _discountProvisionPercentage = source?.discountProvisionPercentage ?? 15.0;
     _discountProvisionCtrl = TextEditingController(text: _discountProvisionPercentage.toStringAsFixed(0));
-    final initDiscount = est?.discountPercentage ?? 0.0;
-    _hasDiscount = est != null && initDiscount > 0;
+    final initDiscount = source?.discountPercentage ?? 0.0;
+    _hasDiscount = source != null && initDiscount > 0;
     _discountPercentageCtrl = TextEditingController(text: _hasDiscount ? initDiscount.toStringAsFixed(0) : '');
 
-    final initQtn = est?.qtnPrice ?? 0.0;
+    final initQtn = source?.qtnPrice ?? 0.0;
     _qtnPriceCtrl = TextEditingController(text: initQtn > 0 ? initQtn.toStringAsFixed(0) : '');
-    _customQtnPriceOverridden = est != null && est.qtnPrice > 0;
+    _customQtnPriceOverridden = source != null && source.qtnPrice > 0;
 
-    _minOrderQtyCtrl = TextEditingController(text: est?.minOrderQty ?? '1 set');
-    _deliveryCtrl = TextEditingController(text: est?.delivery ?? '4 - 6 Weeks');
-    _qtnNoDateCtrl = TextEditingController(text: est?.qtnNoAndDate ?? '');
+    _minOrderQtyCtrl = TextEditingController(text: source?.minOrderQty ?? '1 set');
+    _deliveryCtrl = TextEditingController(text: source?.delivery ?? '4 - 6 Weeks');
+    _qtnNoDateCtrl = TextEditingController(text: source?.qtnNoAndDate ?? '');
   }
 
   @override
@@ -449,6 +461,39 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (widget.matchingTemplate != null && widget.existingEstimate == null) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFF59E0B)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_awesome, color: Color(0xFFB45309), size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Repeat Wheel Detected - Costs Auto-Populated',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF92400E), fontSize: 13),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Cost breakdown, margins, and specs pre-filled from prior Estimate #${widget.matchingTemplate!.calculationNo}. You can review and adjust any figures before saving.',
+                                style: const TextStyle(color: Color(0xFFB45309), fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 _buildHeaderCard(),
                 const SizedBox(height: 16),
                 if (isDesktop)

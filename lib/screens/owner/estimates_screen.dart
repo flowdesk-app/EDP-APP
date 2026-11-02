@@ -9,6 +9,7 @@ import '../../widgets/job_type_badge.dart';
 import '../../widgets/estimate_auth_dialog.dart';
 import 'estimate_calculator_screen.dart';
 import '../../utils/pdf_estimate_api.dart';
+import '../../utils/wheel_matcher.dart';
 
 class EstimatesScreen extends StatefulWidget {
   final int initialTab;
@@ -74,6 +75,73 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
     }
   }
 
+  void _sortEstimates(List<EstimateModel> list) {
+    list.sort((a, b) {
+      // Primary: createdAt descending (newest entries and auto-estimated repeats first)
+      final aCreated = a.createdAt ?? a.date;
+      final bCreated = b.createdAt ?? b.date;
+      final createdCmp = bCreated.compareTo(aCreated);
+      if (createdCmp != 0) return createdCmp;
+
+      // Secondary: date descending
+      final dateCmp = b.date.compareTo(a.date);
+      if (dateCmp != 0) return dateCmp;
+
+      // Fallback: calculationNo descending
+      return b.calculationNo.compareTo(a.calculationNo);
+    });
+  }
+
+  Future<List<EstimateModel>> _checkAndAutoEstimateRepeatingJobs(
+    List<JobModel> jobs,
+    List<EstimateModel> currentEstimates,
+  ) async {
+    if (currentEstimates.isEmpty) return [];
+
+    final existingJobIds = currentEstimates
+        .map((e) => e.jobId)
+        .where((id) => id != null && id.isNotEmpty)
+        .toSet();
+
+    // Granted jobs that do not yet have an estimate
+    final unestimatedGrantedJobs = jobs.where((j) {
+      if (!j.accessGranted) return false;
+      if (j.status == 'Removed') return false;
+      return !existingJobIds.contains(j.jobId);
+    }).toList();
+
+    if (unestimatedGrantedJobs.isEmpty) return [];
+
+    final List<EstimateModel> newlyCreated = [];
+    final allKnownEstimates = List<EstimateModel>.from(currentEstimates);
+
+    for (final job in unestimatedGrantedJobs) {
+      final matchingTemplate = WheelMatcher.findMatchingEstimate(job, allKnownEstimates);
+      if (matchingTemplate != null) {
+        final nextCalcNo = WheelMatcher.generateNextCalculationNo(allKnownEstimates);
+        final newEstimate = WheelMatcher.createEstimateFromRepeatJob(
+          job: job,
+          template: matchingTemplate,
+          nextCalcNo: nextCalcNo,
+        );
+
+        try {
+          final saved = await _api.saveEstimate(newEstimate);
+          newlyCreated.add(saved);
+          allKnownEstimates.add(saved);
+          existingJobIds.add(job.jobId);
+        } catch (err) {
+          debugPrint('Error auto-saving repeat estimate for job ${job.jobId}: $err');
+          newlyCreated.add(newEstimate);
+          allKnownEstimates.add(newEstimate);
+          existingJobIds.add(job.jobId);
+        }
+      }
+    }
+
+    return newlyCreated;
+  }
+
   Future<void> _loadData() async {
     setState(() => _loading = true);
     try {
@@ -81,11 +149,34 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
       final estimatesFuture = _api.getEstimates();
 
       final results = await Future.wait([jobsFuture, estimatesFuture]);
+      var jobs = results[0] as List<JobModel>;
+      var estimates = results[1] as List<EstimateModel>;
+
+      // Auto-detect and auto-estimate repeat orders from existing wheel templates
+      final autoEstimated = await _checkAndAutoEstimateRepeatingJobs(jobs, estimates);
+      if (autoEstimated.isNotEmpty) {
+        estimates.addAll(autoEstimated);
+      }
+
+      _sortEstimates(estimates);
+
       if (mounted) {
         setState(() {
-          _allJobs = results[0] as List<JobModel>;
-          _allEstimates = results[1] as List<EstimateModel>;
+          _allJobs = jobs;
+          _allEstimates = estimates;
         });
+
+        if (autoEstimated.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Auto-estimated ${autoEstimated.length} repeating wheel order(s) directly into Estimated Section at the top!',
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -163,12 +254,17 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
 
   void _openCalculatorForJob(JobModel job) {
     final existing = _findEstimateForJob(job.jobId);
+    final matchingTemplate = existing == null
+        ? WheelMatcher.findMatchingEstimate(job, _allEstimates)
+        : null;
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => EstimateCalculatorScreen(
           initialJob: job,
           existingEstimate: existing,
+          matchingTemplate: matchingTemplate,
         ),
       ),
     ).then((saved) {
@@ -780,47 +876,69 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F5E9),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFF81C784)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.verified, size: 13, color: Color(0xFF2E7D32)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Calc #${est.calculationNo}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2E7D32)),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            DateFormat('dd MMM yyyy').format(est.date),
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          if (est.jobId != null) ...[
-                            const SizedBox(width: 8),
+                      Expanded(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE0F2FE),
+                                color: const Color(0xFFE8F5E9),
                                 borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFF81C784)),
                               ),
-                              child: Text(
-                                'Job #${est.jobId}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0288D1)),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.verified, size: 13, color: Color(0xFF2E7D32)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Calc #${est.calculationNo}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2E7D32)),
+                                  ),
+                                ],
                               ),
                             ),
+                            Text(
+                              DateFormat('dd MMM yyyy').format(est.date),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            if (est.jobId != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE0F2FE),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Job #${est.jobId}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0288D1)),
+                                ),
+                              ),
+                            if (est.isAutoEstimated)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFF59E0B)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.replay, size: 12, color: Color(0xFFB45309)),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Repeat Wheel • Auto-Estimated',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFFB45309)),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
-                        ],
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

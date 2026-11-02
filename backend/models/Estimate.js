@@ -40,6 +40,7 @@ const estimateSchema = new mongoose.Schema({
   minOrderQty: { type: String },
   delivery: { type: String },
   qtnNoAndDate: { type: String },
+  isAutoEstimated: { type: Boolean, default: false },
 
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });

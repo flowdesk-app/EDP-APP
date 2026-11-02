@@ -39,6 +39,7 @@ class EstimateModel {
   final String? minOrderQty;
   final String? delivery;
   final String? qtnNoAndDate;
+  final bool isAutoEstimated;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -76,6 +77,7 @@ class EstimateModel {
     this.minOrderQty,
     this.delivery,
     this.qtnNoAndDate,
+    this.isAutoEstimated = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -127,6 +129,7 @@ class EstimateModel {
       minOrderQty: json['minOrderQty']?.toString(),
       delivery: json['delivery']?.toString(),
       qtnNoAndDate: json['qtnNoAndDate']?.toString(),
+      isAutoEstimated: json['isAutoEstimated'] == true,
       createdAt: json['createdAt'] != null ? parseDt(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? parseDt(json['updatedAt']) : null,
     );
@@ -166,6 +169,7 @@ class EstimateModel {
       'minOrderQty': minOrderQty,
       'delivery': delivery,
       'qtnNoAndDate': qtnNoAndDate,
+      'isAutoEstimated': isAutoEstimated,
     };
   }
 
@@ -202,6 +206,7 @@ class EstimateModel {
     String? minOrderQty,
     String? delivery,
     String? qtnNoAndDate,
+    bool? isAutoEstimated,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -238,6 +243,7 @@ class EstimateModel {
       minOrderQty: minOrderQty ?? this.minOrderQty,
       delivery: delivery ?? this.delivery,
       qtnNoAndDate: qtnNoAndDate ?? this.qtnNoAndDate,
+      isAutoEstimated: isAutoEstimated ?? this.isAutoEstimated,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
