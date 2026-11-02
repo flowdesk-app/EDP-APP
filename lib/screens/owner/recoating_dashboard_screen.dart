@@ -31,7 +31,7 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   void initState() {
     super.initState();
     _currentJobs = widget.recoatingJobs;
-    _selectedMonth = widget.month ?? DateFormat('yyyy-MM').format(DateTime.now());
+    _selectedMonth = widget.month ?? 'ALL';
     _selectedDate = widget.date;
     _fetchJobs();
   }
@@ -73,7 +73,7 @@ class _RecoatingDashboardScreenState extends State<RecoatingDashboardScreen> {
   void _clearDateFilter() {
     setState(() {
       _selectedDate = null;
-      _selectedMonth = DateFormat('yyyy-MM').format(DateTime.now());
+      _selectedMonth = 'ALL';
     });
     _fetchJobs();
   }

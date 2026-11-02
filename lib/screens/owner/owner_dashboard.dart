@@ -51,7 +51,7 @@ class OwnerDashboardState extends State<OwnerDashboard> {
   void initState() {
     super.initState();
     _selectedDate = null;
-    _selectedMonth = DateFormat('yyyy-MM').format(DateTime.now());
+    _selectedMonth = 'ALL';
     _load();
   }
 
@@ -136,7 +136,7 @@ class OwnerDashboardState extends State<OwnerDashboard> {
   void _clearDateFilter() {
     setState(() {
       _selectedDate = null;
-      _selectedMonth = DateFormat('yyyy-MM').format(DateTime.now());
+      _selectedMonth = 'ALL';
     });
     _load();
   }
