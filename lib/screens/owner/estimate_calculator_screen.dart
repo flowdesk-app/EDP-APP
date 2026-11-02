@@ -419,9 +419,9 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 3, child: _buildCalculationsColumn()),
+                      Expanded(child: _buildCalculationsColumn()),
                       const SizedBox(width: 16),
-                      Expanded(flex: 2, child: _buildSummaryColumn()),
+                      Expanded(child: _buildSummaryColumn()),
                     ],
                   )
                 else ...[
@@ -429,9 +429,11 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                   const SizedBox(height: 16),
                   _buildSummaryColumn(),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                _buildFinalQuotationPriceCard(isDesktop),
+                const SizedBox(height: 16),
                 _buildBottomActionBar(),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -821,6 +823,8 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                         onChanged: (_) => _recalculate(syncQtnPrice: true),
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    const Expanded(child: SizedBox()),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -851,324 +855,365 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
 
   // --- SECTION 3: SUMMARY & MARGIN / DISCOUNT COLUMN ---
   Widget _buildSummaryColumn() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade300),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Price Build-Up', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 14),
+
+            // Profit Margin (Fixed at 25%)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Profit Margin:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2FE),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('25% (Fixed)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0288D1))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            _buildSummaryLine(
+              label: 'Direct Costs Subtotal',
+              value: currencyFormatter.format(_directCostSum),
+              subtitle: 'Diamond + Materials',
+            ),
+            _buildSummaryLine(
+              label: 'Sub-Total (incl. 25% margin)',
+              value: currencyFormatter.format(_subTotalInclMargin),
+              subtitle: 'Direct Costs ÷ 0.75',
+              isHighlighted: true,
+            ),
+
+            const Divider(height: 20),
+
+            // Process Cost
+            TextField(
+              controller: _processCostCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Process Cost (Plating & Chemical) *',
+                hintText: '5000',
+                border: OutlineInputBorder(),
+                isDense: true,
+                prefixIcon: Icon(Icons.science_outlined, size: 20),
+              ),
+              onChanged: (_) => _recalculate(syncQtnPrice: true),
+            ),
+            const SizedBox(height: 10),
+
+            _buildSummaryLine(
+              label: 'Total Cost',
+              value: currencyFormatter.format(_totalCost),
+              subtitle: 'Sub-Total + Process Cost',
+              isBold: true,
+            ),
+
+            const Divider(height: 20),
+
+            // Provision for Discount (Fixed at 15%)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Provision for Discount:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('15% (Fixed)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFD97706))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            _buildSummaryLine(
+              label: 'Provision for Discount',
+              value: currencyFormatter.format(_provisionForDiscount),
+              subtitle: 'Total ÷ 0.85',
+              isHighlighted: true,
+            ),
+
+            const SizedBox(height: 14),
+
+            // DISCOUNT SECTION (OPTIONAL)
+            if (!_hasDiscount) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _hasDiscount = true;
+                        if (_discountPercentageCtrl.text.trim().isEmpty) {
+                          _discountPercentageCtrl.text = '10'; // default suggested value
+                        }
+                        _customQtnPriceOverridden = false;
+                        _recalculate(syncQtnPrice: true);
+                      });
+                    },
+                    icon: const Icon(Icons.add_circle_outline, size: 16, color: Color(0xFF0288D1)),
+                    label: const Text('Add Discount (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0288D1))),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF0288D1)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  const Text('No discount applied', style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic)),
+                ],
+              ),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.percent, size: 16, color: Color(0xFFDC2626)),
+                            SizedBox(width: 6),
+                            Text('Customer Discount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF991B1B))),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _hasDiscount = false;
+                              _discountPercentageCtrl.clear();
+                              _customQtnPriceOverridden = false;
+                              _recalculate(syncQtnPrice: true);
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Row(
+                              children: [
+                                Icon(Icons.close, size: 14, color: Color(0xFFDC2626)),
+                                SizedBox(width: 4),
+                                Text('Remove', style: TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextField(
+                            controller: _discountPercentageCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(
+                              labelText: 'Discount %',
+                              hintText: 'e.g. 5 or 10',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                              fillColor: Colors.white,
+                              filled: true,
+                              suffixText: '%',
+                            ),
+                            onChanged: (_) {
+                              _customQtnPriceOverridden = false;
+                              _recalculate(syncQtnPrice: true);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Text('Discount Amount:', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                              Text(
+                                '- ${currencyFormatter.format(_provisionForDiscount * ((double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0) / 100.0))}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFDC2626)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 14),
+
+            // QTN Price field
+            TextField(
+              controller: _qtnPriceCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                const PositiveNumberInputFormatter(),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Final QTN Price (₹) *',
+                hintText: 'e.g. 82590',
+                border: const OutlineInputBorder(),
+                isDense: true,
+                suffixIcon: _customQtnPriceOverridden
+                    ? IconButton(
+                        tooltip: 'Reset to calculated price',
+                        icon: const Icon(Icons.refresh, size: 18),
+                        onPressed: () {
+                          setState(() {
+                            _customQtnPriceOverridden = false;
+                            _recalculate(syncQtnPrice: true);
+                          });
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (_) {
+                _customQtnPriceOverridden = true;
+                setState(() {});
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- SECTION 4: FULL-WIDTH FINAL QUOTATION PRICE BANNER ---
+  Widget _buildFinalQuotationPriceCard(bool isDesktop) {
     final currentQtnPrice = double.tryParse(_qtnPriceCtrl.text.trim()) ?? _suggestedQtnPrice;
     final discount = _hasDiscount ? (double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0) : 0.0;
     // With 15% discount buffer: if no discount, margin is 25% + 15% = 40%.
     // If discount D%: 25% + (15% - D%)
     final effectiveFinalMargin = 25.0 + (15.0 - discount);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Cost Calculation Step-by-Step Card (PRICE BUILD-UP FIRST)
-        Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade300),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0288D1), Color(0xFF01579B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0288D1).withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
+        ],
+      ),
+      child: isDesktop
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'FINAL QUOTATION PRICE (QTN)',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      shortCurrency.format(currentQtnPrice),
+                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2E7D32),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF81C784)),
+                      ),
+                      child: Text(
+                        '${effectiveFinalMargin.toStringAsFixed(0)}% Final Margin',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _hasDiscount && discount > 0
+                          ? '15% discount buffer provisioned | Discount offered: ${discount.toStringAsFixed(0)}% | Final Margin on QTN: ${effectiveFinalMargin.toStringAsFixed(0)}%'
+                          : '15% discount buffer fully retained | No customer discount | Final Margin on QTN: 40%',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Price Build-Up', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 14),
-
-                // Profit Margin (Fixed at 25%)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Profit Margin:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const Text('FINAL QUOTATION PRICE (QTN)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0F2FE),
-                        borderRadius: BorderRadius.circular(6),
+                        color: const Color(0xFF2E7D32),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF81C784)),
                       ),
-                      child: const Text('25% (Fixed)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0288D1))),
+                      child: Text(
+                        '${effectiveFinalMargin.toStringAsFixed(0)}% Final Margin',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-
-                _buildSummaryLine(
-                  label: 'Direct Costs Subtotal',
-                  value: currencyFormatter.format(_directCostSum),
-                  subtitle: 'Diamond + Materials',
+                const SizedBox(height: 8),
+                Text(
+                  shortCurrency.format(currentQtnPrice),
+                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-                _buildSummaryLine(
-                  label: 'Sub-Total (incl. 25% margin)',
-                  value: currencyFormatter.format(_subTotalInclMargin),
-                  subtitle: 'Direct Costs ÷ 0.75',
-                  isHighlighted: true,
-                ),
-
-                const Divider(height: 20),
-
-                // Process Cost
-                TextField(
-                  controller: _processCostCtrl,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Process Cost (Plating & Chemical) *',
-                    hintText: '5000',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    prefixIcon: Icon(Icons.science_outlined, size: 20),
-                  ),
-                  onChanged: (_) => _recalculate(syncQtnPrice: true),
-                ),
-                const SizedBox(height: 10),
-
-                _buildSummaryLine(
-                  label: 'Total Cost',
-                  value: currencyFormatter.format(_totalCost),
-                  subtitle: 'Sub-Total + Process Cost',
-                  isBold: true,
-                ),
-
-                const Divider(height: 20),
-
-                // Provision for Discount (Fixed at 15%)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Provision for Discount:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text('15% (Fixed)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFD97706))),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                _buildSummaryLine(
-                  label: 'Provision for Discount',
-                  value: currencyFormatter.format(_provisionForDiscount),
-                  subtitle: 'Total ÷ 0.85',
-                  isHighlighted: true,
-                ),
-
-                const SizedBox(height: 14),
-
-                // DISCOUNT SECTION (OPTIONAL)
-                if (!_hasDiscount) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _hasDiscount = true;
-                            if (_discountPercentageCtrl.text.trim().isEmpty) {
-                              _discountPercentageCtrl.text = '10'; // default suggested value
-                            }
-                            _customQtnPriceOverridden = false;
-                            _recalculate(syncQtnPrice: true);
-                          });
-                        },
-                        icon: const Icon(Icons.add_circle_outline, size: 16, color: Color(0xFF0288D1)),
-                        label: const Text('Add Discount (Optional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0288D1))),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF0288D1)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                      const Text('No discount applied', style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic)),
-                    ],
-                  ),
-                ] else ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF2F2),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFFECACA)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(Icons.percent, size: 16, color: Color(0xFFDC2626)),
-                                SizedBox(width: 6),
-                                Text('Customer Discount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF991B1B))),
-                              ],
-                            ),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _hasDiscount = false;
-                                  _discountPercentageCtrl.clear();
-                                  _customQtnPriceOverridden = false;
-                                  _recalculate(syncQtnPrice: true);
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(6),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.close, size: 14, color: Color(0xFFDC2626)),
-                                    SizedBox(width: 4),
-                                    Text('Remove', style: TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w600)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: TextField(
-                                controller: _discountPercentageCtrl,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(
-                                  labelText: 'Discount %',
-                                  hintText: 'e.g. 5 or 10',
-                                  border: OutlineInputBorder(),
-                                  isDense: true,
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  suffixText: '%',
-                                ),
-                                onChanged: (_) {
-                                  _customQtnPriceOverridden = false;
-                                  _recalculate(syncQtnPrice: true);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  const Text('Discount Amount:', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                                  Text(
-                                    '- ${currencyFormatter.format(_provisionForDiscount * ((double.tryParse(_discountPercentageCtrl.text.trim()) ?? 0.0) / 100.0))}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFDC2626)),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 14),
-
-                // QTN Price field
-                TextField(
-                  controller: _qtnPriceCtrl,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    const PositiveNumberInputFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Final QTN Price (₹) *',
-                    hintText: 'e.g. 82590',
-                    border: const OutlineInputBorder(),
-                    isDense: true,
-                    suffixIcon: _customQtnPriceOverridden
-                        ? IconButton(
-                            tooltip: 'Reset to calculated price',
-                            icon: const Icon(Icons.refresh, size: 18),
-                            onPressed: () {
-                              setState(() {
-                                _customQtnPriceOverridden = false;
-                                _recalculate(syncQtnPrice: true);
-                              });
-                            },
-                          )
-                        : null,
-                  ),
-                  onChanged: (_) {
-                    _customQtnPriceOverridden = true;
-                    setState(() {});
-                  },
+                const SizedBox(height: 6),
+                Text(
+                  _hasDiscount && discount > 0
+                      ? '15% discount buffer provisioned | Discount offered: ${discount.toStringAsFixed(0)}% | Final Margin on QTN: ${effectiveFinalMargin.toStringAsFixed(0)}%'
+                      : '15% discount buffer fully retained | No customer discount | Final Margin on QTN: 40%',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
                 ),
               ],
             ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // FINAL QUOTATION PRICE CARD (NOW PROMINENTLY AT THE BOTTOM OF THE FLOW)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0288D1), Color(0xFF01579B)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0288D1).withValues(alpha: 0.35),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('FINAL QUOTATION PRICE (QTN)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2E7D32),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF81C784)),
-                    ),
-                    child: Text(
-                      '${effectiveFinalMargin.toStringAsFixed(0)}% Final Margin',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                shortCurrency.format(currentQtnPrice),
-                style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _hasDiscount && discount > 0
-                    ? '15% discount buffer provisioned | Discount offered: ${discount.toStringAsFixed(0)}% | Final Margin on QTN: ${effectiveFinalMargin.toStringAsFixed(0)}%'
-                    : '15% discount buffer fully retained | No customer discount | Final Margin on QTN: 40%',
-                style: const TextStyle(color: Colors.white70, fontSize: 11),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
