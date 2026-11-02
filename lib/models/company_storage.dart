@@ -60,7 +60,7 @@ List<CompanyStorage> kCompanyStorages = [
   CompanyStorage(name: 'VINKO', prefixes: ['VINK']),
   CompanyStorage(name: 'Give&take enterprises', prefixes: ['GIVETAKE', 'GIVE', 'GIVE&TAKE']),
       CompanyStorage(name: 'SRISAI', prefixes: ['SRISAI', 'SRI-SAI']),
-        CompanyStorage(name: 'RANE PONNERI', prefixes: ['RANE MADRAS LTD PONNERI', 'RANE MADRAS LTD PONEERI']),
+        CompanyStorage(name: 'RANE PONNERI', prefixes: ['RANE MADRAS LTD PONNERI', 'RANE MADRAS LTD PONEERI', 'RANE MADRAS', 'PONNERI', 'PONEERI']),
       CompanyStorage(name: 'Others', prefixes: ['EDP-16CM', 'EDP-16MM']),
   CompanyStorage(name: 'SEVOX', prefixes: ['SEVOX']),
   CompanyStorage(name: 'SWASTIC', prefixes: ['SWASTIC', 'SWA', 'SWAS']),

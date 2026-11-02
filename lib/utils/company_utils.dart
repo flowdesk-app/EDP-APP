@@ -21,6 +21,11 @@ List<String> getCompaniesForPrefix(String itemName) {
     return ['Brakes india limited SRICITY'];
   }
 
+  // Special handling for RANE PONNERI
+  if (upperName.contains('PONNERI') || upperName.contains('PONEERI') || upperName.contains('RANE MADRAS')) {
+    return ['RANE PONNERI'];
+  }
+
   // Special handling for RBL with explicit locations
   if (upperName.startsWith('RBL ') || upperName.startsWith('RBL-')) {
     if (upperName.contains('TRICHY')) {
