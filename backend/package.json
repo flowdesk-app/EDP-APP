@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
+    "postinstall": "pip3 install --break-system-packages -r requirements.txt || pip install -r requirements.txt || python3 -m pip install -r requirements.txt || true",
     "migrate-passwords": "node scripts/hashPasswords.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

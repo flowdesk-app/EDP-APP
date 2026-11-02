@@ -1,5 +1,6 @@
 import sys
 import os
+os.environ['OPENCV_LOG_LEVEL'] = 'OFF'
 import json
 import base64
 import cv2
@@ -11,6 +12,7 @@ SFACE_PATH = os.path.join(BASE_DIR, 'face_models', 'face_recognition_sface.onnx'
 
 # Initialize models
 _detector = None
+_fallback_detector = None
 _recognizer = None
 
 def get_models():
@@ -20,7 +22,7 @@ def get_models():
             YUNET_PATH,
             '',
             (320, 320),
-            0.6, 0.3, 5000
+            0.5, 0.3, 5000
         )
     if _recognizer is None:
         _recognizer = cv2.FaceRecognizerSF_create(
@@ -30,13 +32,29 @@ def get_models():
     return _detector, _recognizer
 
 def extract_face_feature_from_bgr(img):
+    global _fallback_detector
     detector, recognizer = get_models()
     h, w, _ = img.shape
     detector.setInputSize((w, h))
     _, faces = detector.detect(img)
     if faces is None or len(faces) == 0:
+        if _fallback_detector is None:
+            _fallback_detector = cv2.FaceDetectorYN_create(
+                YUNET_PATH, '', (w, h), 0.3, 0.3, 5000
+            )
+        else:
+            _fallback_detector.setInputSize((w, h))
+        _, faces = _fallback_detector.detect(img)
+
+    if faces is None or len(faces) == 0:
         return None
-    aligned = recognizer.alignCrop(img, faces[0])
+
+    # Pick the face with largest bounding box (closest to camera / centered)
+    best_face = faces[0]
+    if len(faces) > 1:
+        best_face = max(faces, key=lambda f: f[2] * f[3])
+
+    aligned = recognizer.alignCrop(img, best_face)
     feature = recognizer.feature(aligned)
     return feature.flatten().tolist()
 

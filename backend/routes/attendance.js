@@ -249,8 +249,17 @@ router.post('/verify-camera-frame', async (req, res) => {
       stderrData += data.toString();
     });
 
-    pyProcess.on('close', async () => {
+    pyProcess.on('close', async (code) => {
       try {
+        if (code !== 0) {
+          console.error(`face_recognizer.py exited with code ${code}:`, stderrData);
+          let friendlyError = 'Biometric AI engine encountered an error. Please try again.';
+          if (stderrData.includes('No module named') || stderrData.includes('cv2')) {
+            friendlyError = 'Face AI dependencies are initializing on the server. Please try again in 1-2 minutes.';
+          }
+          return res.status(500).json({ success: false, error: friendlyError, stderr: stderrData });
+        }
+
         const lines = stdoutData.trim().split('\n');
         const lastLine = lines[lines.length - 1];
         if (!lastLine) {
@@ -260,9 +269,9 @@ router.post('/verify-camera-frame', async (req, res) => {
         const matchResult = JSON.parse(lastLine);
         if (!matchResult.success || !matchResult.matched) {
           return res.json({
-            success: true,
+            success: false,
             matched: false,
-            message: matchResult.error || matchResult.message || 'Face not recognized. Please face the camera squarely.',
+            error: matchResult.error || matchResult.message || 'Face not recognized. Please center your face inside the frame.',
           });
         }
 
@@ -308,10 +317,11 @@ router.post('/verify-camera-frame', async (req, res) => {
           actionTaken = 'in';
         } else if (scanType === 'out') {
           if (!record || !record.clockInTime) {
-            return res.status(400).json({
+            return res.json({
               success: false,
               matched: true,
-              error: `Cannot clock out. No clock-in record found for ${empName} today.`,
+              employee: { ...matchedEmp, name: empName, department: dept, photoUrl: user.facePhotoUrl },
+              error: `Cannot clock out. No clock-in record found for ${empName} today. Please scan Entry (Clock-In) first.`,
             });
           }
           record.clockOutTime = now;

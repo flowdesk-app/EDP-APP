@@ -133,9 +133,9 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
           if (mounted) setState(() => _todayPunches = updated);
         });
 
-        // Auto dismiss overlay after 5 seconds
+        // Auto dismiss overlay after 8 seconds (or 5 for success)
         _overlayDismissTimer?.cancel();
-        _overlayDismissTimer = Timer(const Duration(seconds: 5), () {
+        _overlayDismissTimer = Timer(Duration(seconds: res['success'] == true ? 5 : 8), () {
           if (mounted) setState(() => _lastPunchResult = null);
         });
       }
@@ -455,23 +455,27 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
           else if (!_scanning)
             Positioned(
               bottom: 24,
-              child: ElevatedButton.icon(
-                onPressed: _captureAndVerifyCameraFrame,
-                icon: const Icon(Icons.camera_alt, size: 22),
-                label: Text(
-                  _scanMode == 'in'
-                      ? 'SCAN ENTRY (CLOCK-IN)'
-                      : (_scanMode == 'out' ? 'SCAN EXIT (CLOCK-OUT)' : 'SCAN FACE NOW'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.8),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _scanMode == 'in'
-                      ? const Color(0xFF00E676)
-                      : (_scanMode == 'out' ? const Color(0xFF0288D1) : const Color(0xFF00E676)),
-                  foregroundColor: const Color(0xFF0D1B2A),
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  elevation: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: _captureAndVerifyCameraFrame,
+                  icon: const Icon(Icons.camera_alt, size: 24),
+                  label: Text(
+                    _scanMode == 'in'
+                        ? 'SCAN ENTRY (CLOCK-IN)'
+                        : (_scanMode == 'out' ? 'SCAN EXIT (CLOCK-OUT)' : 'SCAN FACE ATTENDANCE'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.8),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _scanMode == 'in'
+                        ? const Color(0xFF00E676)
+                        : (_scanMode == 'out' ? const Color(0xFF0288D1) : const Color(0xFF00E676)),
+                    foregroundColor: const Color(0xFF0D1B2A),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    elevation: 10,
+                  ),
                 ),
               ),
             ),
@@ -665,8 +669,8 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  res['message'] ?? (isSuccess ? 'Biometric scan verified' : 'Scan failed'),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  res['message'] ?? res['error'] ?? (isSuccess ? 'Biometric scan verified' : 'Scan failed'),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 if (record != null && isClockOut) ...[
                   const SizedBox(height: 6),
