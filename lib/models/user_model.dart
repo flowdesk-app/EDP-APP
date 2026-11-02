@@ -1,4 +1,4 @@
-enum UserRole { owner, admin, employee, employee1, employee2, employee3 }
+enum UserRole { owner, admin, employee, employee1, employee2, employee3, payroll }
 
 class UserModel {
   final String email;
@@ -27,6 +27,9 @@ class UserModel {
     }
     else if (json['role'] == 'employee3') {
       parsedRole = UserRole.employee3;
+    }
+    else if (json['role'] == 'payroll') {
+      parsedRole = UserRole.payroll;
     }
 
     return UserModel(

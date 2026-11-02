@@ -11,7 +11,8 @@ const addUsers = async () => {
     const users = [
         { email: 'employee1@flowdesk.com', password: 'password123', role: 'employee1' },
         { email: 'employee2@flowdesk.com', password: 'password123', role: 'employee2' },
-        { email: 'employee3@flowdesk.com', password: 'password123', role: 'employee3' }
+        { email: 'employee3@flowdesk.com', password: 'password123', role: 'employee3' },
+        { email: 'payroll@flowdesk.com', password: 'password123', role: 'payroll' }
     ];
     
     for (const u of users) {

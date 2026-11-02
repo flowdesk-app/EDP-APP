@@ -146,6 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
               _demoHint('Employee 1 (Inventory)', 'employee1@flowdesk.com', 'password123'),
               _demoHint('Employee 2 (Production)', 'employee2@flowdesk.com', 'password123'),
               _demoHint('Employee 3 (Dispatch)', 'employee3@flowdesk.com', 'password123'),
+              _demoHint('Payroll', 'payroll@flowdesk.com', 'password123'),
             ],
           ),
         ),

@@ -21,6 +21,7 @@ import 'job_approval_screen.dart';
 import 'estimates_screen.dart';
 import 'delivery_challans_screen.dart';
 import '../../widgets/estimate_auth_dialog.dart';
+import '../payroll/payroll_dashboard_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -141,6 +142,17 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.build_circle_outlined), selectedIcon: Icon(Icons.build_circle), label: Text('Re-coating')),
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
+      ];
+    } else if (_role == UserRole.payroll) {
+      _screens = [
+        const PayrollDashboardScreen(),
+      ];
+      _destinations = [
+        const NavigationRailDestination(
+          icon: Icon(Icons.payments_outlined),
+          selectedIcon: Icon(Icons.payments),
+          label: Text('Payroll'),
+        ),
       ];
     } else {
       _screens = [
@@ -265,25 +277,27 @@ class _MainLayoutState extends State<MainLayout> {
         ),
       ),
       body: _currentIndex < _screens.length ? _screens[_currentIndex] : const SizedBox(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex >= _destinations.take(4).length ? 0 : _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          if (index == 0 && (_role == UserRole.admin || _role == UserRole.owner)) {
-            _dashboardKey.currentState?.reload();
-          }
-          setState(() => _currentIndex = index);
-        },
-        selectedItemColor: _currentIndex >= _destinations.take(4).length ? const Color(0xFF5F6368) : const Color(0xFF29B6F6),
-        unselectedItemColor: const Color(0xFF5F6368),
-        items: _destinations.take(4).map((d) {
-          return BottomNavigationBarItem(
-            icon: d.icon,
-            activeIcon: d.selectedIcon,
-            label: (d.label as Text).data,
-          );
-        }).toList(),
-      ),
+      bottomNavigationBar: _destinations.length >= 2
+          ? BottomNavigationBar(
+              currentIndex: _currentIndex >= _destinations.take(4).length ? 0 : _currentIndex,
+              type: BottomNavigationBarType.fixed,
+              onTap: (index) {
+                if (index == 0 && (_role == UserRole.admin || _role == UserRole.owner)) {
+                  _dashboardKey.currentState?.reload();
+                }
+                setState(() => _currentIndex = index);
+              },
+              selectedItemColor: _currentIndex >= _destinations.take(4).length ? const Color(0xFF5F6368) : const Color(0xFF29B6F6),
+              unselectedItemColor: const Color(0xFF5F6368),
+              items: _destinations.take(4).map((d) {
+                return BottomNavigationBarItem(
+                  icon: d.icon,
+                  activeIcon: d.selectedIcon,
+                  label: (d.label as Text).data,
+                );
+              }).toList(),
+            )
+          : null,
     );
   }
 }

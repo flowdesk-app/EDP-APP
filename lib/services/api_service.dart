@@ -45,6 +45,8 @@ class ApiService {
           r = UserRole.employee2;
         } else if (roleStr == 'employee3') {
           r = UserRole.employee3;
+        } else if (roleStr == 'payroll') {
+          r = UserRole.payroll;
         }
 
         currentUser = UserModel(
@@ -94,6 +96,8 @@ class ApiService {
           r = UserRole.employee2;
         } else if (roleStr == 'employee3') {
           r = UserRole.employee3;
+        } else if (roleStr == 'payroll') {
+          r = UserRole.payroll;
         }
 
         currentUser = UserModel(
