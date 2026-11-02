@@ -6,8 +6,6 @@ import '../../widgets/job_type_badge.dart';
 import '../../widgets/global_logout_button.dart';
 import 'job_timeline_screen.dart';
 import 'owner_edit_job_dialog.dart';
-import 'estimate_calculator_screen.dart';
-import '../../widgets/estimate_auth_dialog.dart';
 
 class JobApprovalScreen extends StatefulWidget {
   final int initialTab;
@@ -687,26 +685,6 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
               alignment: WrapAlignment.end,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final auth = await EstimateAuthService.ensureAuthorized(context);
-                    if (!auth) return;
-                    if (!mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EstimateCalculatorScreen(initialJob: job),
-                      ),
-                    ).then((_) => _loadJobs());
-                  },
-                  icon: const Icon(Icons.calculate_outlined, size: 16),
-                  label: const Text('Estimate'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF673AB7),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
                 OutlinedButton.icon(
                   onPressed: () => _editJob(job),
                   icon: const Icon(Icons.edit_outlined, size: 16),

@@ -305,7 +305,7 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Estimate #${saved.calculationNo} saved successfully!'),
+          content: Text('Estimate #${saved.calculationNo} confirmed & saved to Estimated Section!'),
           backgroundColor: const Color(0xFF2E7D32),
         ),
       );
@@ -1278,10 +1278,10 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                 onPressed: _saving ? null : _saveEstimate,
                 icon: _saving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.save, size: 18),
-                label: Text(_saving ? 'Saving...' : 'Save Estimate', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    : const Icon(Icons.check_circle_outline, size: 18),
+                label: Text(_saving ? 'Confirming...' : 'Confirm & Save Estimate', style: const TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0288D1),
+                  backgroundColor: const Color(0xFF2E7D32),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

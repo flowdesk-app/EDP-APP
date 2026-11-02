@@ -98,6 +98,8 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
     }
   }
 
+  bool _showAllGranted = false; // false = only awaiting estimate, true = all granted
+
   // Get only granted jobs
   List<JobModel> get _grantedJobs {
     return _allJobs.where((j) {
@@ -124,6 +126,16 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
 
       return true;
     }).toList();
+  }
+
+  // Jobs that do not yet have an estimate calculated
+  List<JobModel> get _grantedJobsPendingEstimate {
+    final estimatedJobIds = _allEstimates.map((e) => e.jobId).where((id) => id != null && id.isNotEmpty).toSet();
+    return _grantedJobs.where((j) => !estimatedJobIds.contains(j.jobId)).toList();
+  }
+
+  List<JobModel> get _displayedGrantedJobs {
+    return _showAllGranted ? _grantedJobs : _grantedJobsPendingEstimate;
   }
 
   // Get matching saved estimates
@@ -158,7 +170,12 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
           existingEstimate: existing,
         ),
       ),
-    ).then((_) => _loadData());
+    ).then((saved) {
+      if (saved != null && mounted) {
+        _tabController.animateTo(1); // Switch to Estimated Section
+      }
+      _loadData();
+    });
   }
 
   void _openCalculatorForEstimate(EstimateModel estimate) {
@@ -169,7 +186,12 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
           existingEstimate: estimate,
         ),
       ),
-    ).then((_) => _loadData());
+    ).then((saved) {
+      if (saved != null && mounted) {
+        _tabController.animateTo(1); // Switch to Estimated Section
+      }
+      _loadData();
+    });
   }
 
   void _openNewCustomCalculator() {
@@ -178,7 +200,12 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
       MaterialPageRoute(
         builder: (_) => const EstimateCalculatorScreen(),
       ),
-    ).then((_) => _loadData());
+    ).then((saved) {
+      if (saved != null && mounted) {
+        _tabController.animateTo(1); // Switch to Estimated Section
+      }
+      _loadData();
+    });
   }
 
   Future<void> _deleteEstimate(EstimateModel estimate) async {
@@ -320,9 +347,9 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.verified, size: 18),
+                  const Icon(Icons.assignment_turned_in_outlined, size: 18),
                   const SizedBox(width: 8),
-                  Text('Granted Section (${_grantedJobs.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Granted Section (${_grantedJobsPendingEstimate.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -330,9 +357,9 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.receipt_long, size: 18),
+                  const Icon(Icons.task_alt, size: 18),
                   const SizedBox(width: 8),
-                  Text('Saved Estimates (${_allEstimates.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Estimated Section (${_allEstimates.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -349,7 +376,7 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                     controller: _tabController,
                     children: [
                       _buildGrantedJobsTab(),
-                      _buildSavedEstimatesTab(),
+                      _buildEstimatedSectionTab(),
                     ],
                   ),
                 ),
@@ -438,26 +465,100 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
 
   // --- TAB 1: GRANTED JOBS (THE GRANTED SECTION) ---
   Widget _buildGrantedJobsTab() {
-    final jobs = _grantedJobs;
+    final jobs = _displayedGrantedJobs;
 
-    if (jobs.isEmpty) {
+    return Column(
+      children: [
+        _buildGrantedJobsSubFilter(),
+        Expanded(
+          child: jobs.isEmpty
+              ? _buildGrantedEmptyState()
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: jobs.length,
+                    itemBuilder: (context, index) {
+                      final job = jobs[index];
+                      final estimate = _findEstimateForJob(job.jobId);
+                      return _buildGrantedJobCard(job, estimate);
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGrantedJobsSubFilter() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+      child: Row(
+        children: [
+          ChoiceChip(
+            label: Text('Awaiting Estimate (${_grantedJobsPendingEstimate.length})'),
+            selected: !_showAllGranted,
+            onSelected: (val) {
+              if (val) setState(() => _showAllGranted = false);
+            },
+            selectedColor: const Color(0xFF0288D1),
+            labelStyle: TextStyle(
+              color: !_showAllGranted ? Colors.white : Colors.black87,
+              fontWeight: !_showAllGranted ? FontWeight.bold : FontWeight.normal,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ChoiceChip(
+            label: Text('All Granted (${_grantedJobs.length})'),
+            selected: _showAllGranted,
+            onSelected: (val) {
+              if (val) setState(() => _showAllGranted = true);
+            },
+            selectedColor: const Color(0xFF0288D1),
+            labelStyle: TextStyle(
+              color: _showAllGranted ? Colors.white : Colors.black87,
+              fontWeight: _showAllGranted ? FontWeight.bold : FontWeight.normal,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGrantedEmptyState() {
+    if (!_showAllGranted) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.assignment_turned_in_outlined, size: 64, color: Colors.grey.shade400),
+              Icon(Icons.check_circle_outline, size: 64, color: Colors.green.shade400),
               const SizedBox(height: 16),
               const Text(
-                'No Granted Jobs Found',
+                'All Granted Jobs Have Been Estimated!',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Jobs granted access by the owner appear here. You can click on any job to create its price estimate.',
+                'Every granted job currently has a confirmed estimate. You can view, edit, or export them in the Estimated Section.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => _tabController.animateTo(1),
+                icon: const Icon(Icons.task_alt, size: 18),
+                label: const Text('Go to Estimated Section'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
               ),
             ],
           ),
@@ -465,16 +566,26 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: jobs.length,
-        itemBuilder: (context, index) {
-          final job = jobs[index];
-          final estimate = _findEstimateForJob(job.jobId);
-          return _buildGrantedJobCard(job, estimate);
-        },
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.assignment_turned_in_outlined, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            const Text(
+              'No Granted Jobs Found',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Jobs granted access by the owner appear here. You can click on any job to create its price estimate.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -540,7 +651,7 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                       border: Border.all(color: const Color(0xFFFDBA74)),
                     ),
                     child: const Text(
-                      'No Estimate Yet',
+                      'Awaiting Estimate',
                       style: TextStyle(color: Color(0xFFC2410C), fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -612,8 +723,8 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
     );
   }
 
-  // --- TAB 2: ALL SAVED ESTIMATES ---
-  Widget _buildSavedEstimatesTab() {
+  // --- TAB 2: ESTIMATED SECTION (ALL CONFIRMED ESTIMATES) ---
+  Widget _buildEstimatedSectionTab() {
     final list = _filteredEstimates;
 
     if (list.isEmpty) {
@@ -623,11 +734,22 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey.shade400),
+              Icon(Icons.task_alt, size: 64, color: Colors.grey.shade400),
               const SizedBox(height: 16),
-              const Text('No Saved Estimates', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('No Confirmed Estimates in Estimated Section', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               const SizedBox(height: 8),
-              const Text('When you calculate and save estimates, they will appear here.', style: TextStyle(color: Colors.grey)),
+              const Text('Calculate an estimate in the Granted Section and click Confirm & Save to see it listed here.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => _tabController.animateTo(0),
+                icon: const Icon(Icons.arrow_back, size: 16),
+                label: const Text('Go to Granted Section'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0288D1),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
             ],
           ),
         ),
@@ -646,7 +768,7 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
             margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.shade300),
+              side: const BorderSide(color: Color(0xFFC8E6C9), width: 1.5),
             ),
             color: Colors.white,
             child: Padding(
@@ -662,12 +784,20 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE0F2FE),
+                              color: const Color(0xFFE8F5E9),
                               borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFF81C784)),
                             ),
-                            child: Text(
-                              'Calc #${est.calculationNo}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0288D1)),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.verified, size: 13, color: Color(0xFF2E7D32)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Calc #${est.calculationNo}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2E7D32)),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -675,23 +805,45 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                             DateFormat('dd MMM yyyy').format(est.date),
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
+                          if (est.jobId != null) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0F2FE),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Job #${est.jobId}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0288D1)),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                      Text(
-                        currencyFmt.format(est.qtnPrice),
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF81C784)),
+                        ),
+                        child: Text(
+                          currencyFmt.format(est.qtnPrice),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Text(
                     est.customerName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B)),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
                   ),
                   if (est.itemDescription != null && est.itemDescription!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
-                      child: Text(est.itemDescription!, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                      child: Text(est.itemDescription!, style: const TextStyle(fontSize: 13, color: Color(0xFF475569))),
                     ),
                   const SizedBox(height: 10),
                   Wrap(
@@ -699,6 +851,7 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                     runSpacing: 4,
                     children: [
                       _buildPill('Grit: ${est.gritSize ?? "N/A"}'),
+                      _buildPill('Factor: ${est.factor.toStringAsFixed(2)}'),
                       _buildPill('Eff. Area: ${est.effectiveCoatingArea.toStringAsFixed(1)} sq cm'),
                       _buildPill('Diamond: ${est.diamondRequirement.toStringAsFixed(2)} cts'),
                       _buildPill('Margin: ${est.marginPercentage.toStringAsFixed(0)}%'),
@@ -729,9 +882,9 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                           ElevatedButton.icon(
                             onPressed: () => _openCalculatorForEstimate(est),
                             icon: const Icon(Icons.edit, size: 16),
-                            label: const Text('Open / Edit'),
+                            label: const Text('View / Edit'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0288D1),
+                              backgroundColor: const Color(0xFF2E7D32),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
