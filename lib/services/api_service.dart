@@ -1359,6 +1359,37 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> verifyCameraFrame({
+    required String imageBase64,
+    String scanType = 'auto',
+    String? notes,
+  }) async {
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/attendance/verify-camera-frame'),
+        headers: _headers,
+        body: jsonEncode({
+          'image': imageBase64,
+          'scanType': scanType,
+          'notes': notes,
+        }),
+      );
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
+      } else {
+        final err = jsonDecode(res.body);
+        return {
+          'success': false,
+          'error': err['error'] ?? 'Face verification failed with status ${res.statusCode}',
+        };
+      }
+    } catch (e) {
+      debugPrint('Error verifying camera frame: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
   Future<List<AttendanceModel>> getTodayAttendance() async {
     await _loadToken();
     try {

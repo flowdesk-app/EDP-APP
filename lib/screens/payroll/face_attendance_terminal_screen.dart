@@ -97,6 +97,58 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
     super.dispose();
   }
 
+  Future<void> _captureAndVerifyCameraFrame() async {
+    if (_scanning) return;
+    setState(() {
+      _scanning = true;
+      _lastPunchResult = null;
+    });
+
+    try {
+      final snapshot = _camera.captureSnapshotBase64();
+      if (snapshot == null) {
+        setState(() {
+          _scanning = false;
+          _lastPunchResult = {
+            'success': false,
+            'message': 'Webcam not active. Please allow browser camera access, or click a quick employee button below.',
+          };
+        });
+        return;
+      }
+
+      final res = await _api.verifyCameraFrame(
+        imageBase64: snapshot,
+        scanType: _scanMode,
+      );
+
+      if (mounted) {
+        setState(() {
+          _scanning = false;
+          _lastPunchResult = res;
+        });
+
+        // Refresh today's punches list
+        _api.getTodayAttendance().then((updated) {
+          if (mounted) setState(() => _todayPunches = updated);
+        });
+
+        // Auto dismiss overlay after 5 seconds
+        _overlayDismissTimer?.cancel();
+        _overlayDismissTimer = Timer(const Duration(seconds: 5), () {
+          if (mounted) setState(() => _lastPunchResult = null);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _scanning = false;
+          _lastPunchResult = {'success': false, 'error': e.toString()};
+        });
+      }
+    }
+  }
+
   Future<void> _processScanForEmployee(String email) async {
     if (_scanning) return;
     setState(() {
@@ -399,6 +451,29 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
               left: 40,
               right: 40,
               child: _buildPunchResultBanner(),
+            )
+          else if (!_scanning)
+            Positioned(
+              bottom: 24,
+              child: ElevatedButton.icon(
+                onPressed: _captureAndVerifyCameraFrame,
+                icon: const Icon(Icons.camera_alt, size: 22),
+                label: Text(
+                  _scanMode == 'in'
+                      ? 'SCAN ENTRY (CLOCK-IN)'
+                      : (_scanMode == 'out' ? 'SCAN EXIT (CLOCK-OUT)' : 'SCAN FACE NOW'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.8),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _scanMode == 'in'
+                      ? const Color(0xFF00E676)
+                      : (_scanMode == 'out' ? const Color(0xFF0288D1) : const Color(0xFF00E676)),
+                  foregroundColor: const Color(0xFF0D1B2A),
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  elevation: 8,
+                ),
+              ),
             ),
 
           if (_scanning)
@@ -452,12 +527,52 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
     );
   }
 
+  Widget _buildFaceAvatar({
+    String? photoUrl,
+    String? email,
+    String? name,
+    double radius = 24,
+  }) {
+    ImageProvider? provider;
+    if (email == 'employee1@flowdesk.com' || (photoUrl != null && photoUrl.contains('user_face'))) {
+      provider = const AssetImage('assets/images/faces/user_face.jpg');
+    } else if (email == 'employee2@flowdesk.com' || (photoUrl != null && photoUrl.contains('friend_face'))) {
+      provider = const AssetImage('assets/images/faces/friend_face.png');
+    } else if (photoUrl != null && photoUrl.isNotEmpty) {
+      if (photoUrl.startsWith('http')) {
+        provider = NetworkImage(photoUrl);
+      } else {
+        provider = NetworkImage('${_api.baseUrl.replaceAll('/api', '')}$photoUrl');
+      }
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: const Color(0xFF0288D1).withValues(alpha: 0.2),
+      backgroundImage: provider,
+      child: provider == null
+          ? Text(
+              (name != null && name.isNotEmpty) ? name.substring(0, 1).toUpperCase() : 'E',
+              style: TextStyle(
+                fontSize: radius * 0.8,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF29B6F6),
+              ),
+            )
+          : null,
+    );
+  }
+
   Widget _buildPunchResultBanner() {
     final res = _lastPunchResult!;
     final isSuccess = res['success'] == true;
     final isClockIn = res['actionTaken'] == 'in';
     final isClockOut = res['actionTaken'] == 'out';
     final record = res['record'] != null ? AttendanceModel.fromJson(res['record']) : null;
+    final empData = res['employee'] is Map ? res['employee'] as Map : null;
+    final photoUrl = empData != null ? empData['photoUrl']?.toString() : null;
+    final empEmail = empData != null ? empData['email']?.toString() : (record?.employeeEmail);
+    final empName = empData != null ? empData['name']?.toString() : (record?.employeeName);
 
     final bgColor = isSuccess
         ? (isClockIn ? const Color(0xFF1B5E20) : const Color(0xFF0D47A1))
@@ -482,34 +597,71 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
+          if (isSuccess && (empEmail != null || photoUrl != null)) ...[
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isClockIn ? const Color(0xFF00E676) : const Color(0xFF40C4FF),
+                  width: 2.5,
+                ),
+              ),
+              child: _buildFaceAvatar(
+                photoUrl: photoUrl,
+                email: empEmail,
+                name: empName,
+                radius: 26,
+              ),
             ),
-            child: Icon(
-              isSuccess ? (isClockIn ? Icons.login : Icons.logout) : Icons.error_outline,
-              color: Colors.white,
-              size: 28,
+            const SizedBox(width: 14),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isSuccess ? (isClockIn ? Icons.login : Icons.logout) : Icons.error_outline,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
+            const SizedBox(width: 16),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  isSuccess
-                      ? (isClockIn ? 'SHIFT ENTRY VERIFIED' : 'SHIFT EXIT VERIFIED')
-                      : 'SCAN NOTICE',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    color: Colors.white70,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      isSuccess
+                          ? (isClockIn ? 'SHIFT ENTRY VERIFIED' : 'SHIFT EXIT VERIFIED')
+                          : 'SCAN NOTICE',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    if (res['score'] != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.black26,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Match: ${((res['score'] as num).toDouble() * 100).toStringAsFixed(0)}%',
+                          style: const TextStyle(fontSize: 10, color: Color(0xFF00E676), fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -517,29 +669,29 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 if (record != null && isClockOut) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Regular Shift: ${record.regularHours} hrs',
+                          'Standard Shift: ${record.regularHours} hrs',
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: record.overtimeHours > 0 ? const Color(0xFFFFA000) : Colors.white24,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Overtime: ${record.overtimeHours} hrs',
+                          record.overtimeHours > 0 ? '+${record.overtimeHours} hrs Overtime' : '0 OT',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -637,13 +789,10 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                               children: [
                                 Row(
                                   children: [
-                                    CircleAvatar(
-                                      radius: 14,
-                                      backgroundColor: const Color(0xFF0288D1).withValues(alpha: 0.2),
-                                      child: Text(
-                                        p.employeeName.isNotEmpty ? p.employeeName.substring(0, 1) : 'E',
-                                        style: const TextStyle(fontSize: 12, color: Color(0xFF29B6F6), fontWeight: FontWeight.bold),
-                                      ),
+                                    _buildFaceAvatar(
+                                      email: p.employeeEmail,
+                                      name: p.employeeName,
+                                      radius: 15,
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
@@ -752,18 +901,18 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
 
   Widget _buildBottomQuickBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(
         color: Color(0xFF1A232F),
         border: Border(top: BorderSide(color: Color(0xFF263238))),
       ),
       child: Row(
         children: [
-          const Icon(Icons.touch_app, size: 16, color: Colors.white54),
+          const Icon(Icons.people_alt_outlined, size: 16, color: Color(0xFF29B6F6)),
           const SizedBox(width: 8),
           const Text(
-            'Quick Punch & Verification:',
-            style: TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500),
+            'Enrolled Faces:',
+            style: TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -775,10 +924,15 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                     padding: const EdgeInsets.only(right: 8),
                     child: ActionChip(
                       backgroundColor: const Color(0xFF263238),
-                      avatar: const Icon(Icons.person, size: 14, color: Color(0xFF29B6F6)),
+                      avatar: _buildFaceAvatar(
+                        photoUrl: emp.facePhotoUrl,
+                        email: emp.email,
+                        name: emp.name,
+                        radius: 12,
+                      ),
                       label: Text(
                         emp.name,
-                        style: const TextStyle(fontSize: 12, color: Colors.white),
+                        style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500),
                       ),
                       onPressed: () => _processScanForEmployee(emp.email),
                     ),

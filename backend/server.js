@@ -30,8 +30,9 @@ app.use(helmet({
 // Enable CORS
 app.use(cors());
 
-// Body parser, reading data from body into req.body
-app.use(express.json({ limit: '10kb' }));
+// Body parser, reading data from body into req.body (allow up to 15mb for biometric camera frames)
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Prevent parameter pollution
 app.use(hpp());

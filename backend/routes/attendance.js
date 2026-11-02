@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { spawn } = require('child_process');
+const path = require('path');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 
@@ -10,8 +12,8 @@ const getTodayDateStr = () => {
 const DEFAULT_EMPLOYEE_DETAILS = {
   'owner@flowdesk.com': { name: 'Owner / Executive', department: 'Management' },
   'admin@flowdesk.com': { name: 'Operations Admin', department: 'Operations' },
-  'employee1@flowdesk.com': { name: 'Employee 1 (Inventory)', department: 'Inventory & Raw Materials' },
-  'employee2@flowdesk.com': { name: 'Employee 2 (Production)', department: 'Shop Floor & Production' },
+  'employee1@flowdesk.com': { name: 'Siddarth (Employee 1)', department: 'Inventory & Operations' },
+  'employee2@flowdesk.com': { name: 'Friend (Employee 2)', department: 'Shop Floor & Production' },
   'employee3@flowdesk.com': { name: 'Employee 3 (Dispatch)', department: 'Quality & Dispatch' },
   'payroll@flowdesk.com': { name: 'Payroll Manager', department: 'Accounts & HR' },
 };
@@ -200,6 +202,195 @@ router.post('/scan', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/attendance/verify-camera-frame (Live webcam biometric recognition)
+router.post('/verify-camera-frame', async (req, res) => {
+  try {
+    const { image, scanType = 'auto', notes } = req.body;
+    if (!image) {
+      return res.status(400).json({ success: false, error: 'Camera image frame is required' });
+    }
+
+    // 1. Fetch enrolled employees
+    const enrolledUsers = await User.find(
+      { isFaceEnrolled: true, faceEmbeddings: { $exists: true, $ne: [] } },
+      'email name department role faceEmbeddings facePhotoUrl'
+    ).lean();
+
+    if (enrolledUsers.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No employees are enrolled with face biometrics in database yet.',
+      });
+    }
+
+    // 2. Run face_recognizer.py match
+    const pyScript = path.join(__dirname, '..', 'scripts', 'face_recognizer.py');
+    const pyProcess = spawn('python3', [pyScript, 'match']);
+
+    let stdoutData = '';
+    let stderrData = '';
+
+    const payload = JSON.stringify({
+      queryImage: image,
+      enrolled: enrolledUsers,
+    });
+
+    pyProcess.stdin.write(payload);
+    pyProcess.stdin.end();
+
+    pyProcess.stdout.on('data', data => {
+      stdoutData += data.toString();
+    });
+
+    pyProcess.stderr.on('data', data => {
+      stderrData += data.toString();
+    });
+
+    pyProcess.on('close', async () => {
+      try {
+        const lines = stdoutData.trim().split('\n');
+        const lastLine = lines[lines.length - 1];
+        if (!lastLine) {
+          return res.status(500).json({ success: false, error: 'Recognition processing error', stderr: stderrData });
+        }
+
+        const matchResult = JSON.parse(lastLine);
+        if (!matchResult.success || !matchResult.matched) {
+          return res.json({
+            success: true,
+            matched: false,
+            message: matchResult.error || matchResult.message || 'Face not recognized. Please face the camera squarely.',
+          });
+        }
+
+        const matchedEmp = matchResult.employee;
+        const email = matchedEmp.email;
+
+        const user = await User.findOne({ email }).lean();
+        const def = DEFAULT_EMPLOYEE_DETAILS[email] || {};
+        const empName = user.name || def.name || email.split('@')[0];
+        const dept = user.department || def.department || 'Production';
+
+        const todayDate = getTodayDateStr();
+        const now = new Date();
+
+        let record = await Attendance.findOne({ employeeEmail: email, date: todayDate });
+        let actionTaken = 'in';
+
+        if (scanType === 'in') {
+          if (record && record.clockInTime) {
+            return res.json({
+              success: true,
+              matched: true,
+              alreadyClockedIn: true,
+              employee: { ...matchedEmp, name: empName, department: dept, photoUrl: user.facePhotoUrl },
+              message: `${empName} is already clocked in today at ${new Date(record.clockInTime).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}`,
+              record,
+              actionTaken: 'already_in',
+            });
+          }
+          record = new Attendance({
+            employeeId: user._id,
+            employeeEmail: email,
+            employeeName: empName,
+            role: user.role,
+            department: dept,
+            date: todayDate,
+            clockInTime: now,
+            scanMethod: 'face_recognition',
+            notes,
+          });
+          record.calculateShift();
+          await record.save();
+          actionTaken = 'in';
+        } else if (scanType === 'out') {
+          if (!record || !record.clockInTime) {
+            return res.status(400).json({
+              success: false,
+              matched: true,
+              error: `Cannot clock out. No clock-in record found for ${empName} today.`,
+            });
+          }
+          record.clockOutTime = now;
+          record.scanMethod = 'face_recognition';
+          if (notes) record.notes = notes;
+          record.calculateShift();
+          await record.save();
+          actionTaken = 'out';
+        } else {
+          // Auto
+          if (!record) {
+            record = new Attendance({
+              employeeId: user._id,
+              employeeEmail: email,
+              employeeName: empName,
+              role: user.role,
+              department: dept,
+              date: todayDate,
+              clockInTime: now,
+              scanMethod: 'face_recognition',
+              notes,
+            });
+            record.calculateShift();
+            await record.save();
+            actionTaken = 'in';
+          } else if (!record.clockOutTime) {
+            const diffSecs = (now.getTime() - new Date(record.clockInTime).getTime()) / 1000;
+            if (diffSecs < 10) {
+              return res.json({
+                success: true,
+                matched: true,
+                alreadyClockedIn: true,
+                employee: { ...matchedEmp, name: empName, department: dept, photoUrl: user.facePhotoUrl },
+                message: `Just clocked in ${Math.round(diffSecs)}s ago. Please wait before clocking out.`,
+                record,
+                actionTaken: 'already_in',
+              });
+            }
+            record.clockOutTime = now;
+            record.scanMethod = 'face_recognition';
+            if (notes) record.notes = notes;
+            record.calculateShift();
+            await record.save();
+            actionTaken = 'out';
+          } else {
+            return res.json({
+              success: true,
+              matched: true,
+              alreadyCompleted: true,
+              employee: { ...matchedEmp, name: empName, department: dept, photoUrl: user.facePhotoUrl },
+              message: `${empName} has already completed shift today (${record.regularHours}h regular, ${record.overtimeHours}h OT).`,
+              record,
+              actionTaken: 'already_completed',
+            });
+          }
+        }
+
+        return res.json({
+          success: true,
+          matched: true,
+          actionTaken,
+          score: matchResult.score,
+          employee: {
+            ...matchedEmp,
+            name: empName,
+            department: dept,
+            photoUrl: user.facePhotoUrl,
+          },
+          message: actionTaken === 'in'
+            ? `Clock-In Verified for ${empName} at ${now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}`
+            : `Clock-Out Verified for ${empName}. Total: ${(record.totalDurationMinutes / 60).toFixed(1)} hrs (${record.regularHours}h Basic + ${record.overtimeHours}h Overtime)`,
+          record,
+        });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
