@@ -416,13 +416,15 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                 _buildHeaderCard(),
                 const SizedBox(height: 16),
                 if (isDesktop)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _buildCalculationsColumn()),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildSummaryColumn()),
-                    ],
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(child: _buildCalculationsColumn()),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildSummaryColumn()),
+                      ],
+                    ),
                   )
                 else ...[
                   _buildCalculationsColumn(),
@@ -636,7 +638,7 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
                         controller: _areaCtrl,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         decoration: const InputDecoration(
-                          labelText: 'Eff. Area of Coating (sq cm) *',
+                          labelText: 'Eff. Area (sq cm) *',
                           hintText: 'e.g. 535.86',
                           border: OutlineInputBorder(),
                           isDense: true,
@@ -728,124 +730,141 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
         const SizedBox(height: 16),
 
         // Direct Operational Costs Card
-        Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.precision_manufacturing_outlined, color: Color(0xFF0288D1), size: 20),
-                    const SizedBox(width: 8),
-                    const Text('Operational & Material Costs (INR)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _blankCostCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: const InputDecoration(
-                          labelText: 'Blank Cost (₹)',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => _recalculate(syncQtnPrice: true),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _grindingCostCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: const InputDecoration(
-                          labelText: 'Grinding Cost (₹)',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => _recalculate(syncQtnPrice: true),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _extractionCostCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: const InputDecoration(
-                          labelText: 'Extraction Cost (₹)',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => _recalculate(syncQtnPrice: true),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _balancingCostCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: const InputDecoration(
-                          labelText: 'Balancing Cost (₹)',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => _recalculate(syncQtnPrice: true),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _transportationCostCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: const InputDecoration(
-                          labelText: 'Transportation Cost (₹)',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => _recalculate(syncQtnPrice: true),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(child: SizedBox()),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Expanded(
+          child: Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey.shade300),
+            ),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      const Text('Total Direct Costs (Materials + Diamond + Handling):', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      Text(
-                        currencyFormatter.format(_directCostSum),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
+                      const Icon(Icons.precision_manufacturing_outlined, color: Color(0xFF0288D1), size: 20),
+                      const SizedBox(width: 8),
+                      const Text('Operational & Process Costs (INR)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _blankCostCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: const InputDecoration(
+                            labelText: 'Blank Cost (₹)',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (_) => _recalculate(syncQtnPrice: true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _grindingCostCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: const InputDecoration(
+                            labelText: 'Grinding Cost (₹)',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (_) => _recalculate(syncQtnPrice: true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _extractionCostCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: const InputDecoration(
+                            labelText: 'Extraction Cost (₹)',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (_) => _recalculate(syncQtnPrice: true),
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _balancingCostCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: const InputDecoration(
+                            labelText: 'Balancing Cost (₹)',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (_) => _recalculate(syncQtnPrice: true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _transportationCostCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: const InputDecoration(
+                            labelText: 'Transport Cost (₹)',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (_) => _recalculate(syncQtnPrice: true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _processCostCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: const InputDecoration(
+                            labelText: 'Process Cost (₹) *',
+                            hintText: '5000',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            prefixIcon: Icon(Icons.science_outlined, size: 18),
+                          ),
+                          onChanged: (_) => _recalculate(syncQtnPrice: true),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Total Direct Costs (Materials + Diamond + Handling):', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                        Text(
+                          currencyFormatter.format(_directCostSum),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -902,18 +921,10 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
             const Divider(height: 20),
 
             // Process Cost
-            TextField(
-              controller: _processCostCtrl,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Process Cost (Plating & Chemical) *',
-                hintText: '5000',
-                border: OutlineInputBorder(),
-                isDense: true,
-                prefixIcon: Icon(Icons.science_outlined, size: 20),
-              ),
-              onChanged: (_) => _recalculate(syncQtnPrice: true),
+            _buildSummaryLine(
+              label: 'Process Cost',
+              value: currencyFormatter.format(double.tryParse(_processCostCtrl.text.trim()) ?? 0.0),
+              subtitle: 'Plating & Chemical',
             ),
             const SizedBox(height: 10),
 
@@ -1067,7 +1078,8 @@ class _EstimateCalculatorScreenState extends State<EstimateCalculatorScreen> {
               ),
             ],
 
-            const SizedBox(height: 14),
+            const Spacer(),
+            const SizedBox(height: 12),
 
             // QTN Price field
             TextField(
