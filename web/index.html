@@ -81,7 +81,16 @@
     window.attachWebcamToVideo = function(videoEl) {
       if (window._currentCameraStream && videoEl) {
         videoEl.srcObject = window._currentCameraStream;
-        videoEl.play().catch(function(e) { console.warn('video play warning:', e); });
+        videoEl.muted = true;
+        videoEl.playsInline = true;
+        videoEl.setAttribute('playsinline', 'true');
+        videoEl.setAttribute('webkit-playsinline', 'true');
+        const playPromise = videoEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(function(e) {
+            console.warn('video play warning:', e);
+          });
+        }
       }
     };
 

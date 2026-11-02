@@ -32,15 +32,15 @@ class WebCameraService {
 
   String _formatCameraError(String str) {
     if (str.contains('NotAllowedError') || str.contains('PermissionDeniedError') || str.contains('Permission denied')) {
-      return 'Camera permission was blocked. Check:\n1. Click the lock/tune icon on the left of https://... in your URL bar and set Camera to Allow.\n2. In Windows Settings -> Privacy & Security -> Camera: turn ON "Camera access" and "Let desktop apps access your camera".\n3. Check if your laptop has a physical webcam privacy slider or hotkey above the screen.';
+      return 'Camera access was blocked by the browser or system. Please:\n1. Click the lock/tune icon on the left of your URL bar and toggle Camera to Allow.\n2. On Windows: Settings -> Privacy -> Camera: enable "Camera access" and "Let desktop apps access your camera".\n3. On iPhone/iPad: Apple requires using Safari for live camera streams (or use Snap / Upload Photo below).';
     }
     if (str.contains('NotFoundError') || str.contains('DevicesNotFoundError')) {
-      return 'No webcam detected on this device. Please check if your laptop has a physical camera privacy slider, or plug in a webcam.';
+      return 'No camera hardware found. Please verify your laptop camera privacy slider/switch is open, or use Snap / Upload Photo below.';
     }
     if (str.contains('NotReadableError') || str.contains('TrackStartError')) {
-      return 'Camera is in use by another application (e.g. WhatsApp, Teams, Zoom, or Windows Camera). Please close other apps and click Retry.';
+      return 'Camera is being used by another application (WhatsApp, Teams, Zoom, or Camera app). Please close other apps and click Start / Allow Camera.';
     }
-    return 'Camera access error: $str. Please allow camera permissions or use Snap / Upload Photo below.';
+    return 'Camera access error: $str';
   }
 
   Future<bool> startCamera() async {

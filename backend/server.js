@@ -27,6 +27,12 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
 }));
 
+// Allow camera & microphone feature policy across all browsers (Chrome, Edge, Safari)
+app.use((req, res, next) => {
+    res.setHeader('Permissions-Policy', 'camera=*, microphone=*');
+    next();
+});
+
 // Enable CORS
 app.use(cors());
 

@@ -342,10 +342,16 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Camera Video Stream or Fallback
-          if (_cameraActive)
-            _camera.buildVideoView(_viewId)
-          else
+          // Camera Video Stream (ALWAYS in the DOM so Chrome and Edge maintain active video pipeline)
+          Positioned.fill(
+            child: Opacity(
+              opacity: _cameraActive ? 1.0 : 0.0,
+              child: _camera.buildVideoView(_viewId),
+            ),
+          ),
+
+          // Fallback guidance card when camera is waiting for permission or inactive
+          if (!_cameraActive)
             Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 380),
@@ -374,7 +380,7 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _errorMessage ?? 'Please click the lock or camera icon in your browser URL bar to Allow camera access for this site.',
+                      _errorMessage ?? 'Please allow camera access in your browser or click Snap / Upload Photo below.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
                     ),
@@ -386,8 +392,8 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                       children: [
                         ElevatedButton.icon(
                           onPressed: _startStream,
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text('Allow / Retry Camera'),
+                          icon: const Icon(Icons.videocam, size: 18),
+                          label: const Text('Start / Allow Camera'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0288D1),
                             foregroundColor: Colors.white,
