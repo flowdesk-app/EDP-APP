@@ -8,6 +8,9 @@ import '../../models/user_model.dart';
 import '../../widgets/job_type_badge.dart';
 import 'owner_edit_job_dialog.dart';
 import '../../utils/positive_number_formatter.dart';
+import '../../models/delivery_challan_model.dart';
+import '../../utils/pdf_delivery_challan_api.dart';
+import 'delivery_challan_edit_dialog.dart';
 
 class JobTimelineScreen extends StatefulWidget {
   final JobModel job;
@@ -23,6 +26,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
   late JobModel _currentJob;
   List<String> _suppliers = [];
   bool _isAdmin = false;
+  List<DeliveryChallanModel> _jobChallans = [];
+
+  void _loadDeliveryChallans() {
+    ApiService().getDeliveryChallansForJob(_currentJob.jobId).then((challans) {
+      if (mounted) setState(() => _jobChallans = challans);
+    }).catchError((_) {});
+  }
   
   bool _extractionProcessYes = false;
   DateTime? _extractionDate;
@@ -178,6 +188,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     _currentJob = widget.job;
     _isAdmin = ApiService().currentUser?.role == UserRole.admin || ApiService().currentUser?.role == UserRole.owner;
     _loadData();
+    _loadDeliveryChallans();
   }
 
   Future<void> _loadData() async {
@@ -195,6 +206,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
 
   Future<void> _refresh() async {
     setState(() => _isUpdating = true);
+    _loadDeliveryChallans();
     try {
       final allJobs = await ApiService().getFilteredJobs();
       final updatedJob = allJobs.firstWhere((j) => j.jobId == _currentJob.jobId, orElse: () => _currentJob);
@@ -284,18 +296,143 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     final ctrl = TextEditingController();
     final qtyCtrl = TextEditingController(text: _currentJob.quantity?.toString() ?? '');
     final chalanCtrl = TextEditingController();
+    final refCtrl = TextEditingController(text: 'sent for grinding polishing return');
+
+    String defaultDesc = '';
+    if (_currentJob.wheelSize != null && _currentJob.wheelSize!.trim().isNotEmpty) {
+      defaultDesc = _currentJob.wheelSize!.split(RegExp(r'[\r\n]+')).first.trim();
+    } else if (_currentJob.partDescription != null && _currentJob.partDescription!.isNotEmpty) {
+      defaultDesc = _currentJob.partDescription!;
+    } else if (_currentJob.partNumber != null) {
+      defaultDesc = _currentJob.partNumber!;
+    }
+    if (!defaultDesc.toUpperCase().startsWith('EDP')) defaultDesc = 'EDP- $defaultDesc';
+    if (!defaultDesc.toLowerCase().contains('grinding') && !defaultDesc.toLowerCase().contains('return')) {
+      defaultDesc = '$defaultDesc for grinding polishing return';
+    }
+    final descCtrl = TextEditingController(text: defaultDesc);
+
     DateTime? selectedDate = DateTime.now();
+    bool hasFetchedDcNo = false;
     
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (sbContext, setStateSB) {
           final isExternal = ctrl.text.trim().toLowerCase() != 'edp production' && ctrl.text.trim().toLowerCase() != 'edp';
+
+          if (isExternal && !hasFetchedDcNo && chalanCtrl.text.isEmpty) {
+            hasFetchedDcNo = true;
+            ApiService().getNextDeliveryChallanNumber().then((dcNumStr) {
+              if (chalanCtrl.text.isEmpty && mounted) {
+                setStateSB(() => chalanCtrl.text = dcNumStr);
+              }
+            });
+          }
+
+          Future<void> performForward({required bool downloadDC}) async {
+            String val = ctrl.text.trim();
+            if (val.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please enter or select a Supplier Name'), backgroundColor: Colors.red),
+              );
+              return;
+            }
+            
+            if (val.toLowerCase() == 'edp production' || val.toLowerCase() == 'edp') {
+              val = 'EDP';
+            }
+            
+            int? qty = int.tryParse(qtyCtrl.text.trim());
+            if (qtyCtrl.text.trim().isNotEmpty && (qty == null || qty <= 0)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red),
+              );
+              return;
+            }
+            
+            Navigator.pop(ctx);
+            setState(() => _isUpdating = true);
+            try {
+              if (_isAdmin && val != 'EDP' && !_suppliers.contains(val)) {
+                await ApiService().addSupplier(val);
+              }
+
+              DeliveryChallanModel? savedDc;
+              if (isExternal && downloadDC) {
+                String supplierName = val;
+                String address = '';
+                String? gstin;
+                if (val.toUpperCase().contains('SKMT')) {
+                  supplierName = 'SKMT Engineering Enerprises';
+                  address = '63, Sarangapani Street, Sivabootham\nVanagaram, Chennai - 600095,\n-';
+                  gstin = 'GSTIN 33AFFPV1640H1ZK';
+                }
+
+                String dcNum = chalanCtrl.text.trim();
+                if (dcNum.isEmpty) {
+                  dcNum = await ApiService().getNextDeliveryChallanNumber();
+                }
+
+                final challan = DeliveryChallanModel(
+                  dcNumber: dcNum,
+                  date: selectedDate ?? DateTime.now(),
+                  supplierName: supplierName,
+                  supplierAddress: address,
+                  supplierGstin: gstin,
+                  placeOfSupply: 'Tamil Nadu (33)',
+                  reference: refCtrl.text.trim().isNotEmpty ? refCtrl.text.trim() : null,
+                  challanType: 'Job Work',
+                  items: [
+                    DeliveryChallanItem(
+                      itemNumber: 1,
+                      jobId: _currentJob.jobId,
+                      description: descCtrl.text.trim(),
+                      quantity: qty ?? 1,
+                      unit: 'No(s)',
+                      approxValue: 1.00,
+                    ),
+                  ],
+                  jobIds: [_currentJob.jobId],
+                );
+
+                savedDc = await ApiService().saveDeliveryChallan(challan);
+              }
+
+              await ApiService().forwardJob(
+                _currentJob.jobId, 
+                val,
+                forwardQuantity: qty,
+                deliveryChalanNumber: savedDc?.dcNumber ?? (chalanCtrl.text.isEmpty ? null : chalanCtrl.text.trim()),
+                deliveryChalanDate: savedDc?.date ?? selectedDate,
+              );
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(savedDc != null
+                      ? 'Forwarded to $val & Delivery Challan ${savedDc.dcNumber} generated!'
+                      : 'Forwarded to $val!'),
+                  backgroundColor: const Color(0xFF2E7D32),
+                ),
+              );
+              _refresh();
+
+              if (downloadDC && savedDc != null) {
+                await PdfDeliveryChallanApi.printOrShare(savedDc);
+              }
+            } catch (e) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
+              setState(() => _isUpdating = false);
+            }
+          }
+
           return AlertDialog(
             title: const Text('Forward to Next Supplier'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _isAdmin ? Autocomplete<String>(
                     optionsBuilder: (textEditingValue) {
@@ -346,7 +483,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: chalanCtrl,
-                      decoration: const InputDecoration(labelText: 'Delivery Chalan Number', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(labelText: 'Delivery Chalan Number', hintText: 'e.g. DC2627-00232', border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 12),
                     InkWell(
@@ -364,53 +501,42 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                         child: Text(selectedDate != null ? DateFormat('dd-MM-yyyy').format(selectedDate!) : 'Select Date'),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: refCtrl,
+                      decoration: const InputDecoration(labelText: 'Reference', hintText: 'sent for grinding polishing return', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(labelText: 'Challan Item Description', border: OutlineInputBorder()),
+                    ),
                   ],
                 ],
               ),
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-              ElevatedButton(
-                onPressed: () async {
-                  String val = ctrl.text.trim();
-                  if (val.isEmpty) return;
-                  
-                  if (val.toLowerCase() == 'edp production' || val.toLowerCase() == 'edp') {
-                    val = 'EDP';
-                  }
-                  
-                  int? qty = int.tryParse(qtyCtrl.text.trim());
-                  if (qtyCtrl.text.trim().isNotEmpty && (qty == null || qty <= 0)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Quantity must be greater than 0 (cannot be 0)'), backgroundColor: Colors.red),
-                    );
-                    return;
-                  }
-                  
-                  Navigator.pop(ctx);
-                  setState(() => _isUpdating = true);
-                  try {
-                    if (_isAdmin && val != 'EDP' && !_suppliers.contains(val)) {
-                      await ApiService().addSupplier(val);
-                    }
-                    await ApiService().forwardJob(
-                      _currentJob.jobId, 
-                      val,
-                      forwardQuantity: qty,
-                      deliveryChalanNumber: chalanCtrl.text.isEmpty ? null : chalanCtrl.text,
-                      deliveryChalanDate: selectedDate,
-                    );
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $val!')));
-                    _refresh();
-                  } catch (e) {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                    setState(() => _isUpdating = false);
-                  }
-                },
-                child: const Text('Forward'),
-              ),
+              if (isExternal) ...[
+                OutlinedButton(
+                  onPressed: () => performForward(downloadDC: false),
+                  child: const Text('Forward Only'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => performForward(downloadDC: true),
+                  icon: const Icon(Icons.picture_as_pdf, size: 16),
+                  label: const Text('Download Delivery Challan', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0288D1),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ] else
+                ElevatedButton(
+                  onPressed: () => performForward(downloadDC: false),
+                  child: const Text('Forward'),
+                ),
             ],
           );
         }
@@ -772,6 +898,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   ];
                 }).toList(),
               ),
+            _buildDeliveryChallansSection(),
             if (_currentJob.expectedExtractionDate != null || _currentJob.expectedProductionDate != null)
               _buildSectionCard(
                 title: 'Expected',
@@ -1076,7 +1203,24 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
   Future<void> _showForwardToSKMTDialog() async {
     final qtyCtrl = TextEditingController(text: _currentJob.quantity?.toString() ?? '');
     final chalanCtrl = TextEditingController();
+    final refCtrl = TextEditingController(text: 'sent for grinding polishing return');
+
+    String defaultDesc = '';
+    if (_currentJob.wheelSize != null && _currentJob.wheelSize!.trim().isNotEmpty) {
+      defaultDesc = _currentJob.wheelSize!.split(RegExp(r'[\r\n]+')).first.trim();
+    } else if (_currentJob.partDescription != null && _currentJob.partDescription!.isNotEmpty) {
+      defaultDesc = _currentJob.partDescription!;
+    } else if (_currentJob.partNumber != null) {
+      defaultDesc = _currentJob.partNumber!;
+    }
+    if (!defaultDesc.toUpperCase().startsWith('EDP')) defaultDesc = 'EDP- $defaultDesc';
+    if (!defaultDesc.toLowerCase().contains('grinding') && !defaultDesc.toLowerCase().contains('return')) {
+      defaultDesc = '$defaultDesc for grinding polishing return';
+    }
+    final descCtrl = TextEditingController(text: defaultDesc);
+
     DateTime? deliveryChalanDate = DateTime.now();
+    bool hasFetchedDcNo = false;
 
     DateTime? extractionCompletedDate = DateTime.now();
     DateTime? productionDate = DateTime.now();
@@ -1098,6 +1242,132 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (sbContext, setStateSB) {
           final isEDPProduction = selectedDestination.toLowerCase() == 'edp production';
+
+          if (!isEDPProduction && !hasFetchedDcNo && chalanCtrl.text.isEmpty) {
+            hasFetchedDcNo = true;
+            ApiService().getNextDeliveryChallanNumber().then((dcNumStr) {
+              if (chalanCtrl.text.isEmpty && mounted) {
+                setStateSB(() => chalanCtrl.text = dcNumStr);
+              }
+            });
+          }
+
+          Future<void> performSKMTForward({required bool downloadDC}) async {
+            if (isEDPProduction) {
+              if (extractionCompletedDate == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Extraction Completed Date')));
+                return;
+              }
+              if (productionDate == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Production Date')));
+                return;
+              }
+              if (expectedProductionDate == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Production Completion Date')));
+                return;
+              }
+
+              Navigator.pop(ctx);
+              setState(() => _isUpdating = true);
+              try {
+                await ApiService().updateJobStatus(
+                  _currentJob.jobId,
+                  'Production',
+                  extractionCompletedDate: extractionCompletedDate,
+                  productionDate: productionDate,
+                  expectedProductionDate: expectedProductionDate,
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Production!')));
+                _refresh();
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                setState(() => _isUpdating = false);
+              }
+            } else {
+              int? qty = int.tryParse(qtyCtrl.text.trim());
+              if (qty == null || qty <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter valid quantity (cannot be 0)'), backgroundColor: Colors.red));
+                return;
+              }
+
+              Navigator.pop(ctx);
+              setState(() => _isUpdating = true);
+              try {
+                if (!_suppliers.any((s) => s.toLowerCase() == selectedDestination.toLowerCase())) {
+                  try { await ApiService().addSupplier(selectedDestination); } catch (_) {}
+                }
+
+                DeliveryChallanModel? savedDc;
+                if (downloadDC) {
+                  String supplierName = selectedDestination;
+                  String address = '';
+                  String? gstin;
+                  if (selectedDestination.toUpperCase().contains('SKMT')) {
+                    supplierName = 'SKMT Engineering Enerprises';
+                    address = '63, Sarangapani Street, Sivabootham\nVanagaram, Chennai - 600095,\n-';
+                    gstin = 'GSTIN 33AFFPV1640H1ZK';
+                  }
+
+                  String dcNum = chalanCtrl.text.trim();
+                  if (dcNum.isEmpty) {
+                    dcNum = await ApiService().getNextDeliveryChallanNumber();
+                  }
+
+                  final challan = DeliveryChallanModel(
+                    dcNumber: dcNum,
+                    date: deliveryChalanDate ?? DateTime.now(),
+                    supplierName: supplierName,
+                    supplierAddress: address,
+                    supplierGstin: gstin,
+                    placeOfSupply: 'Tamil Nadu (33)',
+                    reference: refCtrl.text.trim().isNotEmpty ? refCtrl.text.trim() : null,
+                    challanType: 'Job Work',
+                    items: [
+                      DeliveryChallanItem(
+                        itemNumber: 1,
+                        jobId: _currentJob.jobId,
+                        description: descCtrl.text.trim(),
+                        quantity: qty,
+                        unit: 'No(s)',
+                        approxValue: 1.00,
+                      ),
+                    ],
+                    jobIds: [_currentJob.jobId],
+                  );
+
+                  savedDc = await ApiService().saveDeliveryChallan(challan);
+                }
+
+                await ApiService().forwardJob(
+                  _currentJob.jobId,
+                  selectedDestination,
+                  forwardQuantity: qty,
+                  deliveryChalanNumber: savedDc?.dcNumber ?? (chalanCtrl.text.trim().isEmpty ? null : chalanCtrl.text.trim()),
+                  deliveryChalanDate: savedDc?.date ?? deliveryChalanDate,
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(savedDc != null
+                        ? 'Forwarded to $selectedDestination & Delivery Challan ${savedDc.dcNumber} generated!'
+                        : 'Forwarded to $selectedDestination!'),
+                    backgroundColor: const Color(0xFF2E7D32),
+                  ),
+                );
+                _refresh();
+
+                if (downloadDC && savedDc != null) {
+                  await PdfDeliveryChallanApi.printOrShare(savedDc);
+                }
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
+                setState(() => _isUpdating = false);
+              }
+            }
+          }
 
           return AlertDialog(
             title: const Text('Move / Forward Job'),
@@ -1213,6 +1483,7 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                       controller: chalanCtrl,
                       decoration: const InputDecoration(
                         labelText: 'Delivery Chalan Number',
+                        hintText: 'e.g. DC2627-00232',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -1241,78 +1512,50 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: refCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Reference',
+                        hintText: 'sent for grinding polishing return',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        labelText: 'Challan Item Description',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
                   ],
                 ],
               ),
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-              ElevatedButton(
-                onPressed: () async {
-                  if (isEDPProduction) {
-                    if (extractionCompletedDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Extraction Completed Date')));
-                      return;
-                    }
-                    if (productionDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Production Date')));
-                      return;
-                    }
-                    if (expectedProductionDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select Expected Production Completion Date')));
-                      return;
-                    }
-
-                    Navigator.pop(ctx);
-                    setState(() => _isUpdating = true);
-                    try {
-                      await ApiService().updateJobStatus(
-                        _currentJob.jobId,
-                        'Production',
-                        extractionCompletedDate: extractionCompletedDate,
-                        productionDate: productionDate,
-                        expectedProductionDate: expectedProductionDate,
-                      );
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Production!')));
-                      _refresh();
-                    } catch (e) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                      setState(() => _isUpdating = false);
-                    }
-                  } else {
-                    int? qty = int.tryParse(qtyCtrl.text.trim());
-                    if (qty == null || qty <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter valid quantity')));
-                      return;
-                    }
-
-                    Navigator.pop(ctx);
-                    setState(() => _isUpdating = true);
-                    try {
-                      if (!_suppliers.any((s) => s.toLowerCase() == selectedDestination.toLowerCase())) {
-                        try { await ApiService().addSupplier(selectedDestination); } catch (_) {}
-                      }
-                      await ApiService().forwardJob(
-                        _currentJob.jobId,
-                        selectedDestination,
-                        forwardQuantity: qty,
-                        deliveryChalanNumber: chalanCtrl.text.trim().isEmpty ? null : chalanCtrl.text.trim(),
-                        deliveryChalanDate: deliveryChalanDate,
-                      );
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Forwarded to $selectedDestination!')));
-                      _refresh();
-                    } catch (e) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                      setState(() => _isUpdating = false);
-                    }
-                  }
-                },
-                child: Text(isEDPProduction ? 'Move to Production' : 'Forward'),
-              ),
+              if (isEDPProduction)
+                ElevatedButton(
+                  onPressed: () => performSKMTForward(downloadDC: false),
+                  child: const Text('Move to Production'),
+                )
+              else ...[
+                OutlinedButton(
+                  onPressed: () => performSKMTForward(downloadDC: false),
+                  child: const Text('Forward Only'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => performSKMTForward(downloadDC: true),
+                  icon: const Icon(Icons.picture_as_pdf, size: 16),
+                  label: const Text('Download Delivery Challan', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0288D1),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ],
           );
         },
@@ -1715,7 +1958,176 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     );
   }
 
-  Widget _buildSectionCard({required String title, required IconData icon, required List<Widget> children}) {
+  Widget _buildDeliveryChallansSection() {
+    return _buildSectionCard(
+      title: 'Delivery Challan (DC)',
+      icon: Icons.receipt_long,
+      trailingAction: TextButton.icon(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF1976D2),
+          visualDensity: VisualDensity.compact,
+        ),
+        onPressed: () async {
+          final res = await showDialog<DeliveryChallanModel>(
+            context: context,
+            builder: (ctx) => DeliveryChallanEditDialog(
+              initialJob: _currentJob,
+              initialSupplierName: _currentJob.supplier,
+              initialQuantity: _currentJob.quantity,
+            ),
+          );
+          if (res != null) {
+            _loadDeliveryChallans();
+            _refresh();
+          }
+        },
+        icon: const Icon(Icons.add, size: 16),
+        label: const Text('Make DC', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      children: [
+        if (_jobChallans.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'No Delivery Challan created for this job yet. Click "+ Make DC" or generate one when forwarding to a supplier.',
+              style: TextStyle(fontSize: 13, color: Colors.grey, fontStyle: FontStyle.italic),
+            ),
+          )
+        else
+          ..._jobChallans.map((dc) => Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE1F5FE),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.description, color: Color(0xFF0288D1), size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            dc.dcNumber,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0288D1)),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              dc.challanType,
+                              style: TextStyle(fontSize: 11, color: Colors.grey.shade800),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Supplier: ${dc.supplierName}',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        'Date: ${DateFormat('dd-MM-yyyy').format(dc.date)}',
+                        style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                      if (dc.reference != null && dc.reference!.isNotEmpty)
+                        Text(
+                          'Ref: ${dc.reference}',
+                          style: const TextStyle(fontSize: 12, color: Colors.black54, fontStyle: FontStyle.italic),
+                        ),
+                      if (dc.items.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'Items: ${dc.items.map((i) => '${i.description} (${i.quantity} ${i.unit})').join(', ')}',
+                            style: const TextStyle(fontSize: 12, color: Colors.black87),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => PdfDeliveryChallanApi.downloadPdf(dc),
+                      icon: const Icon(Icons.download, size: 14),
+                      label: const Text('Download PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0288D1),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => PdfDeliveryChallanApi.printOrShare(dc),
+                          icon: const Icon(Icons.print, size: 14),
+                          label: const Text('Print', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          tooltip: 'Edit DC',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () async {
+                            final res = await showDialog<DeliveryChallanModel>(
+                              context: context,
+                              builder: (ctx) => DeliveryChallanEditDialog(existingChallan: dc),
+                            );
+                            if (res != null) {
+                              _loadDeliveryChallans();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )),
+      ],
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+    Widget? trailingAction,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -1738,7 +2150,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
             children: [
               Icon(icon, size: 20, color: const Color(0xFF1976D2)),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1976D2))),
+              Expanded(
+                child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1976D2))),
+              ),
+              ?trailingAction,
             ],
           ),
           const Divider(height: 24),

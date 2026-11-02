@@ -64,6 +64,7 @@ app.use('/api/master-data', require('./routes/masterData'));
 app.use('/api/spares', require('./routes/spares'));
 app.use('/api/raw-materials', require('./routes/rawMaterialRoutes'));
 app.use('/api/estimates', require('./routes/estimates'));
+app.use('/api/delivery-challans', require('./routes/deliveryChallans'));
 
 // Serve static files from the public folder (Flutter Web App)
 app.use(express.static(path.join(__dirname, 'public')));

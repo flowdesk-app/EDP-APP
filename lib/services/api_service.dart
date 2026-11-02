@@ -12,6 +12,7 @@ import '../models/lead_model.dart';
 import '../models/raw_material_model.dart';
 import '../models/item_database_model.dart';
 import '../models/estimate_model.dart';
+import '../models/delivery_challan_model.dart';
 import 'package:flutter/foundation.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -1152,5 +1153,125 @@ class ApiService {
       debugPrint('Error auto-syncing repeat estimates: $e');
     }
     return [];
+  }
+
+  // --- DELIVERY CHALLANS (DC) ---
+
+  Future<String> getNextDeliveryChallanNumber() async {
+    await _loadToken();
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/delivery-challans/next-number'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['nextDcNumber'] != null) {
+          return data['nextDcNumber'].toString();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting next DC number: $e');
+    }
+    return 'DC2627-00232';
+  }
+
+  Future<List<DeliveryChallanModel>> getDeliveryChallans({
+    String? supplier,
+    String? jobId,
+    String? search,
+  }) async {
+    await _loadToken();
+    try {
+      final queryParams = <String, String>{};
+      if (supplier != null && supplier.isNotEmpty) queryParams['supplier'] = supplier;
+      if (jobId != null && jobId.isNotEmpty) queryParams['jobId'] = jobId;
+      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+
+      final uri = Uri.parse('$baseUrl/delivery-challans')
+          .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(res.body);
+        return data.map((e) => DeliveryChallanModel.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching delivery challans: $e');
+    }
+    return [];
+  }
+
+  Future<List<DeliveryChallanModel>> getDeliveryChallansForJob(String jobId) async {
+    await _loadToken();
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/delivery-challans/job/$jobId'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(res.body);
+        return data.map((e) => DeliveryChallanModel.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching delivery challans for job $jobId: $e');
+    }
+    return [];
+  }
+
+  Future<DeliveryChallanModel?> getDeliveryChallanById(String id) async {
+    await _loadToken();
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/delivery-challans/$id'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        return DeliveryChallanModel.fromJson(jsonDecode(res.body));
+      }
+    } catch (e) {
+      debugPrint('Error fetching delivery challan by id: $e');
+    }
+    return null;
+  }
+
+  Future<DeliveryChallanModel> saveDeliveryChallan(DeliveryChallanModel challan) async {
+    await _loadToken();
+    if (challan.id != null && challan.id!.isNotEmpty) {
+      // Update
+      final res = await http.put(
+        Uri.parse('$baseUrl/delivery-challans/${challan.id}'),
+        headers: _headers,
+        body: jsonEncode(challan.toJson()),
+      );
+      if (res.statusCode == 200) {
+        return DeliveryChallanModel.fromJson(jsonDecode(res.body));
+      }
+      throw Exception('Failed to update delivery challan: ${res.body}');
+    } else {
+      // Create
+      final res = await http.post(
+        Uri.parse('$baseUrl/delivery-challans'),
+        headers: _headers,
+        body: jsonEncode(challan.toJson()),
+      );
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        return DeliveryChallanModel.fromJson(jsonDecode(res.body));
+      }
+      throw Exception('Failed to create delivery challan: ${res.body}');
+    }
+  }
+
+  Future<bool> deleteDeliveryChallan(String id) async {
+    await _loadToken();
+    try {
+      final res = await http.delete(
+        Uri.parse('$baseUrl/delivery-challans/$id'),
+        headers: _headers,
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error deleting delivery challan: $e');
+      return false;
+    }
   }
 }

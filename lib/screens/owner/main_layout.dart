@@ -19,6 +19,7 @@ import '../login_screen.dart';
 import 'storage_screen.dart';
 import 'job_approval_screen.dart';
 import 'estimates_screen.dart';
+import 'delivery_challans_screen.dart';
 import '../../widgets/estimate_auth_dialog.dart';
 
 class MainLayout extends StatefulWidget {
@@ -73,6 +74,7 @@ class _MainLayoutState extends State<MainLayout> {
         const RawMaterialsScreen(), // 8. Raw Materials
         const ReadyForDeliveryScreen(), // 9. Ready for Delivery
         const StorageScreen(), // 10. Database
+        const DeliveryChallansScreen(), // 11. Delivery Challan (DC)
       ];
       _destinations = [
         const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
@@ -86,6 +88,7 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.storage_outlined), selectedIcon: Icon(Icons.storage), label: Text('Database')),
+        const NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: Text('Delivery Challan')),
       ];
 
       if (_role == UserRole.owner) {
