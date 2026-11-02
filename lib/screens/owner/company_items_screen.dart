@@ -20,11 +20,67 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   List<ItemDatabaseModel> _allItems = [];
   List<ItemDatabaseModel> _items = [];
   bool _isLoading = true;
+  bool _isDeleteMode = false;
 
   @override
   void initState() {
     super.initState();
     _fetchItems();
+  }
+
+  Future<void> _confirmDeleteItem(ItemDatabaseModel item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.delete_forever, color: Colors.red[700]),
+            const SizedBox(width: 8),
+            const Text('Delete Item from Database'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${item.itemName}" (${item.itemId}) permanently from the database?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700], foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final identifier = item.itemId.isNotEmpty ? item.itemId : item.itemName;
+      final success = await ApiService().deleteDatabaseItem(identifier);
+      if (mounted) {
+        if (success) {
+          setState(() {
+            _allItems.removeWhere((i) => i.itemId == item.itemId && i.itemName == item.itemName);
+            _items.removeWhere((i) => i.itemId == item.itemId && i.itemName == item.itemName);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Deleted "${item.itemName}" from database.'),
+              backgroundColor: Colors.green[700],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete item from server.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -179,10 +235,59 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                         ),
                       ),
                     ),
+                    OutlinedButton.icon(
+                      icon: Icon(
+                        _isDeleteMode ? Icons.check_circle : Icons.delete_outline,
+                        size: 16,
+                        color: _isDeleteMode ? Colors.white : Colors.red[700],
+                      ),
+                      label: Text(
+                        _isDeleteMode ? 'Done' : 'Delete Option',
+                        style: TextStyle(
+                          color: _isDeleteMode ? Colors.white : Colors.red[700],
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: _isDeleteMode ? Colors.red[700] : Colors.red[50],
+                        side: BorderSide(color: _isDeleteMode ? Colors.red[800]! : Colors.red[300]!),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => setState(() => _isDeleteMode = !_isDeleteMode),
+                    ),
                   ],
                 ),
               ],
             ),
+            if (_isDeleteMode) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.red[700], size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Delete Mode Active: Click the red trash icon on any item card to delete it from the database.',
+                        style: TextStyle(color: Colors.red[900], fontSize: 12, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => setState(() => _isDeleteMode = false),
+                      child: Text('Exit Delete Mode', style: TextStyle(color: Colors.red[700], fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             // Grid
             Expanded(
@@ -275,6 +380,19 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                       ),
                     ),
                   ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: _isDeleteMode ? Colors.red[700] : Colors.grey[400],
+                  ),
+                  tooltip: 'Delete item from database',
+                  splashRadius: 16,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => _confirmDeleteItem(item),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -341,6 +459,29 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                   const SizedBox(height: 16),
                   _buildDetailRow('Selling Price', (item.rate ?? '0.00').replaceAll('INR ', '')),
                   _buildDetailRow('Description', item.description ?? 'N/A'),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.delete_forever, color: Colors.red),
+                        label: const Text('Delete from Database', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.red),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _confirmDeleteItem(item);
+                        },
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

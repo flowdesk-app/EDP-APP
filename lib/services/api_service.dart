@@ -998,6 +998,57 @@ class ApiService {
     }
   }
 
+  Future<bool> deleteCompanyStorage(String name) async {
+    if (name.trim().isEmpty) return false;
+    await _loadToken();
+    try {
+      final res = await http.delete(
+        Uri.parse('$baseUrl/companies/${Uri.encodeComponent(name.trim())}'),
+        headers: _headers,
+      );
+      if (res.statusCode == 200) {
+        removeCompanyFromStorage(name.trim());
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Error deleting company: $e');
+    }
+    return false;
+  }
+
+  Future<bool> deleteDatabaseItem(String identifier) async {
+    if (identifier.trim().isEmpty) return false;
+    await _loadToken();
+    try {
+      final res = await http.delete(
+        Uri.parse('$baseUrl/item-database/${Uri.encodeComponent(identifier.trim())}'),
+        headers: _headers,
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error deleting database item: $e');
+      return false;
+    }
+  }
+
+  Future<bool> bulkDeleteDatabaseItems({List<String>? ids, List<String>? names}) async {
+    await _loadToken();
+    try {
+      final payload = <String, dynamic>{};
+      if (ids != null) payload['ids'] = ids;
+      if (names != null) payload['names'] = names;
+      final res = await http.post(
+        Uri.parse('$baseUrl/item-database/bulk-delete'),
+        headers: _headers,
+        body: jsonEncode(payload),
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error bulk deleting database items: $e');
+      return false;
+    }
+  }
+
   // --- Estimates API ---
   Future<List<EstimateModel>> getEstimates({String? jobId, String? search}) async {
     await _loadToken();

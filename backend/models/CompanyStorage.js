@@ -9,6 +9,10 @@ const CompanyStorageSchema = new mongoose.Schema({
     prefixes: [{
         type: String
     }],
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now

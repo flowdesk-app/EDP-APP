@@ -91,4 +91,65 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// Delete single item from database by ID, itemId, or itemName
+router.delete('/:identifier', auth, async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const identifier = decodeURIComponent(req.params.identifier).trim();
+    if (!identifier) {
+      return res.status(400).json({ error: 'Item identifier is required' });
+    }
+
+    let deleted = null;
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      deleted = await ItemDatabase.findByIdAndDelete(identifier);
+    }
+    if (!deleted) {
+      deleted = await ItemDatabase.findOneAndDelete({ itemId: identifier });
+    }
+    if (!deleted) {
+      deleted = await ItemDatabase.findOneAndDelete({ itemName: identifier });
+    }
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Item not found in database' });
+    }
+
+    res.json({ message: 'Item deleted from database successfully', item: deleted });
+  } catch (err) {
+    console.error('Error deleting item from database:', err);
+    res.status(500).json({ error: 'Server error deleting item' });
+  }
+});
+
+// Bulk delete items by ids or itemNames
+router.post('/bulk-delete', auth, async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const { ids, names } = req.body;
+    let deletedCount = 0;
+
+    if (ids && Array.isArray(ids) && ids.length > 0) {
+      const validObjIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+      const result = await ItemDatabase.deleteMany({
+        $or: [
+          { _id: { $in: validObjIds } },
+          { itemId: { $in: ids } }
+        ]
+      });
+      deletedCount += result.deletedCount;
+    }
+
+    if (names && Array.isArray(names) && names.length > 0) {
+      const result = await ItemDatabase.deleteMany({ itemName: { $in: names } });
+      deletedCount += result.deletedCount;
+    }
+
+    res.json({ message: `Successfully deleted ${deletedCount} item(s)`, deletedCount });
+  } catch (err) {
+    console.error('Error bulk deleting items:', err);
+    res.status(500).json({ error: 'Server error bulk deleting items' });
+  }
+});
+
 module.exports = router;

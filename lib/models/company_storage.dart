@@ -1,13 +1,15 @@
 class CompanyStorage {
   final String name;
   final List<String> prefixes;
+  final bool isDeleted;
 
-  CompanyStorage({required this.name, required this.prefixes});
+  CompanyStorage({required this.name, required this.prefixes, this.isDeleted = false});
 
   factory CompanyStorage.fromJson(Map<String, dynamic> json) {
     return CompanyStorage(
       name: json['name'] ?? '',
       prefixes: List<String>.from(json['prefixes'] ?? []),
+      isDeleted: json['isDeleted'] == true,
     );
   }
 }
@@ -73,8 +75,19 @@ List<CompanyStorage> kCompanyStorages = [
 
 void mergeDynamicCompanies(List<CompanyStorage> dynamicCompanies) {
   for (var dyn in dynamicCompanies) {
-    if (!kCompanyStorages.any((c) => c.name == dyn.name)) {
-      kCompanyStorages.add(dyn);
+    if (dyn.isDeleted) {
+      kCompanyStorages.removeWhere((c) => c.name.toLowerCase() == dyn.name.toLowerCase());
+    } else {
+      final idx = kCompanyStorages.indexWhere((c) => c.name.toLowerCase() == dyn.name.toLowerCase());
+      if (idx == -1) {
+        kCompanyStorages.add(dyn);
+      } else {
+        kCompanyStorages[idx] = dyn;
+      }
     }
   }
+}
+
+void removeCompanyFromStorage(String companyName) {
+  kCompanyStorages.removeWhere((c) => c.name.toLowerCase() == companyName.toLowerCase());
 }
