@@ -9,37 +9,103 @@ const getTodayDateStr = () => {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 };
 
-const DEFAULT_EMPLOYEE_DETAILS = {
-  'owner@flowdesk.com': { name: 'Managing Director', department: 'Management' },
-  'admin@flowdesk.com': { name: 'Operations Admin', department: 'Operations' },
-  'employee1@flowdesk.com': { name: 'K. Rama (Works Manager)', department: 'Production' },
-  'employee2@flowdesk.com': { name: 'R. Rajeswari (Admin Manager)', department: 'Admin' },
-  'employee3@flowdesk.com': { name: 'A. Nagarajan (Marketing Executive)', department: 'Marketing' },
-  'payroll@flowdesk.com': { name: 'C. Subhalakshmi (Accounts)', department: 'Accounts' },
-};
+const FACTORY_EMPLOYEES = [
+  { empNo: "20004", name: "K.RAMA", designation: "WORKS MANAGER", department: "Production", email: "20004@flowdesk.com" },
+  { empNo: "20005", name: "R.RAJESWARI", designation: "ADMIN MANAGER", department: "Admin", email: "20005@flowdesk.com" },
+  { empNo: "20008", name: "DILSHATH PEGUM", designation: "PRODUCTION EXECUTIVE", department: "Production", email: "20008@flowdesk.com" },
+  { empNo: "20011", name: "A.NAGARAJAN", designation: "MARKETING EXECUTIVE", department: "Marketing", email: "20011@flowdesk.com" },
+  { empNo: "20026", name: "C.SUBHALAKSHMI", designation: "MANAGER - ACCOUNTS", department: "Accounts", email: "20026@flowdesk.com" },
+  { empNo: "20028", name: "S.CHANDRAMOULI", designation: "MANAGER - PRODUCTION", department: "Production", email: "20028@flowdesk.com" },
+  { empNo: "20029", name: "S.REBEKKA", designation: "PRODUCTION EXECUTIVE", department: "Production", email: "20029@flowdesk.com" },
+  { empNo: "20034", name: "KAMAKSHI D", designation: "MANAGER - ADMIN", department: "Admin", email: "20034@flowdesk.com" },
+  { empNo: "20036", name: "GHOSIA", designation: "PRODUCTION ASSISTANT", department: "Production", email: "20036@flowdesk.com" },
+  { empNo: "20041", name: "PITHAM MARNDI", designation: "PRODUCTION ASSISTANT", department: "Production", email: "20041@flowdesk.com" },
+  { empNo: "20042", name: "KANTHAROOPI", designation: "PRODUCTION ASSISTANT", department: "Production", email: "20042@flowdesk.com" },
+  { empNo: "20043", name: "RAMAMURTHY", designation: "DRIVER", department: "Logistics", email: "20043@flowdesk.com" },
+  { empNo: "20045", name: "RENTA", designation: "PRODUCTION ASSISTANT", department: "Production", email: "20045@flowdesk.com" },
+  { empNo: "20046", name: "CHANDRAY SOREN", designation: "PRODUCTION ASSISTANT", department: "Production", email: "20046@flowdesk.com" },
+  { empNo: "20047", name: "SURAI", designation: "PRODUCTION ASSISTANT", department: "Production", email: "20047@flowdesk.com" },
+  { empNo: "20048", name: "MAHESH G", designation: "ADMIN EXECUTIVE", department: "Admin", email: "20048@flowdesk.com" }
+];
+
+async function ensureFactoryEmployees() {
+  const count = await User.countDocuments({ empNo: { $exists: true } });
+  if (count < 16) {
+    for (const emp of FACTORY_EMPLOYEES) {
+      let u = await User.findOne({ $or: [{ empNo: emp.empNo }, { email: emp.email }] });
+      if (!u) {
+        u = new User({
+          empNo: emp.empNo,
+          email: emp.email,
+          name: emp.name,
+          designation: emp.designation,
+          department: emp.department,
+          password: 'password123',
+          role: 'employee',
+          isFaceEnrolled: false,
+          faceEmbeddings: []
+        });
+        await u.save();
+      } else {
+        u.empNo = emp.empNo;
+        u.name = emp.name;
+        u.designation = emp.designation;
+        u.department = emp.department;
+        await u.save();
+      }
+    }
+  }
+}
+
+// Helper to extract real face embedding vector using python SFace
+function extractEmbeddingFromBase64(b64) {
+  return new Promise((resolve) => {
+    try {
+      const pyScript = path.join(__dirname, '..', 'scripts', 'face_recognizer.py');
+      const pyProcess = spawn('python3', [pyScript, 'extract-base64']);
+      let stdout = '';
+      pyProcess.stdin.write(JSON.stringify({ image: b64 }));
+      pyProcess.stdin.end();
+      pyProcess.stdout.on('data', d => stdout += d.toString());
+      pyProcess.on('close', code => {
+        if (code === 0 && stdout) {
+          try {
+            const res = JSON.parse(stdout.trim().split('\n').pop());
+            if (res.success && Array.isArray(res.feature)) {
+              return resolve(res.feature);
+            }
+          } catch (_) {}
+        }
+        resolve(null);
+      });
+    } catch (_) {
+      resolve(null);
+    }
+  });
+}
 
 // GET /api/attendance/enrolled-employees
 router.get('/enrolled-employees', async (req, res) => {
   try {
+    await ensureFactoryEmployees();
     const users = await User.find(
-      { role: { $ne: 'payroll' } },
-      'email name department role isFaceEnrolled faceEmbeddings facePhotoUrl lastEnrolledAt'
-    ).lean();
+      { empNo: { $exists: true } },
+      'empNo email name department designation role isFaceEnrolled faceEmbeddings facePhotoUrl lastEnrolledAt'
+    ).sort({ empNo: 1 }).lean();
 
-    const formatted = users.map(u => {
-      const def = DEFAULT_EMPLOYEE_DETAILS[u.email] || {};
-      return {
-        _id: u._id,
-        email: u.email,
-        name: u.name || def.name || u.email.split('@')[0],
-        department: u.department || def.department || 'Production',
-        role: u.role,
-        isFaceEnrolled: !!u.isFaceEnrolled,
-        faceEmbeddings: u.faceEmbeddings || [],
-        facePhotoUrl: u.facePhotoUrl,
-        lastEnrolledAt: u.lastEnrolledAt,
-      };
-    });
+    const formatted = users.map(u => ({
+      _id: u._id,
+      empNo: u.empNo,
+      email: u.email,
+      name: u.name,
+      department: u.department,
+      designation: u.designation,
+      role: u.role,
+      isFaceEnrolled: !!u.isFaceEnrolled,
+      faceEmbeddings: u.faceEmbeddings || [],
+      facePhotoUrl: u.facePhotoUrl,
+      lastEnrolledAt: u.lastEnrolledAt,
+    }));
 
     res.json(formatted);
   } catch (err) {
@@ -50,21 +116,33 @@ router.get('/enrolled-employees', async (req, res) => {
 // POST /api/attendance/enroll-face
 router.post('/enroll-face', async (req, res) => {
   try {
-    const { email, faceEmbeddings, facePhotoUrl, name, department } = req.body;
-    if (!email) {
-      return res.status(400).json({ error: 'Employee email is required' });
+    const { email, empNo, faceEmbeddings, facePhotoUrl, name, department } = req.body;
+    const identifier = email || empNo;
+    if (!identifier) {
+      return res.status(400).json({ error: 'Employee email or empNo is required' });
     }
 
-    if (!Array.isArray(faceEmbeddings) || faceEmbeddings.length === 0) {
-      return res.status(400).json({ error: 'Valid faceEmbeddings vector array is required' });
-    }
-
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { empNo: identifier }]
+    });
     if (!user) {
       return res.status(404).json({ error: 'Employee user not found' });
     }
 
-    user.faceEmbeddings = faceEmbeddings;
+    // Try extracting real SFace feature from the captured photo if provided
+    let embeddingsToSave = faceEmbeddings;
+    if (facePhotoUrl) {
+      const extracted = await extractEmbeddingFromBase64(facePhotoUrl);
+      if (extracted && extracted.length === 128) {
+        embeddingsToSave = extracted;
+      }
+    }
+
+    if (!Array.isArray(embeddingsToSave) || embeddingsToSave.length === 0) {
+      return res.status(400).json({ error: 'No face detected in photo. Please ensure face is centered.' });
+    }
+
+    user.faceEmbeddings = embeddingsToSave;
     user.isFaceEnrolled = true;
     user.lastEnrolledAt = new Date();
     if (facePhotoUrl) user.facePhotoUrl = facePhotoUrl;
@@ -75,8 +153,9 @@ router.post('/enroll-face', async (req, res) => {
 
     res.json({
       success: true,
-      message: `Face enrolled successfully for ${user.email}`,
+      message: `Face enrolled successfully for ${user.name} (${user.empNo || user.email})`,
       user: {
+        empNo: user.empNo,
         email: user.email,
         name: user.name,
         department: user.department,
@@ -216,13 +295,15 @@ router.post('/verify-camera-frame', async (req, res) => {
     // 1. Fetch enrolled employees
     const enrolledUsers = await User.find(
       { isFaceEnrolled: true, faceEmbeddings: { $exists: true, $ne: [] } },
-      'email name department role faceEmbeddings facePhotoUrl'
+      'empNo email name department designation role faceEmbeddings facePhotoUrl'
     ).lean();
 
     if (enrolledUsers.length === 0) {
-      return res.status(400).json({
+      return res.json({
         success: false,
-        error: 'No employees are enrolled with face biometrics in database yet.',
+        matched: false,
+        unregistered: true,
+        error: 'Unregistered face detected. No employees have enrolled face biometrics yet. Attendance was NOT marked.',
       });
     }
 
@@ -271,17 +352,22 @@ router.post('/verify-camera-frame', async (req, res) => {
           return res.json({
             success: false,
             matched: false,
-            error: matchResult.error || matchResult.message || 'Face not recognized. Please center your face inside the frame.',
+            unregistered: true,
+            error: 'Unregistered Face Detected. This face does not match any enrolled Exclusive Diamond Products employee. Attendance was NOT marked.',
           });
         }
 
         const matchedEmp = matchResult.employee;
         const email = matchedEmp.email;
 
-        const user = await User.findOne({ email }).lean();
-        const def = DEFAULT_EMPLOYEE_DETAILS[email] || {};
-        const empName = user.name || def.name || email.split('@')[0];
-        const dept = user.department || def.department || 'Production';
+        const user = await User.findOne({
+          $or: [
+            { email },
+            ...(matchedEmp.empNo ? [{ empNo: matchedEmp.empNo }] : [])
+          ]
+        }).lean();
+        const empName = user?.name || matchedEmp.name || email.split('@')[0];
+        const dept = user?.department || matchedEmp.department || 'Production';
 
         const todayDate = getTodayDateStr();
         const now = new Date();

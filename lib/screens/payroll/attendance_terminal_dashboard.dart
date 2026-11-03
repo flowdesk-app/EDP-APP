@@ -735,14 +735,14 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  success ? 'ATTENDANCE RECORDED: $name' : 'VERIFICATION FAILED',
+                  success ? 'ATTENDANCE RECORDED: $name' : 'UNREGISTERED PERSON • NOT ENROLLED',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   success
                       ? '${type == 'clock_out' || type == 'out' ? 'Shift Exit (Clock Out)' : 'Shift Entry (Clock In)'} at $timeStr • Duration: ${duration ~/ 60}h ${duration % 60}m (Reg: ${regularHrs}h, OT: ${otHrs}h)'
-                      : error,
+                      : '$error • Attendance was NOT recorded.',
                   style: const TextStyle(fontSize: 11.5, color: Colors.white70),
                 ),
               ],

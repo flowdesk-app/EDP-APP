@@ -98,6 +98,18 @@ def main():
         else:
             print(json.dumps({'success': True, 'feature': feat}))
 
+    elif action == 'extract-base64':
+        input_data = json.loads(sys.stdin.read())
+        img_b64 = input_data.get('image')
+        if not img_b64:
+            print(json.dumps({'success': False, 'error': 'No image provided'}))
+            return
+        feat = extract_face_feature_from_base64(img_b64)
+        if feat is None:
+            print(json.dumps({'success': False, 'error': 'No face detected in image. Please ensure face is centered.'}))
+        else:
+            print(json.dumps({'success': True, 'feature': feat}))
+
     elif action == 'match':
         # JSON payload passed on stdin
         input_data = json.loads(sys.stdin.read())

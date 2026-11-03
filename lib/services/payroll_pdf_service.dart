@@ -640,6 +640,183 @@ class PayrollPdfService {
   }
 
   // ============================================================
+  // 4. DOCUMENT 5 - STAFF PERSONAL LOAN STATEMENT PDF (Landscape)
+  // ============================================================
+  static Future<Uint8List> generateLoanStatementPdf(
+    List<PersonalLoanRecord> records,
+    Map<String, dynamic> totals,
+    String monthDisplay,
+  ) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(28),
+        build: (pw.Context context) {
+          final totalSanctioned = totals['loanSanctioned'] ?? records.fold<double>(0.0, (s, r) => s + r.loanSanctioned);
+          final totalPrevious = totals['previousBalance'] ?? records.fold<double>(0.0, (s, r) => s + r.previousBalance);
+          final totalDeduction = totals['monthlyDeduction'] ?? records.fold<double>(0.0, (s, r) => s + r.monthlyDeduction);
+          final totalClosing = totals['closingBalance'] ?? records.fold<double>(0.0, (s, r) => s + r.closingBalance);
+
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: [
+              // Header
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'EXCLUSIVE DIAMOND PRODUCTS',
+                        style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
+                      ),
+                      pw.Text(
+                        'No.62, Eswaran Koil Street, Porur, Chennai 600116',
+                        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey700),
+                      ),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Container(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.deepPurple50,
+                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                          border: pw.Border.all(color: PdfColors.deepPurple200),
+                        ),
+                        child: pw.Text(
+                          'DOCUMENT 5: STAFF PERSONAL LOAN STATEMENT',
+                          style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.deepPurple900),
+                        ),
+                      ),
+                      pw.SizedBox(height: 3),
+                      pw.Text(
+                        'Month: ${monthDisplay.toUpperCase()}',
+                        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 12),
+
+              // Table
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(28),
+                  1: const pw.FixedColumnWidth(60),
+                  2: const pw.FlexColumnWidth(3),
+                  3: const pw.FlexColumnWidth(2),
+                  4: const pw.FlexColumnWidth(2),
+                  5: const pw.FlexColumnWidth(2),
+                  6: const pw.FlexColumnWidth(2),
+                  7: const pw.FlexColumnWidth(2),
+                  8: const pw.FixedColumnWidth(55),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                    children: [
+                      _th('#'),
+                      _th('EMP CODE'),
+                      _th('NAME OF EMPLOYEE'),
+                      _th('DEPARTMENT'),
+                      _th('SANCTIONED (Rs.)'),
+                      _th('PREV. BALANCE (Rs.)'),
+                      _th('DEDUCTION (Rs.)'),
+                      _th('CLOSING (Rs.)'),
+                      _th('STATUS'),
+                    ],
+                  ),
+                  ...records.asMap().entries.map((entry) {
+                    final idx = entry.key + 1;
+                    final r = entry.value;
+                    return pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: idx % 2 == 0 ? PdfColors.grey50 : PdfColors.white,
+                      ),
+                      children: [
+                        _td('$idx', align: pw.TextAlign.center),
+                        _td(r.empNo, align: pw.TextAlign.center, isBold: true),
+                        _td(r.employeeName, isBold: true),
+                        _td(r.department),
+                        _td(_intFmt.format(r.loanSanctioned), align: pw.TextAlign.right),
+                        _td(_intFmt.format(r.previousBalance), align: pw.TextAlign.right),
+                        _td(_intFmt.format(r.monthlyDeduction), align: pw.TextAlign.right, isBold: true),
+                        _td(_intFmt.format(r.closingBalance), align: pw.TextAlign.right, isBold: true),
+                        _td(r.status, align: pw.TextAlign.center),
+                      ],
+                    );
+                  }),
+                  // Totals Row
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                    children: [
+                      _td(''),
+                      _td('TOTAL', align: pw.TextAlign.center, isBold: true),
+                      _td('${records.length} Staff Accounts', isBold: true),
+                      _td(''),
+                      _td('Rs. ${_intFmt.format(totalSanctioned)}', align: pw.TextAlign.right, isBold: true),
+                      _td('Rs. ${_intFmt.format(totalPrevious)}', align: pw.TextAlign.right, isBold: true),
+                      _td('Rs. ${_intFmt.format(totalDeduction)}', align: pw.TextAlign.right, isBold: true),
+                      _td('Rs. ${_intFmt.format(totalClosing)}', align: pw.TextAlign.right, isBold: true),
+                      _td('Active', align: pw.TextAlign.center, isBold: true),
+                    ],
+                  ),
+                ],
+              ),
+              pw.Spacer(),
+
+              // Signatures
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    children: [
+                      pw.Container(width: 140, height: 1, color: PdfColors.grey700),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Prepared By (Accounts)', style: const pw.TextStyle(fontSize: 8.5)),
+                    ],
+                  ),
+                  pw.Column(
+                    children: [
+                      pw.Container(width: 140, height: 1, color: PdfColors.grey700),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Approved By (Managing Director)', style: const pw.TextStyle(fontSize: 8.5)),
+                      pw.Text('Exclusive Diamond Products', style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  static Future<void> printLoanStatementPdf(
+    List<PersonalLoanRecord> records,
+    Map<String, dynamic> totals,
+    String monthDisplay,
+  ) async {
+    final bytes = await generateLoanStatementPdf(records, totals, monthDisplay);
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => bytes,
+      name: 'Staff_Loan_Statement_${monthDisplay.replaceAll(' ', '_')}.pdf',
+    );
+  }
+
+  // ============================================================
   // Helpers
   // ============================================================
   static pw.TableRow _gridRow(String label1, String val1, String label2, String val2) {

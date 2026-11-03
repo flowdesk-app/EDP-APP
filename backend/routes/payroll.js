@@ -293,6 +293,35 @@ const SEED_PERSONAL_LOANS = [
   { empNo: "20042", employeeName: "KANTHAROOPI", department: "Production", loanSanctioned: 25000, previousBalance: 18000, monthlyDeduction: 1000, closingBalance: 17000, status: "Active" }
 ];
 
+function getLoansForMonth(targetMonth) {
+  const parts = (targetMonth || "2026-11").split("-").map(Number);
+  const targetYear = parts[0] || 2026;
+  const targetMonthNum = parts[1] || 11;
+  // Base ledger is September 2026 (2026-09)
+  const offset = (targetYear - 2026) * 12 + (targetMonthNum - 9);
+
+  return SEED_PERSONAL_LOANS.map(base => {
+    if (offset <= 0) {
+      return {
+        ...base,
+        month: targetMonth,
+        status: base.closingBalance <= 0 ? "Cleared" : "Active"
+      };
+    }
+    const prevBal = Math.max(0, base.previousBalance - (offset * base.monthlyDeduction));
+    const deduction = prevBal > 0 ? Math.min(prevBal, base.monthlyDeduction) : 0;
+    const closingBal = Math.max(0, prevBal - deduction);
+    return {
+      ...base,
+      month: targetMonth,
+      previousBalance: prevBal,
+      monthlyDeduction: deduction,
+      closingBalance: closingBal,
+      status: (closingBal <= 0 && prevBal <= 0) ? "Cleared" : "Active"
+    };
+  });
+}
+
 const SEED_LEAVE_REGISTER = [
   { empNo: "20004", employeeName: "K.RAMA", department: "Production", openingLeave: 0.0, monthlyAccrual: 1.5, leaveTaken: 1.0, lopDays: 0.0, closingBalance: 0.5, remarks: "Normal leave" },
   { empNo: "20005", employeeName: "R.RAJESWARI", department: "Admin", openingLeave: 18.0, monthlyAccrual: 1.5, leaveTaken: 1.5, lopDays: 0.0, closingBalance: 18.0, remarks: "" },
@@ -508,13 +537,11 @@ router.get('/leaves', async (req, res) => {
   }
 });
 
-// 5. GET /api/payroll/loans?month=2026-09
+// 5. GET /api/payroll/loans?month=2026-11
 router.get('/loans', async (req, res) => {
   try {
-    const month = req.query.month || '2026-09';
-    await ensureSeedData(month);
-
-    const records = await PersonalLoan.find({ month }).sort({ empNo: 1 }).lean();
+    const month = req.query.month || '2026-11';
+    const records = getLoansForMonth(month);
 
     const totals = {
       loanSanctioned: records.reduce((s, r) => s + (r.loanSanctioned || 0), 0),
@@ -523,13 +550,17 @@ router.get('/loans', async (req, res) => {
       closingBalance: records.reduce((s, r) => s + (r.closingBalance || 0), 0),
     };
 
+    const monthNames = ["", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    const [y, m] = month.split('-').map(Number);
+    const monthTitle = `${monthNames[m] || ''} ${y || 2026}`.trim();
+
     res.json({
       success: true,
       month,
       company: {
         name: "EXCLUSIVE DIAMOND PRODUCTS",
         address: "No.62, Eswaran Koil Street, Porur, Chennai 600116",
-        title: `STAFF PERSONAL LOAN STATEMENT AS ON ${month === '2026-09' ? 'SEPTEMBER 2026' : month}`
+        title: `STAFF PERSONAL LOAN STATEMENT AS ON ${monthTitle}`
       },
       records,
       totals,
@@ -540,14 +571,14 @@ router.get('/loans', async (req, res) => {
   }
 });
 
-// 6. GET /api/payroll/summary?month=2026-09 (Executive KPI metrics)
+// 6. GET /api/payroll/summary?month=2026-11 (Executive KPI metrics)
 router.get('/summary', async (req, res) => {
   try {
-    const month = req.query.month || '2026-09';
+    const month = req.query.month || '2026-11';
     await ensureSeedData(month);
 
     const payrolls = await Payroll.find({ month }).lean();
-    const loans = await PersonalLoan.find({ month }).lean();
+    const loans = getLoansForMonth(month);
     const leaves = await LeaveRegister.find({ month }).lean();
 
     const totalNet = payrolls.reduce((s, p) => s + (p.netSalary || 0), 0);

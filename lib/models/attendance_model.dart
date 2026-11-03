@@ -89,9 +89,11 @@ class AttendanceModel {
 
 class EnrolledEmployeeModel {
   final String id;
+  final String? empNo;
   final String email;
   final String name;
   final String department;
+  final String? designation;
   final String role;
   final bool isFaceEnrolled;
   final List<double> faceEmbeddings;
@@ -100,9 +102,11 @@ class EnrolledEmployeeModel {
 
   EnrolledEmployeeModel({
     required this.id,
+    this.empNo,
     required this.email,
     required this.name,
     required this.department,
+    this.designation,
     required this.role,
     required this.isFaceEnrolled,
     required this.faceEmbeddings,
@@ -127,9 +131,11 @@ class EnrolledEmployeeModel {
 
     return EnrolledEmployeeModel(
       id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      empNo: json['empNo']?.toString(),
       email: json['email']?.toString() ?? '',
       name: json['name']?.toString() ?? json['email']?.toString() ?? '',
       department: json['department']?.toString() ?? 'Production',
+      designation: json['designation']?.toString(),
       role: json['role']?.toString() ?? 'employee',
       isFaceEnrolled: json['isFaceEnrolled'] == true,
       faceEmbeddings: embeddings,

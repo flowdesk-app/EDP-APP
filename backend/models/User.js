@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['owner', 'admin', 'employee', 'employee1', 'employee2', 'employee3', 'payroll'], required: true },
   name: { type: String },
   department: { type: String },
+  empNo: { type: String },
+  designation: { type: String },
   supplierId: { type: String, ref: 'Supplier' },
   isFaceEnrolled: { type: Boolean, default: false },
   faceEmbeddings: { type: [Number], default: [] },
