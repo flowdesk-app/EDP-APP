@@ -1096,42 +1096,6 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     );
   }
 
-  Widget _buildAssemblyButton() {
-    if (_isAssembly) {
-      return ElevatedButton.icon(
-        onPressed: _handleAssemblyToggle,
-        icon: const Icon(Icons.check_circle, size: 16, color: Colors.white),
-        label: Text(
-          _numberOfSetsCtrl.text.trim().isNotEmpty
-              ? 'Assembly: ${_numberOfSetsCtrl.text.trim()} Sets'
-              : 'Assembly Active',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFE65100),
-          foregroundColor: Colors.white,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
-    }
-    return OutlinedButton.icon(
-      onPressed: _handleAssemblyToggle,
-      icon: const Icon(Icons.layers_outlined, size: 18, color: Color(0xFF4B5563)),
-      label: const Text(
-        'Assembly',
-        style: TextStyle(color: Color(0xFF1F2937), fontWeight: FontWeight.bold, fontSize: 13),
-      ),
-      style: OutlinedButton.styleFrom(
-        backgroundColor: Colors.white,
-        side: const BorderSide(color: Color(0xFFD1D5DB), width: 1.2),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
   Future<void> _handleAssemblyToggle() async {
     if (!_isAssembly) {
       final confirm = await showDialog<bool>(
@@ -1364,32 +1328,26 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     );
   }
 
-  Widget _buildTopActionRow({bool showAssembly = true}) {
+  Widget _buildTopActionRow() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (showAssembly)
-            _buildAssemblyButton()
-          else
-            const SizedBox.shrink(),
-          ElevatedButton.icon(
-            onPressed: _handleStorageSelection,
-            icon: const Icon(Icons.inventory_2_outlined),
-            label: const Text('Use from Database'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo,
-              foregroundColor: Colors.white,
-            ),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: ElevatedButton.icon(
+          onPressed: _handleStorageSelection,
+          icon: const Icon(Icons.inventory_2_outlined),
+          label: const Text('Use from Database'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.indigo,
+            foregroundColor: Colors.white,
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildStorageButton() {
-    return _buildTopActionRow(showAssembly: false);
+    return _buildTopActionRow();
   }
 
   Widget _buildNewFlow() {
@@ -1398,7 +1356,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTopActionRow(showAssembly: true),
+          _buildTopActionRow(),
           _buildCreatedDateSelector(),
           const SizedBox(height: 16),
           _buildAutocomplete(_customerNameCtrl, 'Customer Name', _getSuggestions('Customer Name')),
@@ -1800,7 +1758,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildTopActionRow(showAssembly: true),
+            _buildTopActionRow(),
             if (_recoatingBatchItems.isNotEmpty) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
