@@ -1872,7 +1872,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                             });
                           },
                           icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Add Blank Part'),
+                          label: const Text('Add New Part'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF475569),
                             side: const BorderSide(color: Color(0xFFCBD5E1)),
