@@ -21,7 +21,6 @@ import 'job_approval_screen.dart';
 import 'estimates_screen.dart';
 import 'delivery_challans_screen.dart';
 import '../../widgets/estimate_auth_dialog.dart';
-import '../payroll/payroll_dashboard_screen.dart';
 import '../payroll/attendance_terminal_dashboard.dart';
 import '../payroll/executive_overview_screen.dart';
 import '../payroll/salary_statement_screen.dart';
@@ -84,7 +83,6 @@ class _MainLayoutState extends State<MainLayout> {
         const ReadyForDeliveryScreen(), // 9. Ready for Delivery
         const StorageScreen(), // 10. Database
         const DeliveryChallansScreen(), // 11. Delivery Challan (DC)
-        const PayrollDashboardScreen(), // 12. Payroll Section
       ];
       _destinations = [
         const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
@@ -99,12 +97,11 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.storage_outlined), selectedIcon: Icon(Icons.storage), label: Text('Database')),
         const NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: Text('Delivery Challan')),
-        const NavigationRailDestination(icon: Icon(Icons.payments_outlined), selectedIcon: Icon(Icons.payments), label: Text('Payroll')),
       ];
 
       if (_role == UserRole.owner) {
         _screens.add(
-          const JobApprovalScreen(), // 13. Approvals
+          const JobApprovalScreen(), // 12. Approvals
         );
         _destinations.add(
           const NavigationRailDestination(
@@ -114,7 +111,7 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         );
         _screens.add(
-          const EstimatesScreen(), // 14. Estimates
+          const EstimatesScreen(), // 13. Estimates
         );
         _destinations.add(
           const NavigationRailDestination(
