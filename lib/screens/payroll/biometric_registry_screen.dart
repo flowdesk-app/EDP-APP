@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../models/attendance_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/global_logout_button.dart';
+import 'add_edit_employee_dialog.dart';
 import 'face_enrollment_dialog.dart';
 
 class BiometricRegistryScreen extends StatefulWidget {
@@ -16,9 +17,11 @@ class BiometricRegistryScreen extends StatefulWidget {
 
 class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
   final ApiService _api = ApiService();
+  final NumberFormat _intFmt = NumberFormat('#,##,##0', 'en_IN');
 
   bool _loading = true;
   List<EnrolledEmployeeModel> _employees = [];
+  List<Map<String, dynamic>> _alerts = [];
   String _searchQuery = '';
   String _selectedDept = 'All';
 
@@ -32,9 +35,11 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
     setState(() => _loading = true);
     try {
       final list = await _api.getEnrolledEmployees();
+      final alerts = await _api.getPayrollNotifications();
       if (mounted) {
         setState(() {
           _employees = list;
+          _alerts = alerts;
           _loading = false;
         });
       }
@@ -51,6 +56,168 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
     if (updated == true) {
       _loadEmployees();
     }
+  }
+
+  void _openAddEmployeeDialog() async {
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => const AddEditEmployeeDialog(),
+    );
+    if (updated == true) {
+      _loadEmployees();
+    }
+  }
+
+  void _openEditEmployeeDialog(EnrolledEmployeeModel emp) async {
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AddEditEmployeeDialog(employeeToEdit: emp),
+    );
+    if (updated == true) {
+      _loadEmployees();
+    }
+  }
+
+  Future<void> _promptRemoveEmployee(EnrolledEmployeeModel emp) async {
+    final empNo = emp.empNo ?? '';
+
+    // Check for active loan liabilities
+    final loanCheck = await _api.checkEmployeeLoans(empNo);
+    final hasLoan = loanCheck['hasLoan'] == true;
+    final loan = loanCheck['loan'];
+
+    if (!mounted) return;
+
+    if (hasLoan && loan != null) {
+      // LOAN LIABILITY DETECTED DIALOG
+      final sanctioned = (loan['loanSanctioned'] as num?)?.toDouble() ?? 0.0;
+      final balance = (loan['closingBalance'] as num?)?.toDouble() ?? 0.0;
+      final deduction = (loan['monthlyDeduction'] as num?)?.toDouble() ?? 0.0;
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 26),
+              SizedBox(width: 10),
+              Text('Active Loan Liability Detected', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Employee ${emp.name} (#$empNo) has an active staff personal loan that has NOT been fully repaid.',
+                style: const TextStyle(fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Column(
+                  children: [
+                    _dialogStatRow('Loan Sanctioned', '₹ ${_intFmt.format(sanctioned)}'),
+                    const SizedBox(height: 6),
+                    _dialogStatRow('Outstanding Balance', '₹ ${_intFmt.format(balance)}', isBold: true, color: const Color(0xFFDC2626)),
+                    const SizedBox(height: 6),
+                    _dialogStatRow('Monthly Recovery', '₹ ${_intFmt.format(deduction)}'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Note: Confirming removal will remove the employee from the biometric scanner and active payroll roster, and generate a settlement notification on the Executive Dashboard for final recovery.',
+                style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), height: 1.35),
+              ),
+            ],
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel & Retain Employee'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final res = await _api.removePayrollEmployee(empNo, force: true);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(res['message'] ?? 'Employee removed with loan settlement alert!'),
+                      backgroundColor: const Color(0xFFDC2626),
+                    ),
+                  );
+                  _loadEmployees();
+                }
+              },
+              child: const Text('Confirm & Log Alert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // NO LOANS - STANDARD SAFE REMOVAL
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Confirm Employee Removal', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(
+            'Are you sure you want to remove ${emp.name} (#$empNo)?\n\nThey have zero active loan balances and clean statutory records.',
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F172A)),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final res = await _api.removePayrollEmployee(empNo, force: false);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(res['message'] ?? 'Employee removed successfully!'),
+                      backgroundColor: const Color(0xFF0F172A),
+                    ),
+                  );
+                  _loadEmployees();
+                }
+              },
+              child: const Text('Remove Employee', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _dialogStatRow(String label, String value, {bool isBold = false, Color? color}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
+            color: color ?? const Color(0xFF0F172A),
+            fontFamily: 'monospace',
+          ),
+        ),
+      ],
+    );
   }
 
   List<String> get _departments {
@@ -95,6 +262,12 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Active Loan Settlement Alerts Banner (if any)
+                          if (_alerts.isNotEmpty) ...[
+                            _buildAlertsBanner(),
+                            const SizedBox(height: 16),
+                          ],
+
                           // 1. INFO BANNER
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -109,7 +282,7 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
                                 SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Staff Registry: All 16 company employees from the official payroll master are listed below. Click "Enroll Face" to capture or upload employee photos. When an unrecognized person or non-enrolled staff faces the camera terminal, attendance will NOT be marked.',
+                                    'Staff Registry: Use "+ Add New Employee" to register staff and configure their salary & biometrics. When removing employees with active personal loans, a settlement notification will be created on the Executive Dashboard. Only enrolled staff will be recognized for shift attendance.',
                                     style: TextStyle(fontSize: 12, color: Color(0xFF1E40AF), height: 1.3),
                                   ),
                                 ),
@@ -118,7 +291,7 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // 2. SEARCH & SUMMARY ROW
+                          // 2. SEARCH & SUMMARY ROW WITH ADD BUTTON
                           Row(
                             children: [
                               Expanded(
@@ -177,6 +350,21 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
                               ),
                               const Spacer(),
 
+                              // + Add New Employee Button
+                              ElevatedButton.icon(
+                                onPressed: _openAddEmployeeDialog,
+                                icon: const Icon(Icons.person_add, size: 16),
+                                label: const Text('Add Employee'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4338CA),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
@@ -189,29 +377,16 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF065F46)),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFFBEB),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFFDE68A)),
-                                ),
-                                child: Text(
-                                  'Pending: ${totalCount - enrolledCount} Staff',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF92400E)),
-                                ),
-                              ),
                             ],
                           ),
                           const SizedBox(height: 18),
 
-                          // 3. STAFF CARDS GRID (ALL 16 EMPLOYEES)
+                          // 3. STAFF CARDS GRID
                           Expanded(
                             child: GridView.builder(
                               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                                 maxCrossAxisExtent: 400,
-                                mainAxisExtent: 200,
+                                mainAxisExtent: 210,
                                 crossAxisSpacing: 16,
                                 mainAxisSpacing: 16,
                               ),
@@ -328,30 +503,41 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
                                       ),
                                       const Spacer(),
                                       const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                                      const SizedBox(height: 10),
+                                      const SizedBox(height: 8),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            emp.lastEnrolledAt != null
-                                                ? 'Enrolled: ${DateFormat('dd MMM yyyy').format(emp.lastEnrolledAt!)}'
-                                                : 'Pending photo enrollment',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isEnrolled ? const Color(0xFF059669) : const Color(0xFF94A3B8),
-                                              fontWeight: isEnrolled ? FontWeight.w600 : FontWeight.w500,
-                                            ),
+                                          Row(
+                                            children: [
+                                              // Edit details button
+                                              IconButton(
+                                                icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF4338CA)),
+                                                tooltip: 'Edit Details & Salary',
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                onPressed: () => _openEditEmployeeDialog(emp),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              // Remove employee button
+                                              IconButton(
+                                                icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFDC2626)),
+                                                tooltip: 'Remove / Terminate Employee',
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                onPressed: () => _promptRemoveEmployee(emp),
+                                              ),
+                                            ],
                                           ),
                                           ElevatedButton.icon(
                                             onPressed: () => _openEnrollmentDialog(emp),
-                                            icon: Icon(isEnrolled ? Icons.refresh : Icons.camera_alt, size: 14),
+                                            icon: Icon(isEnrolled ? Icons.refresh : Icons.camera_alt, size: 13),
                                             label: Text(isEnrolled ? 'Re-enroll' : 'Enroll Face'),
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: isEnrolled ? const Color(0xFF0F172A) : const Color(0xFF4338CA),
                                               foregroundColor: Colors.white,
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                              textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                                              textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                         ],
@@ -368,6 +554,56 @@ class _BiometricRegistryScreenState extends State<BiometricRegistryScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAlertsBanner() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.notification_important, color: Color(0xFFDC2626), size: 20),
+              const SizedBox(width: 10),
+              Text(
+                'Active Loan Settlement Recovery Notifications (${_alerts.length})',
+                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: Color(0xFF991B1B)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ..._alerts.map((a) {
+            final id = a['_id']?.toString() ?? '';
+            final msg = a['message']?.toString() ?? '';
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.arrow_right, size: 18, color: Color(0xFFDC2626)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(msg, style: const TextStyle(fontSize: 12, color: Color(0xFF7F1D1D))),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await _api.dismissPayrollNotification(id);
+                      _loadEmployees();
+                    },
+                    child: const Text('Mark Settled', style: TextStyle(color: Color(0xFF059669), fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

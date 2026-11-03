@@ -1582,4 +1582,95 @@ class ApiService {
       return false;
     }
   }
+
+  // Check if employee has active personal loan before deletion
+  Future<Map<String, dynamic>> checkEmployeeLoans(String empNo, {String month = '2026-11'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/employee-loans/$empNo').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
+      }
+    } catch (e) {
+      debugPrint('Error checking employee loans: $e');
+    }
+    return {'hasLoan': false, 'loan': null};
+  }
+
+  // Get active payroll notifications (loan settlement alerts)
+  Future<List<Map<String, dynamic>>> getPayrollNotifications() async {
+    await _loadToken();
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/payroll/notifications'), headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> alerts = data['alerts'] ?? [];
+        return alerts.map((a) => Map<String, dynamic>.from(a)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching notifications: $e');
+    }
+    return [];
+  }
+
+  // Dismiss payroll notification
+  Future<bool> dismissPayrollNotification(String alertId) async {
+    await _loadToken();
+    try {
+      final res = await http.post(Uri.parse('$baseUrl/payroll/notifications/$alertId/dismiss'), headers: _headers);
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error dismissing notification: $e');
+      return false;
+    }
+  }
+
+  // Add new employee with biometric details and salary structure
+  Future<Map<String, dynamic>> addPayrollEmployee(Map<String, dynamic> data) async {
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/payroll/employees'),
+        headers: _headers,
+        body: jsonEncode(data),
+      );
+      return jsonDecode(res.body);
+    } catch (e) {
+      debugPrint('Error adding employee: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // Edit employee details and salary structure
+  Future<Map<String, dynamic>> editPayrollEmployee(String empNo, Map<String, dynamic> data) async {
+    await _loadToken();
+    try {
+      final res = await http.put(
+        Uri.parse('$baseUrl/payroll/employees/$empNo'),
+        headers: _headers,
+        body: jsonEncode(data),
+      );
+      return jsonDecode(res.body);
+    } catch (e) {
+      debugPrint('Error editing employee: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // Remove employee from biometric registry and active payroll
+  Future<Map<String, dynamic>> removePayrollEmployee(String empNo, {bool force = false, String month = '2026-11'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/employees/$empNo').replace(queryParameters: {
+        'force': force.toString(),
+        'month': month,
+      });
+      final res = await http.delete(uri, headers: _headers);
+      return jsonDecode(res.body);
+    } catch (e) {
+      debugPrint('Error removing employee: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
 }

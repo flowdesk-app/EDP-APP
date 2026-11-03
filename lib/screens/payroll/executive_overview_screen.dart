@@ -31,6 +31,7 @@ class _ExecutiveOverviewScreenState extends State<ExecutiveOverviewScreen> {
   PayrollSummary? _summary;
   Map<String, dynamic> _totals = {};
   List<PayrollRecord> _records = [];
+  List<Map<String, dynamic>> _alerts = [];
 
   @override
   void initState() {
@@ -53,12 +54,14 @@ class _ExecutiveOverviewScreenState extends State<ExecutiveOverviewScreen> {
     try {
       final summary = await _api.getPayrollSummary(month: monthKey);
       final statementData = await _api.getPayrollStatement(month: monthKey);
+      final alerts = await _api.getPayrollNotifications();
 
       if (mounted) {
         setState(() {
           _summary = summary;
           _totals = (statementData['totals'] as Map<String, dynamic>?) ?? {};
           _records = (statementData['records'] as List<PayrollRecord>?) ?? [];
+          _alerts = alerts;
           _loading = false;
         });
       }
@@ -123,6 +126,11 @@ class _ExecutiveOverviewScreenState extends State<ExecutiveOverviewScreen> {
                             ],
                           ),
                           const SizedBox(height: 20),
+
+                          if (_alerts.isNotEmpty) ...[
+                            _buildAlertsBanner(),
+                            const SizedBox(height: 20),
+                          ],
 
                           // 5 Primary Metric Cards
                           _buildKpiGrid(),
@@ -600,6 +608,100 @@ class _ExecutiveOverviewScreenState extends State<ExecutiveOverviewScreen> {
             ),
             child: const Text('View Bank Advice PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlertsBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x0ADC2626),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.notification_important, color: Color(0xFFDC2626), size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Action Required: Active Loan Recovery Notifications (${_alerts.length})',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF991B1B)),
+                    ),
+                    const Text(
+                      'Former employees with outstanding loan liabilities requiring deduction from final settlement or recovery.',
+                      style: TextStyle(fontSize: 11.5, color: Color(0xFFB91C1C)),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('ATTENTION REQUIRED', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFFECACA)),
+          const SizedBox(height: 10),
+          ..._alerts.map((a) {
+            final id = a['_id']?.toString() ?? '';
+            final msg = a['message']?.toString() ?? '';
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.arrow_right, size: 20, color: Color(0xFFDC2626)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(msg, style: const TextStyle(fontSize: 12.5, color: Color(0xFF7F1D1D), fontWeight: FontWeight.w600)),
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF059669),
+                      side: const BorderSide(color: Color(0xFF10B981)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
+                    icon: const Icon(Icons.check_circle_outline, size: 14, color: Color(0xFF059669)),
+                    label: const Text('Mark Settled', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    onPressed: () async {
+                      await _api.dismissPayrollNotification(id);
+                      _loadData();
+                    },
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

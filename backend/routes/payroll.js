@@ -3,6 +3,8 @@ const router = express.Router();
 const Payroll = require('../models/Payroll');
 const PersonalLoan = require('../models/PersonalLoan');
 const LeaveRegister = require('../models/LeaveRegister');
+const PayrollAlert = require('../models/PayrollAlert');
+const User = require('../models/User');
 
 // Number to Words converter for Indian Rupees
 function numberToIndianWords(num) {
@@ -653,6 +655,256 @@ router.post('/seed', async (req, res) => {
   } catch (err) {
     console.error('Error seeding payroll:', err);
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 8. GET /api/payroll/employee-loans/:empNo (Check if employee has active loan balance)
+router.get('/employee-loans/:empNo', async (req, res) => {
+  try {
+    const { empNo } = req.params;
+    const targetMonth = req.query.month || '2026-11';
+    const loans = getLoansForMonth(targetMonth);
+    const loan = loans.find(l => l.empNo === empNo && l.closingBalance > 0);
+    if (loan) {
+      return res.json({ hasLoan: true, loan });
+    }
+    res.json({ hasLoan: false, loan: null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 9. GET /api/payroll/notifications (Active loan settlement & recovery alerts)
+router.get('/notifications', async (req, res) => {
+  try {
+    const alerts = await PayrollAlert.find({ resolved: false }).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, alerts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 10. POST /api/payroll/notifications/:id/dismiss (Resolve / dismiss alert)
+router.post('/notifications/:id/dismiss', async (req, res) => {
+  try {
+    await PayrollAlert.findByIdAndUpdate(req.params.id, { resolved: true });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 11. POST /api/payroll/employees (Add new employee with biometric photo & salary structure)
+router.post('/employees', async (req, res) => {
+  try {
+    const {
+      empNo, name, department, designation, email, doj,
+      basic, da, hra, conveyance, medicalAlw, otherAlw,
+      bankName, accountNo, ifscCode,
+      photoUrl, faceEmbeddings,
+    } = req.body;
+
+    if (!empNo || !name) {
+      return res.status(400).json({ error: 'Employee code and name are required' });
+    }
+
+    const empEmail = email || `${empNo}@flowdesk.com`;
+
+    // 1. Create or update User
+    let user = await User.findOne({ $or: [{ empNo }, { email: empEmail }] });
+    if (!user) {
+      user = new User({
+        empNo,
+        email: empEmail,
+        name,
+        department: department || 'Production',
+        designation: designation || 'OPERATOR',
+        password: 'password123',
+        role: 'employee',
+        isFaceEnrolled: !!photoUrl,
+        faceEmbeddings: Array.isArray(faceEmbeddings) ? faceEmbeddings : [],
+        facePhotoUrl: photoUrl || null,
+        lastEnrolledAt: photoUrl ? new Date() : null,
+      });
+    } else {
+      user.empNo = empNo;
+      user.name = name;
+      user.department = department || user.department;
+      user.designation = designation || user.designation;
+      if (photoUrl) {
+        user.facePhotoUrl = photoUrl;
+        user.isFaceEnrolled = true;
+        user.lastEnrolledAt = new Date();
+      }
+      if (Array.isArray(faceEmbeddings) && faceEmbeddings.length === 128) {
+        user.faceEmbeddings = faceEmbeddings;
+      }
+    }
+    await user.save();
+
+    // 2. Create Payroll record for current month
+    const basicVal = Number(basic) || 6000;
+    const daVal = Number(da) || 3000;
+    const hraVal = Number(hra) || 3000;
+    const convVal = Number(conveyance) || 1000;
+    const medVal = Number(medicalAlw) || 1200;
+    const otherVal = Number(otherAlw) || 4000;
+    const grossVal = basicVal + daVal + hraVal + convVal + medVal + otherVal;
+    const pfVal = Math.round(basicVal * 0.12);
+    const totalDed = pfVal;
+    const netVal = grossVal - totalDed;
+
+    const month = req.body.month || '2026-11';
+    let pr = await Payroll.findOne({ empNo, month });
+    if (!pr) {
+      pr = new Payroll({
+        month,
+        monthDisplay: 'November 2026',
+        empNo,
+        employeeName: name,
+        designation: designation || 'OPERATOR',
+        department: department || 'Production',
+        doj: doj || '01-11-2026',
+        bankDetails: {
+          bankName: bankName || 'STATE BANK OF INDIA',
+          accountNo: accountNo || '39019204999',
+          ifscCode: ifscCode || 'SBIN0001856',
+        },
+        statutory: {
+          pfNo: `TN/MAS/0048123/${empNo.slice(-3)}`,
+          uanNo: `100904819${empNo.slice(-3)}`,
+          esiNo: 'N/A',
+        },
+        attendance: { totalDays: 30, daysWorked: 30, lopDays: 0, otHoursFormatted: '0h 0m', otHoursDecimal: 0 },
+        earnings: {
+          basic: basicVal, da: daVal, hra: hraVal, conveyance: convVal,
+          spl: 0, medicalAlw: medVal, otherAlw: otherVal,
+          earnedGross: grossVal, otAmount: 0, grossSalary: grossVal,
+        },
+        deductions: {
+          pf: pfVal, esi: 0, advanceLoan: 0, tds: 0, insurance: 0, others: 0,
+          totalDeductions: totalDed,
+        },
+        netSalary: netVal,
+        netSalaryWords: `Rupees ${netVal} Only`,
+        employerContribution: { pf: pfVal, esi: 0 },
+      });
+      await pr.save();
+    }
+
+    res.json({
+      success: true,
+      message: `Employee ${name} (#${empNo}) added successfully`,
+      user: {
+        _id: user._id,
+        empNo: user.empNo,
+        email: user.email,
+        name: user.name,
+        department: user.department,
+        designation: user.designation,
+        isFaceEnrolled: user.isFaceEnrolled,
+        facePhotoUrl: user.facePhotoUrl,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 12. PUT /api/payroll/employees/:empNo (Edit employee details & salary)
+router.put('/employees/:empNo', async (req, res) => {
+  try {
+    const { empNo } = req.params;
+    const { name, department, designation, basic, da, hra, conveyance, medicalAlw, otherAlw, bankName, accountNo, ifscCode } = req.body;
+
+    const user = await User.findOne({ empNo });
+    if (!user) return res.status(404).json({ error: 'Employee not found' });
+
+    if (name) user.name = name;
+    if (department) user.department = department;
+    if (designation) user.designation = designation;
+    await user.save();
+
+    // Also update current month Payroll if exists
+    const month = req.body.month || '2026-11';
+    const pr = await Payroll.findOne({ empNo, month });
+    if (pr) {
+      if (name) pr.employeeName = name;
+      if (department) pr.department = department;
+      if (designation) pr.designation = designation;
+      if (bankName) pr.bankDetails.bankName = bankName;
+      if (accountNo) pr.bankDetails.accountNo = accountNo;
+      if (ifscCode) pr.bankDetails.ifscCode = ifscCode;
+      if (basic !== undefined) {
+        pr.earnings.basic = Number(basic);
+        pr.earnings.da = Number(da || pr.earnings.da);
+        pr.earnings.hra = Number(hra || pr.earnings.hra);
+        pr.earnings.conveyance = Number(conveyance || pr.earnings.conveyance);
+        pr.earnings.medicalAlw = Number(medicalAlw || pr.earnings.medicalAlw);
+        pr.earnings.otherAlw = Number(otherAlw || pr.earnings.otherAlw);
+        const gross = pr.earnings.basic + pr.earnings.da + pr.earnings.hra + pr.earnings.conveyance + pr.earnings.medicalAlw + pr.earnings.otherAlw;
+        pr.earnings.earnedGross = gross;
+        pr.earnings.grossSalary = gross;
+        pr.deductions.pf = Math.round(pr.earnings.basic * 0.12);
+        pr.deductions.totalDeductions = pr.deductions.pf + (pr.deductions.advanceLoan || 0) + (pr.deductions.insurance || 0);
+        pr.netSalary = gross - pr.deductions.totalDeductions;
+      }
+      await pr.save();
+    }
+
+    res.json({ success: true, message: `Updated details for ${user.name}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 13. DELETE /api/payroll/employees/:empNo (Remove employee with loan liability alert)
+router.delete('/employees/:empNo', async (req, res) => {
+  try {
+    const { empNo } = req.params;
+    const force = req.query.force === 'true';
+    const month = req.query.month || '2026-11';
+
+    // 1. Check if employee has an active loan
+    const loans = getLoansForMonth(month);
+    const activeLoan = loans.find(l => l.empNo === empNo && l.closingBalance > 0);
+
+    if (activeLoan && !force) {
+      return res.status(400).json({
+        hasLoan: true,
+        loan: activeLoan,
+        error: `Employee ${activeLoan.employeeName} (#${empNo}) has an active personal loan balance of ₹ ${activeLoan.closingBalance.toLocaleString('en-IN')}. Confirmation required.`,
+      });
+    }
+
+    const user = await User.findOne({ empNo });
+    const empName = user ? user.name : (activeLoan ? activeLoan.employeeName : empNo);
+
+    // If active loan existed and user confirmed removal: create Dashboard Alert
+    let alertCreated = false;
+    if (activeLoan) {
+      await PayrollAlert.create({
+        type: 'loan_settlement',
+        empNo,
+        employeeName: empName,
+        amount: activeLoan.closingBalance,
+        message: `Employee ${empName} (#${empNo}) was removed from payroll with an outstanding personal loan balance of ₹ ${activeLoan.closingBalance.toLocaleString('en-IN')}. Recovery required during final settlement.`,
+      });
+      alertCreated = true;
+    }
+
+    // 2. Remove user from database
+    await User.deleteOne({ empNo });
+    await Payroll.deleteMany({ empNo });
+    await LeaveRegister.deleteMany({ empNo });
+
+    res.json({
+      success: true,
+      message: `Employee ${empName} (#${empNo}) removed successfully`,
+      alertCreated,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
