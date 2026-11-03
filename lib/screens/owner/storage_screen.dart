@@ -16,6 +16,7 @@ class _StorageScreenState extends State<StorageScreen> {
   String _searchQuery = '';
   bool _isDeleteMode = false;
   bool _isLoading = false;
+  final Set<String> _selectedCompanyNames = {};
 
   bool get _isOwner => ApiService().currentUser?.role == UserRole.owner;
 
@@ -31,19 +32,69 @@ class _StorageScreenState extends State<StorageScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
-  Future<void> _confirmDeleteCompany(CompanyStorage company) async {
+  Future<void> _confirmDeleteSelectedCompanies() async {
+    if (_selectedCompanyNames.isEmpty) return;
+
+    final selectedCompanies = kCompanyStorages
+        .where((c) => _selectedCompanyNames.contains(c.name))
+        .toList();
+
+    final count = selectedCompanies.length;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Icon(Icons.delete_forever, color: Colors.red[700]),
             const SizedBox(width: 10),
-            const Text('Delete Company'),
+            const Text('Confirm Delete Companies'),
           ],
         ),
-        content: Text(
-          'Are you sure you want to delete "${company.name}" from the database?\n\nThis will remove the company from the company storage list.',
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to permanently delete $count selected compan${count == 1 ? 'y' : 'ies'} from the database?\n\nThis will remove the selected company storage records.',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 180),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: selectedCompanies.length,
+                  separatorBuilder: (context, index) => const Divider(height: 10),
+                  itemBuilder: (_, idx) {
+                    final comp = selectedCompanies[idx];
+                    return Row(
+                      children: [
+                        const Icon(Icons.business, size: 16, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            comp.name,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -54,24 +105,32 @@ class _StorageScreenState extends State<StorageScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[700],
               foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text('Confirm Delete ($count)'),
           ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      setState(() {
-        removeCompanyFromStorage(company.name);
-      });
-      final success = await ApiService().deleteCompanyStorage(company.name);
+      final messenger = ScaffoldMessenger.of(context);
+      int deletedCount = 0;
+      for (final comp in selectedCompanies) {
+        removeCompanyFromStorage(comp.name);
+        final success = await ApiService().deleteCompanyStorage(comp.name);
+        if (success) deletedCount++;
+      }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        setState(() {
+          _selectedCompanyNames.clear();
+          _isDeleteMode = false;
+        });
+        messenger.showSnackBar(
           SnackBar(
-            content: Text(success ? 'Deleted "${company.name}" from database.' : 'Failed to delete company from server.'),
-            backgroundColor: success ? Colors.green[700] : Colors.red[700],
+            content: Text('Successfully deleted $deletedCount of $count compan${count == 1 ? 'y' : 'ies'} from database.'),
+            backgroundColor: deletedCount > 0 ? Colors.green[700] : Colors.red[700],
           ),
         );
       }
@@ -169,30 +228,58 @@ class _StorageScreenState extends State<StorageScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.red[700], size: 20),
+                    Icon(Icons.check_box_outlined, color: Colors.red[700], size: 20),
                     const SizedBox(width: 10),
-                    Expanded(
+                    Text(
+                      'Select companies to delete (${_selectedCompanyNames.length} selected)',
+                      style: TextStyle(color: Colors.red[900], fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_selectedCompanyNames.length == filteredCompanies.length && filteredCompanies.isNotEmpty) {
+                            _selectedCompanyNames.clear();
+                          } else {
+                            _selectedCompanyNames.addAll(filteredCompanies.map((c) => c.name));
+                          }
+                        });
+                      },
                       child: Text(
-                        'Delete Mode Active: Click the red trash icon on any company card to delete it from the database.',
-                        style: TextStyle(color: Colors.red[900], fontSize: 13, fontWeight: FontWeight.w500),
+                        _selectedCompanyNames.length == filteredCompanies.length && filteredCompanies.isNotEmpty
+                            ? 'Deselect All'
+                            : 'Select All',
+                        style: TextStyle(color: Colors.red[800], fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.inventory_2_outlined, size: 16),
-                      label: const Text('Delete Specific Item...'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red[800],
-                        side: BorderSide(color: Colors.red[300]!),
-                      ),
-                      onPressed: _showDeleteItemDialog,
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.delete_forever, size: 16),
+                      label: Text('Delete Selected (${_selectedCompanyNames.length})'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[700],
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey[300],
+                        disabledForegroundColor: Colors.grey[500],
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      onPressed: () => setState(() => _isDeleteMode = false),
+                      onPressed: _selectedCompanyNames.isEmpty ? null : _confirmDeleteSelectedCompanies,
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey[700],
+                        side: BorderSide(color: Colors.grey[400]!),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isDeleteMode = false;
+                          _selectedCompanyNames.clear();
+                        });
+                      },
                       child: const Text('Exit Delete Mode'),
                     ),
                   ],
@@ -261,6 +348,7 @@ class _StorageScreenState extends State<StorageScreen> {
           onPressed: () {
             setState(() {
               _isDeleteMode = !_isDeleteMode;
+              if (!_isDeleteMode) _selectedCompanyNames.clear();
             });
           },
         ),
@@ -271,7 +359,10 @@ class _StorageScreenState extends State<StorageScreen> {
           icon: Icon(Icons.more_vert, color: Colors.grey[700]),
           onSelected: (val) {
             if (val == 'toggle_mode') {
-              setState(() => _isDeleteMode = !_isDeleteMode);
+              setState(() {
+                _isDeleteMode = !_isDeleteMode;
+                if (!_isDeleteMode) _selectedCompanyNames.clear();
+              });
             } else if (val == 'delete_item') {
               _showDeleteItemDialog();
             } else if (val == 'refresh') {
@@ -316,22 +407,32 @@ class _StorageScreenState extends State<StorageScreen> {
   }
 
   Widget _buildCompanyCard(CompanyStorage company) {
+    final isSelected = _selectedCompanyNames.contains(company.name);
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: _isDeleteMode ? Colors.red[200]! : Colors.grey[200]!,
-          width: _isDeleteMode ? 1.5 : 1.0,
+          color: isSelected
+              ? Colors.red[600]!
+              : (_isDeleteMode ? Colors.red[200]! : Colors.grey[200]!),
+          width: isSelected ? 2.0 : 1.0,
         ),
       ),
-      color: Colors.white,
+      color: isSelected ? Colors.red[50]?.withAlpha(140) : Colors.white,
       child: Stack(
         children: [
           InkWell(
             onTap: () {
               if (_isDeleteMode) {
-                _confirmDeleteCompany(company);
+                setState(() {
+                  if (isSelected) {
+                    _selectedCompanyNames.remove(company.name);
+                  } else {
+                    _selectedCompanyNames.add(company.name);
+                  }
+                });
               } else {
                 Navigator.push(
                   context,
@@ -459,59 +560,31 @@ class _StorageScreenState extends State<StorageScreen> {
             right: 6,
             child: _isDeleteMode
               ? InkWell(
-                  onTap: () => _confirmDeleteCompany(company),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.red[700],
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.red.withAlpha(76),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                  onTap: () {
+                    setState(() {
+                      if (isSelected) {
+                        _selectedCompanyNames.remove(company.name);
+                      } else {
+                        _selectedCompanyNames.add(company.name);
+                      }
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                      size: 22,
+                      color: isSelected ? Colors.red[700] : Colors.grey[400],
                     ),
-                    child: const Icon(Icons.delete_outline, size: 16, color: Colors.white),
                   ),
                 )
-              : PopupMenuButton<String>(
-                  tooltip: 'Options',
+              : IconButton(
+                  tooltip: 'View & Edit Details',
                   icon: Icon(Icons.more_horiz, size: 18, color: Colors.grey[500]),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 160),
-                  onSelected: (val) {
-                    if (val == 'edit') {
-                      _showCompanyDetailsDialog(company);
-                    } else if (val == 'delete') {
-                      _confirmDeleteCompany(company);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_note, size: 18, color: Colors.blue[700]),
-                          const SizedBox(width: 8),
-                          const Text('View & Edit Details', style: TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                    ),
-                    if (_isOwner)
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, size: 18, color: Colors.red[700]),
-                            const SizedBox(width: 8),
-                            Text('Delete Company', style: TextStyle(color: Colors.red[700], fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                  ],
+                  constraints: const BoxConstraints(),
+                  onPressed: () => _showCompanyDetailsDialog(company),
                 ),
           ),
         ],

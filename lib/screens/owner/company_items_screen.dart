@@ -20,6 +20,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   final TextEditingController _descSearchController = TextEditingController();
   List<ItemDatabaseModel> _allItems = [];
   List<ItemDatabaseModel> _items = [];
+  final Set<String> _selectedItemIds = {};
   bool _isLoading = true;
   bool _isDeleteMode = false;
 
@@ -31,19 +32,69 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
     _fetchItems();
   }
 
-  Future<void> _confirmDeleteItem(ItemDatabaseModel item) async {
+  Future<void> _confirmDeleteSelectedItems() async {
+    if (_selectedItemIds.isEmpty) return;
+
+    final selectedItems = _items
+        .where((i) => _selectedItemIds.contains(i.itemId.isNotEmpty ? i.itemId : i.itemName))
+        .toList();
+
+    final count = selectedItems.length;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Icon(Icons.delete_forever, color: Colors.red[700]),
             const SizedBox(width: 8),
-            const Text('Delete Item from Database'),
+            const Text('Confirm Delete Items'),
           ],
         ),
-        content: Text(
-          'Are you sure you want to delete "${item.itemName}" (${item.itemId}) permanently from the database?',
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to permanently delete $count selected item${count == 1 ? '' : 's'} from the database?\n\nThis action cannot be undone.',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 180),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: selectedItems.length,
+                  separatorBuilder: (context, index) => const Divider(height: 10),
+                  itemBuilder: (_, idx) {
+                    final item = selectedItems[idx];
+                    return Row(
+                      children: [
+                        const Icon(Icons.circle, size: 6, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${item.itemName} (${item.itemId.isNotEmpty ? item.itemId : 'No ID'})',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -51,37 +102,39 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700], foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[700],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text('Confirm Delete ($count)'),
           ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      final identifier = item.itemId.isNotEmpty ? item.itemId : item.itemName;
-      final success = await ApiService().deleteDatabaseItem(identifier);
+      final messenger = ScaffoldMessenger.of(context);
+      int deletedCount = 0;
+      for (final item in selectedItems) {
+        final identifier = item.itemId.isNotEmpty ? item.itemId : item.itemName;
+        final ok = await ApiService().deleteDatabaseItem(identifier);
+        if (ok) deletedCount++;
+      }
       if (mounted) {
-        if (success) {
-          setState(() {
-            _allItems.removeWhere((i) => i.itemId == item.itemId && i.itemName == item.itemName);
-            _items.removeWhere((i) => i.itemId == item.itemId && i.itemName == item.itemName);
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Deleted "${item.itemName}" from database.'),
-              backgroundColor: Colors.green[700],
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to delete item from server.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        setState(() {
+          _allItems.removeWhere((i) => _selectedItemIds.contains(i.itemId.isNotEmpty ? i.itemId : i.itemName));
+          _items.removeWhere((i) => _selectedItemIds.contains(i.itemId.isNotEmpty ? i.itemId : i.itemName));
+          _selectedItemIds.clear();
+          _isDeleteMode = false;
+        });
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Successfully deleted $deletedCount of $count item${count == 1 ? '' : 's'}.'),
+            backgroundColor: deletedCount > 0 ? Colors.green[700] : Colors.red[700],
+          ),
+        );
       }
     }
   }
@@ -241,12 +294,12 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                     if (_isOwner)
                       OutlinedButton.icon(
                         icon: Icon(
-                          _isDeleteMode ? Icons.check_circle : Icons.delete_outline,
+                          _isDeleteMode ? Icons.close : Icons.delete_outline,
                           size: 16,
                           color: _isDeleteMode ? Colors.white : Colors.red[700],
                         ),
                         label: Text(
-                          _isDeleteMode ? 'Done' : 'Delete Option',
+                          _isDeleteMode ? 'Exit Delete Mode' : 'Delete Option',
                           style: TextStyle(
                             color: _isDeleteMode ? Colors.white : Colors.red[700],
                             fontSize: 12,
@@ -256,10 +309,15 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                         style: OutlinedButton.styleFrom(
                           backgroundColor: _isDeleteMode ? Colors.red[700] : Colors.red[50],
                           side: BorderSide(color: _isDeleteMode ? Colors.red[800]! : Colors.red[300]!),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        onPressed: () => setState(() => _isDeleteMode = !_isDeleteMode),
+                        onPressed: () {
+                          setState(() {
+                            _isDeleteMode = !_isDeleteMode;
+                            if (!_isDeleteMode) _selectedItemIds.clear();
+                          });
+                        },
                       ),
                   ],
                 ),
@@ -319,7 +377,7 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
             if (_isOwner && _isDeleteMode) ...[
               const SizedBox(height: 14),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.red[50],
                   borderRadius: BorderRadius.circular(8),
@@ -327,17 +385,59 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.red[700], size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
+                    Icon(Icons.check_box_outlined, color: Colors.red[700], size: 20),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Select items to delete (${_selectedItemIds.length} selected)',
+                      style: TextStyle(color: Colors.red[900], fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_selectedItemIds.length == _items.length && _items.isNotEmpty) {
+                            _selectedItemIds.clear();
+                          } else {
+                            _selectedItemIds.addAll(
+                              _items.map((i) => i.itemId.isNotEmpty ? i.itemId : i.itemName),
+                            );
+                          }
+                        });
+                      },
                       child: Text(
-                        'Delete Mode Active: Click the red trash icon on any item card to delete it from the database.',
-                        style: TextStyle(color: Colors.red[900], fontSize: 12, fontWeight: FontWeight.w500),
+                        _selectedItemIds.length == _items.length && _items.isNotEmpty ? 'Deselect All' : 'Select All',
+                        style: TextStyle(color: Colors.red[800], fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () => setState(() => _isDeleteMode = false),
-                      child: Text('Exit Delete Mode', style: TextStyle(color: Colors.red[700], fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.delete_forever, size: 16),
+                      label: Text('Delete Selected (${_selectedItemIds.length})'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[700],
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey[300],
+                        disabledForegroundColor: Colors.grey[500],
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: _selectedItemIds.isEmpty ? null : _confirmDeleteSelectedItems,
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey[700],
+                        side: BorderSide(color: Colors.grey[400]!),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isDeleteMode = false;
+                          _selectedItemIds.clear();
+                        });
+                      },
+                      child: const Text('Cancel'),
                     ),
                   ],
                 ),
@@ -382,15 +482,35 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
   }
 
   Widget _buildItemCard(ItemDatabaseModel item) {
+    final itemKey = item.itemId.isNotEmpty ? item.itemId : item.itemName;
+    final isSelected = _selectedItemIds.contains(itemKey);
+
     return InkWell(
-      onTap: () => _showItemDetails(item),
+      onTap: () {
+        if (_isDeleteMode) {
+          setState(() {
+            if (isSelected) {
+              _selectedItemIds.remove(itemKey);
+            } else {
+              _selectedItemIds.add(itemKey);
+            }
+          });
+        } else {
+          _showItemDetails(item);
+        }
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? Colors.red[50]?.withAlpha(140) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(
+            color: isSelected
+                ? Colors.red[600]!
+                : (_isDeleteMode ? Colors.red[200]! : Colors.grey[200]!),
+            width: isSelected ? 2.0 : 1.0,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha((0.02 * 255).toInt()),
@@ -435,19 +555,12 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                       ),
                     ),
                   ),
-                if (_isOwner) ...[
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: _isDeleteMode ? Colors.red[700] : Colors.grey[400],
-                    ),
-                    tooltip: 'Delete item from database',
-                    splashRadius: 16,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => _confirmDeleteItem(item),
+                if (_isDeleteMode) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                    size: 20,
+                    color: isSelected ? Colors.red[700] : Colors.grey[400],
                   ),
                 ],
               ],
@@ -520,20 +633,8 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                   const Divider(),
                   const SizedBox(height: 12),
                   Row(
-                    mainAxisAlignment: _isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (_isOwner)
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.delete_forever, color: Colors.red),
-                          label: const Text('Delete from Database', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.red),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _confirmDeleteItem(item);
-                          },
-                        ),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         child: const Text('Close'),
