@@ -224,21 +224,37 @@ class _PaySlipsScreenState extends State<PaySlipsScreen> {
                                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                                                   ),
                                                   Text(
-                                                    'Employee ID: ${selected.empNo} • Disbursed ${selected.paymentDate} • Direct Bank Transfer',
+                                                    'Employee Code: ${selected.empNo} • Month: $_selectedMonth • Official Verified Voucher',
                                                     style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                                                   ),
                                                 ],
                                               ),
-                                              ElevatedButton.icon(
-                                                onPressed: () => PayrollPdfService.printPayslipPdf(selected),
-                                                icon: const Icon(Icons.print_outlined, size: 16),
-                                                label: const Text('Print Payslip PDF'),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(0xFF4338CA),
-                                                  foregroundColor: Colors.white,
-                                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                                ),
+                                              Row(
+                                                children: [
+                                                  OutlinedButton.icon(
+                                                    onPressed: () => PayrollPdfService.printPayslipPdf(selected, month: _selectedMonth),
+                                                    icon: const Icon(Icons.print_outlined, size: 16),
+                                                    label: const Text('Print Payslip PDF'),
+                                                    style: OutlinedButton.styleFrom(
+                                                      foregroundColor: const Color(0xFF334155),
+                                                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  ElevatedButton.icon(
+                                                    onPressed: () => PayrollPdfService.downloadPayslipPdf(selected, month: _selectedMonth),
+                                                    icon: const Icon(Icons.download_rounded, size: 16),
+                                                    label: const Text('Download Payslip PDF'),
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: const Color(0xFF4338CA),
+                                                      foregroundColor: Colors.white,
+                                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
@@ -261,231 +277,291 @@ class _PaySlipsScreenState extends State<PaySlipsScreen> {
     );
   }
 
+  String _formatScreenAmt(double val, {bool showDashIfZero = false}) {
+    if (val <= 0.001) return showDashIfZero ? '-' : '';
+    if (val % 1 == 0) {
+      return _intFmt.format(val);
+    }
+    return _currFmt.format(val);
+  }
+
   Widget _buildPayslipCard(PayrollRecord selected) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF334155), width: 1.5),
-      ),
-      padding: const EdgeInsets.all(22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Center(
-            child: Text(
-              'EXCLUSIVE DIAMOND PRODUCTS',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 0.8, color: Color(0xFF0F172A)),
-            ),
-          ),
-          const SizedBox(height: 3),
-          const Center(
-            child: Text(
-              'No.62, Eswaran Koil Street, Porur, Chennai 600116',
-              style: TextStyle(fontSize: 11, color: Color(0xFF475569)),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            color: const Color(0xFFE2E8F0),
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Center(
-              child: Text(
-                'PAYSLIP FOR THE MONTH OF ${selected.monthDisplay.toUpperCase()}',
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: Color(0xFF0F172A)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+    final payslip = OfficialPayslipModel.fromPayrollRecord(selected, month: _selectedMonth);
 
-          // Meta Table
-          Table(
-            border: TableBorder.all(color: const Color(0xFFCBD5E1), width: 0.5),
-            children: [
-              _buildMetaRow('Employee Code', selected.empNo, 'Employee Name', selected.employeeName),
-              _buildMetaRow('Designation', selected.designation, 'Department', selected.department),
-              _buildMetaRow('Date of Joining', selected.doj, 'Bank Name', selected.bankName),
-              _buildMetaRow('Bank A/C No', selected.accountNo, 'IFSC Code', selected.ifscCode),
-              _buildMetaRow(
-                'UAN Number',
-                selected.uanNo.isNotEmpty ? selected.uanNo : 'N/A',
-                'PF Number',
-                selected.pfNo.isNotEmpty ? selected.pfNo : 'N/A',
-              ),
-              _buildMetaRow(
-                'Total Days in Month',
-                '${selected.totalDays} Days',
-                'Days Worked / Paid',
-                '${selected.daysWorked} Days',
-              ),
-              _buildMetaRow(
-                'Loss of Pay (LOP)',
-                '${selected.lopDays} Days',
-                'Overtime Hours',
-                selected.otHoursFormatted,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 820),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-
-          // Earnings & Deductions Tables
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFFCBD5E1), width: 0.5)),
-                  child: Column(
-                    children: [
-                      Container(
-                        color: const Color(0xFFF1F5F9),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('EARNINGS BREAKDOWN', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
-                            Text('AMOUNT (₹)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                      _payslipLine('Basic Pay', selected.basic),
-                      _payslipLine('Dearness Allowance (D.A.)', selected.da),
-                      _payslipLine('House Rent Allowance (H.R.A.)', selected.hra),
-                      _payslipLine('Conveyance Allowance', selected.conveyance),
-                      _payslipLine('Medical Allowance', selected.medicalAlw),
-                      _payslipLine('Other Allowance', selected.otherAlw),
-                      _payslipLine('Overtime Compensation (${selected.otHoursFormatted})', selected.otAmount, isHighlight: selected.otAmount > 0),
-                      const Divider(height: 1, thickness: 1, color: Color(0xFFCBD5E1)),
-                      Container(
-                        color: const Color(0xFFEEF2FF),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('GROSS EARNINGS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF312E81))),
-                            Text('₹ ${_currFmt.format(selected.grossSalary)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF312E81))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFFCBD5E1), width: 0.5)),
-                  child: Column(
-                    children: [
-                      Container(
-                        color: const Color(0xFFF1F5F9),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('DEDUCTIONS BREAKDOWN', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
-                            Text('AMOUNT (₹)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                      _payslipLine('Provident Fund (P.F.)', selected.pf),
-                      _payslipLine('Employee State Insurance (E.S.I.)', selected.esi),
-                      _payslipLine('Staff Loan / Advance Recovery', selected.advanceLoan, isHighlight: selected.advanceLoan > 0),
-                      _payslipLine('Life / Medical Insurance', selected.insurance),
-                      _payslipLine('Tax Deducted at Source (TDS)', selected.tds),
-                      _payslipLine('Other Deductions', selected.others),
-                      const SizedBox(height: 38),
-                      const Divider(height: 1, thickness: 1, color: Color(0xFFCBD5E1)),
-                      Container(
-                        color: const Color(0xFFFEF2F2),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('TOTAL DEDUCTIONS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF991B1B))),
-                            Text('₹ ${_currFmt.format(selected.totalDeductions)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF991B1B))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Net Take Home Banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.all(24),
+          child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+              color: Colors.white,
+              border: Border.all(color: Colors.black, width: 1.0),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // 1. Company Header (Logo on left, Centered Address & Title & Name, Symmetrical right)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text('NET TAKE-HOME SALARY', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: Color(0xFF065F46))),
-                    const SizedBox(height: 2),
-                    Text(
-                      selected.netSalaryWords.isNotEmpty ? selected.netSalaryWords : 'Rupees ${_intFmt.format(selected.netSalary)} Only',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF047857), fontWeight: FontWeight.w600),
+                    SizedBox(
+                      width: 140,
+                      height: 52,
+                      child: Image.asset(
+                        'assets/images/edp_logo.png',
+                        fit: BoxFit.contain,
+                        alignment: Alignment.centerLeft,
+                        errorBuilder: (context, error, stackTrace) => const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'EDP',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF991B1B),
+                              ),
+                            ),
+                            Text(
+                              'Exclusive Diamond Products',
+                              style: TextStyle(fontSize: 8, fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'No.62, Eswaran Koil Street',
+                            style: TextStyle(fontSize: 12, color: Colors.black),
+                          ),
+                          const SizedBox(height: 1),
+                          const Text(
+                            'Porur, Chennai - 600116',
+                            style: TextStyle(fontSize: 12, color: Colors.black),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Pay Slip - ${payslip.monthTitle}',
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            payslip.employeeName.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 140),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // 2. Employee Details Table (4 columns)
+                Table(
+                  border: TableBorder.all(color: Colors.black, width: 0.8),
+                  columnWidths: const {
+                    0: FlexColumnWidth(1.2),
+                    1: FlexColumnWidth(1.8),
+                    2: FlexColumnWidth(1.2),
+                    3: FlexColumnWidth(1.8),
+                  },
+                  children: [
+                    _buildScreenDetailRow('Employee No.', payslip.empNo, 'PAN No.', payslip.panNo),
+                    _buildScreenDetailRow('Designation', payslip.designation, 'PF No.', payslip.pfNo),
+                    _buildScreenDetailRow('Department', payslip.department, 'ESI No.', payslip.esiNo),
+                    _buildScreenDetailRow('Date of Joining', payslip.doj, 'Bank A/c No.', payslip.bankAccountNo),
+                  ],
+                ),
+
+                // 3. Attendance Table (8 columns) - shares top border
+                Table(
+                  border: const TableBorder(
+                    left: BorderSide(color: Colors.black, width: 0.8),
+                    right: BorderSide(color: Colors.black, width: 0.8),
+                    bottom: BorderSide(color: Colors.black, width: 0.8),
+                    horizontalInside: BorderSide(color: Colors.black, width: 0.8),
+                    verticalInside: BorderSide(color: Colors.black, width: 0.8),
+                  ),
+                  columnWidths: const {
+                    0: FlexColumnWidth(1.1),
+                    1: FlexColumnWidth(0.9),
+                    2: FlexColumnWidth(1.1),
+                    3: FlexColumnWidth(0.9),
+                    4: FlexColumnWidth(1.1),
+                    5: FlexColumnWidth(0.9),
+                    6: FlexColumnWidth(1.3),
+                    7: FlexColumnWidth(1.1),
+                  },
+                  children: [
+                    TableRow(
+                      children: [
+                        _screenCell('Leave', isBold: true),
+                        _screenCell(payslip.leave, align: TextAlign.center),
+                        _screenCell('Balance', isBold: true),
+                        _screenCell(payslip.balance, align: TextAlign.center),
+                        _screenCell('LOP', isBold: true),
+                        _screenCell(payslip.lop, align: TextAlign.center),
+                        _screenCell('OT Hours', isBold: true),
+                        _screenCell(payslip.otHours, align: TextAlign.center),
+                      ],
                     ),
                   ],
                 ),
-                Text(
-                  '₹ ${_currFmt.format(selected.netSalary)}',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF065F46)),
+
+                // 4. Earnings & Deductions Table (4 columns) - shares top border
+                Table(
+                  border: const TableBorder(
+                    left: BorderSide(color: Colors.black, width: 0.8),
+                    right: BorderSide(color: Colors.black, width: 0.8),
+                    bottom: BorderSide(color: Colors.black, width: 0.8),
+                    horizontalInside: BorderSide(color: Colors.black, width: 0.8),
+                    verticalInside: BorderSide(color: Colors.black, width: 0.8),
+                  ),
+                  columnWidths: const {
+                    0: FlexColumnWidth(1.8),
+                    1: FlexColumnWidth(1.2),
+                    2: FlexColumnWidth(1.8),
+                    3: FlexColumnWidth(1.2),
+                  },
+                  children: [
+                    // Header Row
+                    TableRow(
+                      children: [
+                        _screenCell('Earnings', isBold: true),
+                        _screenCell('Amount (Rs.)', isBold: true, align: TextAlign.right),
+                        _screenCell('Deductions', isBold: true),
+                        _screenCell('Amount (Rs.)', isBold: true, align: TextAlign.right),
+                      ],
+                    ),
+                    // 8 Official Item Rows
+                    _buildScreenItemRow('Basic', _formatScreenAmt(payslip.basic), 'PF', _formatScreenAmt(payslip.pf)),
+                    _buildScreenItemRow('HRA', _formatScreenAmt(payslip.hra), 'ESI', _formatScreenAmt(payslip.esi, showDashIfZero: true)),
+                    _buildScreenItemRow('Lunch', _formatScreenAmt(payslip.lunch), 'TDS', _formatScreenAmt(payslip.tds)),
+                    _buildScreenItemRow('Transport', _formatScreenAmt(payslip.transport), 'Prof Tax', _formatScreenAmt(payslip.profTax)),
+                    _buildScreenItemRow('Medical', _formatScreenAmt(payslip.medical), 'Advance/Loan', _formatScreenAmt(payslip.advanceLoan)),
+                    _buildScreenItemRow('Special Allowance', _formatScreenAmt(payslip.specialAllowance), 'Insurance', _formatScreenAmt(payslip.insurance)),
+                    _buildScreenItemRow('Overtime', _formatScreenAmt(payslip.overtime), 'Other Deductions', _formatScreenAmt(payslip.otherDeductions)),
+                    _buildScreenItemRow('Other Allowance*', _formatScreenAmt(payslip.otherAllowance), '', ''),
+                    // Totals Row
+                    TableRow(
+                      children: [
+                        _screenCell('Total', isBold: true),
+                        _screenCell(_formatScreenAmt(payslip.totalEarnings), isBold: true, align: TextAlign.right),
+                        _screenCell('Total', isBold: true),
+                        _screenCell(_formatScreenAmt(payslip.totalDeductions), isBold: true, align: TextAlign.right),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // 5. Net Salary Box
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      left: BorderSide(color: Colors.black, width: 0.8),
+                      right: BorderSide(color: Colors.black, width: 0.8),
+                      bottom: BorderSide(color: Colors.black, width: 0.8),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Net Salary',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                      Text(
+                        _formatScreenAmt(payslip.netSalary),
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 9),
+
+                // 6. Footnote
+                const Text(
+                  '*Includes Arrears if any. Computer generated statement and signature not required',
+                  style: TextStyle(fontSize: 10, color: Colors.black),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+        ),
+      ),
+    );
+  }
 
-          // Statutory info
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text('Employer PF: ₹ ${_currFmt.format(selected.employerPf)}', style: const TextStyle(fontSize: 10.5, color: Color(0xFF475569))),
-                Text('Employer ESI: ₹ ${_currFmt.format(selected.employerEsi)}', style: const TextStyle(fontSize: 10.5, color: Color(0xFF475569))),
-                Text('Disbursement: Direct Transfer (${selected.bankName})', style: const TextStyle(fontSize: 10.5, color: Color(0xFF475569))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
+  static TableRow _buildScreenDetailRow(String l1, String v1, String l2, String v2) {
+    return TableRow(
+      children: [
+        _screenCell(l1, isBold: true),
+        _screenCell(v1),
+        _screenCell(l2, isBold: true),
+        _screenCell(v2),
+      ],
+    );
+  }
 
-          // Signatures
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                children: [
-                  Container(width: 160, height: 1, color: const Color(0xFF475569)),
-                  const SizedBox(height: 6),
-                  const Text('Employee Signature', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
-                ],
-              ),
-              Column(
-                children: [
-                  Container(width: 160, height: 1, color: const Color(0xFF475569)),
-                  const SizedBox(height: 6),
-                  const Text('Authorized Signatory', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
-                  const Text('Exclusive Diamond Products', style: TextStyle(fontSize: 9.5, color: Color(0xFF64748B))),
-                ],
-              ),
-            ],
-          ),
-        ],
+  static TableRow _buildScreenItemRow(String earnLabel, String earnVal, String dedLabel, String dedVal) {
+    return TableRow(
+      children: [
+        _screenCell(earnLabel),
+        _screenCell(earnVal, align: TextAlign.right),
+        _screenCell(dedLabel),
+        _screenCell(dedVal, align: TextAlign.right),
+      ],
+    );
+  }
+
+  static Widget _screenCell(
+    String text, {
+    bool isBold = false,
+    TextAlign align = TextAlign.left,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
+      alignment: align == TextAlign.right
+          ? Alignment.centerRight
+          : align == TextAlign.center
+              ? Alignment.center
+              : Alignment.centerLeft,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          color: Colors.black,
+        ),
+        textAlign: align,
       ),
     );
   }
@@ -568,60 +644,6 @@ class _PaySlipsScreenState extends State<PaySlipsScreen> {
           const SizedBox(width: 12),
 
           if (widget.showLogout) const GlobalLogoutButton(),
-        ],
-      ),
-    );
-  }
-
-  static TableRow _buildMetaRow(String label1, String val1, String label2, String val2) {
-    return TableRow(
-      children: [
-        _metaCell(label1, isLabel: true),
-        _metaCell(val1),
-        _metaCell(label2, isLabel: true),
-        _metaCell(val2),
-      ],
-    );
-  }
-
-  static Widget _metaCell(String text, {bool isLabel = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      color: isLabel ? const Color(0xFFF8FAFC) : Colors.white,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: isLabel ? FontWeight.w700 : FontWeight.w500,
-          color: isLabel ? const Color(0xFF334155) : const Color(0xFF0F172A),
-        ),
-      ),
-    );
-  }
-
-  Widget _payslipLine(String label, double amount, {bool isHighlight = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-      color: isHighlight ? const Color(0xFFFFFBEB) : Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
-              color: isHighlight ? const Color(0xFF92400E) : const Color(0xFF334155),
-            ),
-          ),
-          Text(
-            _currFmt.format(amount),
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: isHighlight ? FontWeight.w800 : FontWeight.w600,
-              color: isHighlight ? const Color(0xFF92400E) : const Color(0xFF0F172A),
-            ),
-          ),
         ],
       ),
     );

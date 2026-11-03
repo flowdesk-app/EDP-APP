@@ -63,6 +63,33 @@ void main() {
       expect(bytes.length, greaterThan(1000));
     });
 
+    test('OfficialPayslipModel maps official figures for 20004 correctly', () {
+      final payslip = OfficialPayslipModel.fromPayrollRecord(sampleEmp, month: 'September 2026');
+      expect(payslip.empNo, '20004');
+      expect(payslip.employeeName, 'K.RAMA');
+      expect(payslip.designation, 'Works Manager');
+      expect(payslip.department, 'Production');
+      expect(payslip.doj, '01-09-1988');
+      expect(payslip.leave, '5');
+      expect(payslip.balance, '0.5');
+      expect(payslip.lop, '0.00');
+      expect(payslip.otHours, '201.50');
+      expect(payslip.basic, 8900.0);
+      expect(payslip.hra, 6000.0);
+      expect(payslip.lunch, 4600.0);
+      expect(payslip.transport, 1600.0);
+      expect(payslip.medical, 1250.0);
+      expect(payslip.specialAllowance, 8150.0);
+      expect(payslip.overtime, 14945.0);
+      expect(payslip.otherAllowance, 4900.0);
+      expect(payslip.totalEarnings, 50345.0);
+      expect(payslip.pf, 1068.0);
+      expect(payslip.advanceLoan, 1000.0);
+      expect(payslip.insurance, 1250.0);
+      expect(payslip.totalDeductions, 3318.0);
+      expect(payslip.netSalary, 47027.0);
+    });
+
     test('generateBankTransferPdf generates valid PDF bytes', () async {
       final transfer = BankTransferRecord(
         slNo: 1,
