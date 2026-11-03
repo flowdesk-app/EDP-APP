@@ -6,6 +6,8 @@ import '../../widgets/job_type_badge.dart';
 import '../../widgets/global_logout_button.dart';
 import 'job_timeline_screen.dart';
 import 'owner_edit_job_dialog.dart';
+import 'sales_order_screen.dart';
+import 'tax_invoice_screen.dart';
 
 class JobApprovalScreen extends StatefulWidget {
   final int initialTab;
@@ -156,13 +158,8 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
       try {
         await _api.grantJobAccess(job.jobId);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Access granted for #${job.jobId}'),
-              backgroundColor: const Color(0xFF2E7D32),
-            ),
-          );
           _loadJobs();
+          _showPostGrantDialog(job);
         }
       } catch (e) {
         if (mounted) {
@@ -170,6 +167,84 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
         }
       }
     }
+  }
+
+  void _showPostGrantDialog(JobModel job) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 26),
+            SizedBox(width: 10),
+            Text('Access Granted', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Job #${job.jobId} has been successfully granted and activated.', style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F3F4),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Customer: ${job.customerName ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text('Part / Wheel: ${job.wheelSize ?? job.partNumber ?? 'N/A'}', style: const TextStyle(fontSize: 12)),
+                  Text('Quantity: ${job.quantity ?? 1}', style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text('Generate documentation for this job:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF202124))),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later'),
+          ),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SalesOrderScreen(initialJob: job)),
+              );
+            },
+            icon: const Icon(Icons.assignment_outlined, size: 16),
+            label: const Text('Generate Sale Order'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF0D47A1),
+              side: const BorderSide(color: Color(0xFF0D47A1)),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => TaxInvoiceScreen(initialJob: job)),
+              );
+            },
+            icon: const Icon(Icons.receipt_long, size: 16),
+            label: const Text('Generate Invoice'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _editJob(JobModel job) async {
@@ -707,6 +782,36 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF1A73E8),
                     side: const BorderSide(color: Color(0xFF1A73E8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SalesOrderScreen(initialJob: job)),
+                    );
+                  },
+                  icon: const Icon(Icons.assignment_outlined, size: 16),
+                  label: const Text('Generate Sale Order'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D47A1),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => TaxInvoiceScreen(initialJob: job)),
+                    );
+                  },
+                  icon: const Icon(Icons.receipt_long, size: 16),
+                  label: const Text('Generate Invoice'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),

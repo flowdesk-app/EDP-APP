@@ -9,6 +9,8 @@ import 'delivered_jobs_screen.dart';
 
 import 'removed_jobs_screen.dart';
 import 'part_management_screen.dart';
+import 'sales_order_screen.dart';
+import 'tax_invoice_screen.dart';
 import 'invoice_screen.dart';
 import 'spare_production_dashboard_screen.dart';
 import 'recoating_dashboard_screen.dart';
@@ -77,12 +79,13 @@ class _MainLayoutState extends State<MainLayout> {
         const DeliveredJobsScreen(), // 3. Delivered
         const PartManagementScreen(), // 4. Job Master
         const RemovedJobsScreen(), // 5. Edit
-        const InvoiceScreen(), // 6. Invoices
-        const SpareProductionDashboardScreen(), // 7. Spare at EDP
-        const RawMaterialsScreen(), // 8. Raw Materials
-        const ReadyForDeliveryScreen(), // 9. Ready for Delivery
-        const StorageScreen(), // 10. Database
-        const DeliveryChallansScreen(), // 11. Delivery Challan (DC)
+        const SalesOrderScreen(), // 6. Sale Order
+        const TaxInvoiceScreen(), // 7. Invoices
+        const SpareProductionDashboardScreen(), // 8. Spare at EDP
+        const RawMaterialsScreen(), // 9. Raw Materials
+        const ReadyForDeliveryScreen(), // 10. Ready for Delivery
+        const StorageScreen(), // 11. Database
+        const DeliveryChallansScreen(), // 12. Delivery Challan (DC)
       ];
       _destinations = [
         const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
@@ -91,12 +94,13 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
         const NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('Job Master')),
         const NavigationRailDestination(icon: Icon(Icons.edit_outlined), selectedIcon: Icon(Icons.edit), label: Text('Edit')),
-        const NavigationRailDestination(icon: Icon(Icons.receipt_outlined), selectedIcon: Icon(Icons.receipt), label: Text('Invoices')),
+        const NavigationRailDestination(icon: Icon(Icons.assignment_outlined), selectedIcon: Icon(Icons.assignment), label: Text('Sale Order')),
+        const NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: Text('Invoices')),
         const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('Spare at EDP')),
         const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.storage_outlined), selectedIcon: Icon(Icons.storage), label: Text('Database')),
-        const NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: Text('Delivery Challan')),
+        const NavigationRailDestination(icon: Icon(Icons.local_shipping), selectedIcon: Icon(Icons.local_shipping), label: Text('Delivery Challan')),
       ];
 
       if (_role == UserRole.owner) {
