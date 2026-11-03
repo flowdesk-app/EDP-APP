@@ -23,7 +23,6 @@ class _LeaveRegisterScreenState extends State<LeaveRegisterScreen> {
   List<LeaveRecord> _leaveRecords = [];
   String _searchQuery = '';
   String _selectedDept = 'All';
-  bool _showExplanationGuide = true;
 
   @override
   void initState() {
@@ -127,15 +126,11 @@ class _LeaveRegisterScreenState extends State<LeaveRegisterScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // 2. EXPLANATORY GUIDE ACCORDION (Plain explanation of all columns)
-                          _buildExplanatoryGuideCard(),
-                          const SizedBox(height: 20),
-
-                          // 3. TOOLBAR: SEARCH & DEPARTMENT FILTER
+                          // 2. TOOLBAR: SEARCH & DEPARTMENT FILTER
                           _buildToolbar(),
                           const SizedBox(height: 16),
 
-                          // 4. FULL-WIDTH SPACIOUS LEAVE REGISTER TABLE
+                          // 3. FULL-WIDTH SPACIOUS LEAVE REGISTER TABLE
                           _buildSpaciousLeaveTable(
                             totalOpening: totalOpening,
                             totalAccrual: totalAccrual,
@@ -145,7 +140,7 @@ class _LeaveRegisterScreenState extends State<LeaveRegisterScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // 5. STATUTORY AUDIT FOOTER NOTE
+                          // 4. STATUTORY AUDIT FOOTER NOTE
                           _buildAuditFooterCard(),
                         ],
                       ),
@@ -266,152 +261,7 @@ class _LeaveRegisterScreenState extends State<LeaveRegisterScreen> {
   }
 
   // ============================================================
-  // 2. EXPLANATORY GUIDE ACCORDION (Answers User Request)
-  // ============================================================
-  Widget _buildExplanatoryGuideCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFDBFE)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () => setState(() => _showExplanationGuide = !_showExplanationGuide),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              color: const Color(0xFFEFF6FF),
-              child: Row(
-                children: [
-                  const Icon(Icons.help_outline, color: Color(0xFF2563EB), size: 22),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Understanding Leave Register Columns (User Guide & Formula)',
-                          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Click to view what Opening Leave, Monthly Accrual, Leave Taken, LOP, Closing Balance & Remarks mean',
-                          style: TextStyle(fontSize: 11.5, color: Color(0xFF3B82F6)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    _showExplanationGuide ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: const Color(0xFF1E3A8A),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_showExplanationGuide)
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _explanationRow(
-                    badge: 'OPENING LEAVE',
-                    badgeColor: const Color(0xFF475569),
-                    title: 'Brought Forward Leave Balance',
-                    desc: 'The accumulated paid leave balance the employee had at the end of the previous month. E.g., if an employee ended October with 18 days, their November Opening Leave is 18.',
-                  ),
-                  const Divider(height: 20, color: Color(0xFFF1F5F9)),
-                  _explanationRow(
-                    badge: 'MONTHLY ACCRUAL',
-                    badgeColor: const Color(0xFF059669),
-                    title: 'New Paid Leaves Earned This Month (+1.5 Days)',
-                    desc: 'Under the Indian Factories Act & Company Policy, employees earn 1.5 paid leaves every month they work. This is credited automatically to their leave pool.',
-                  ),
-                  const Divider(height: 20, color: Color(0xFFF1F5F9)),
-                  _explanationRow(
-                    badge: 'LEAVE TAKEN',
-                    badgeColor: const Color(0xFF0284C7),
-                    title: 'Days Absent / Availed by Employee',
-                    desc: 'Total days the employee took off from work during this calendar month.',
-                  ),
-                  const Divider(height: 20, color: Color(0xFFF1F5F9)),
-                  _explanationRow(
-                    badge: 'LOP (LOSS OF PAY)',
-                    badgeColor: const Color(0xFFDC2626),
-                    title: 'Unpaid Leave / Salary Deduction Days',
-                    desc: 'Days the employee took off when they had zero paid leave balance left. Because they exhausted their leave quota, their salary is cut for these days (e.g. Renta took 29.5 days off with only 1.5 days accrued, so 28.0 days are Loss of Pay).',
-                  ),
-                  const Divider(height: 20, color: Color(0xFFF1F5F9)),
-                  _explanationRow(
-                    badge: 'CLOSING BALANCE',
-                    badgeColor: const Color(0xFF7C3AED),
-                    title: 'Remaining Leave Balance Carried Forward',
-                    desc: 'Formula: Closing Balance = (Opening Leave + Monthly Accrual - Leave Taken). If Leave Taken exceeds available leaves, Closing Balance becomes 0 and the rest becomes LOP.',
-                  ),
-                  const Divider(height: 20, color: Color(0xFFF1F5F9)),
-                  _explanationRow(
-                    badge: 'REMARKS',
-                    badgeColor: const Color(0xFFD97706),
-                    title: 'Payroll Audit Notes',
-                    desc: 'Highlights statutory flags, e.g. "28.0 Days LOP" or "Normal Leave", notifying accounts to deduct salary accordingly in Document 1.',
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _explanationRow({
-    required String badge,
-    required Color badgeColor,
-    required String title,
-    required String desc,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 140,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: badgeColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
-          ),
-          child: Text(
-            badge,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: badgeColor),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
-              const SizedBox(height: 2),
-              Text(desc, style: const TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.35)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // 3. TOOLBAR: SEARCH & DEPARTMENT FILTER
+  // 2. TOOLBAR: SEARCH & DEPARTMENT FILTER
   // ============================================================
   Widget _buildToolbar() {
     return Container(
