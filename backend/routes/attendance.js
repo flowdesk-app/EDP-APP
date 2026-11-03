@@ -10,12 +10,12 @@ const getTodayDateStr = () => {
 };
 
 const DEFAULT_EMPLOYEE_DETAILS = {
-  'owner@flowdesk.com': { name: 'Owner / Executive', department: 'Management' },
+  'owner@flowdesk.com': { name: 'Managing Director', department: 'Management' },
   'admin@flowdesk.com': { name: 'Operations Admin', department: 'Operations' },
-  'employee1@flowdesk.com': { name: 'Siddarth (Employee 1)', department: 'Inventory & Operations' },
-  'employee2@flowdesk.com': { name: 'Friend (Employee 2)', department: 'Shop Floor & Production' },
-  'employee3@flowdesk.com': { name: 'Employee 3 (Dispatch)', department: 'Quality & Dispatch' },
-  'payroll@flowdesk.com': { name: 'Payroll Manager', department: 'Accounts & HR' },
+  'employee1@flowdesk.com': { name: 'K. Rama (Works Manager)', department: 'Production' },
+  'employee2@flowdesk.com': { name: 'R. Rajeswari (Admin Manager)', department: 'Admin' },
+  'employee3@flowdesk.com': { name: 'A. Nagarajan (Marketing Executive)', department: 'Marketing' },
+  'payroll@flowdesk.com': { name: 'C. Subhalakshmi (Accounts)', department: 'Accounts' },
 };
 
 // GET /api/attendance/enrolled-employees

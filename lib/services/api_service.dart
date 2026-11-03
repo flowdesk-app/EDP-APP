@@ -14,6 +14,7 @@ import '../models/item_database_model.dart';
 import '../models/estimate_model.dart';
 import '../models/delivery_challan_model.dart';
 import '../models/attendance_model.dart';
+import '../models/payroll_model.dart';
 import 'package:flutter/foundation.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -1459,6 +1460,125 @@ class ApiService {
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('Error deleting attendance record: $e');
+      return false;
+    }
+  }
+
+  // ----------------------------------------------------
+  // Exclusive Diamond Products - Enterprise Payroll API
+  // ----------------------------------------------------
+  Future<Map<String, dynamic>> getPayrollStatement({String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/statement').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> recs = data['records'] ?? [];
+        return {
+          'records': recs.map((j) => PayrollRecord.fromJson(j)).toList(),
+          'totals': data['totals'] ?? {},
+          'company': data['company'] ?? {},
+          'count': data['count'] ?? 0,
+        };
+      }
+    } catch (e) {
+      debugPrint('Error fetching payroll statement: $e');
+    }
+    return {'records': <PayrollRecord>[], 'totals': {}, 'company': {}, 'count': 0};
+  }
+
+  Future<List<BankTransferRecord>> getBankTransfers({String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/bank-transfers').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> transfers = data['transfers'] ?? [];
+        return transfers.map((j) => BankTransferRecord.fromJson(j)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching bank transfers: $e');
+    }
+    return [];
+  }
+
+  Future<PayrollRecord?> getPayslip(String empNo, {String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/payslip/$empNo').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['payslip'] != null) {
+          return PayrollRecord.fromJson(data['payslip']);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching payslip: $e');
+    }
+    return null;
+  }
+
+  Future<List<LeaveRecord>> getLeaveRegister({String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/leaves').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> leaves = data['records'] ?? [];
+        return leaves.map((j) => LeaveRecord.fromJson(j)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching leave register: $e');
+    }
+    return [];
+  }
+
+  Future<List<PersonalLoanRecord>> getPersonalLoans({String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/loans').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> loans = data['records'] ?? [];
+        return loans.map((j) => PersonalLoanRecord.fromJson(j)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching personal loans: $e');
+    }
+    return [];
+  }
+
+  Future<PayrollSummary?> getPayrollSummary({String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final uri = Uri.parse('$baseUrl/payroll/summary').replace(queryParameters: {'month': month});
+      final res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return PayrollSummary.fromJson(data);
+      }
+    } catch (e) {
+      debugPrint('Error fetching payroll summary: $e');
+    }
+    return null;
+  }
+
+  Future<bool> seedPayroll({String month = '2026-09'}) async {
+    await _loadToken();
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/payroll/seed'),
+        headers: _headers,
+        body: jsonEncode({'month': month}),
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error seeding payroll: $e');
       return false;
     }
   }
