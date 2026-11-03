@@ -22,6 +22,14 @@ import 'estimates_screen.dart';
 import 'delivery_challans_screen.dart';
 import '../../widgets/estimate_auth_dialog.dart';
 import '../payroll/payroll_dashboard_screen.dart';
+import '../payroll/attendance_terminal_dashboard.dart';
+import '../payroll/executive_overview_screen.dart';
+import '../payroll/salary_statement_screen.dart';
+import '../payroll/payslips_screen.dart';
+import '../payroll/bank_transfers_screen.dart';
+import '../payroll/leave_register_screen.dart';
+import '../payroll/personal_loans_screen.dart';
+import '../payroll/biometric_registry_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -61,24 +69,26 @@ class _MainLayoutState extends State<MainLayout> {
   void _buildDestinationsAndScreens() {
     if (_role == UserRole.admin || _role == UserRole.owner) {
       _screens = [
-        OwnerDashboard(key: _dashboardKey), // 0. Dashboard
+        const AttendanceTerminalDashboard(), // 0. Live Attendance & Face Terminal (The Main Dashboard)
+        OwnerDashboard(key: _dashboardKey), // 1. Job Dashboard
         CreateJobScreen(onNavigateToDashboard: () {
           _dashboardKey.currentState?.reload();
-          setState(() => _currentIndex = 0);
-        }), // 1. Create Job
-        const ActiveJobsScreen(), // 2. EDP Production
-        const DeliveredJobsScreen(), // 3. Delivered
-        const PartManagementScreen(), // 4. Job Master
-        const RemovedJobsScreen(), // 5. Edit
-        const InvoiceScreen(), // 6. Invoices
-        const SpareProductionDashboardScreen(), // 7. Spare at EDP
-        const RawMaterialsScreen(), // 8. Raw Materials
-        const ReadyForDeliveryScreen(), // 9. Ready for Delivery
-        const StorageScreen(), // 10. Database
-        const DeliveryChallansScreen(), // 11. Delivery Challan (DC)
-        const PayrollDashboardScreen(), // 12. Payroll Dashboard
+          setState(() => _currentIndex = 1);
+        }), // 2. Create Job
+        const ActiveJobsScreen(), // 3. EDP Production
+        const DeliveredJobsScreen(), // 4. Delivered
+        const PartManagementScreen(), // 5. Job Master
+        const RemovedJobsScreen(), // 6. Edit
+        const InvoiceScreen(), // 7. Invoices
+        const SpareProductionDashboardScreen(), // 8. Spare at EDP
+        const RawMaterialsScreen(), // 9. Raw Materials
+        const ReadyForDeliveryScreen(), // 10. Ready for Delivery
+        const StorageScreen(), // 11. Database
+        const DeliveryChallansScreen(), // 12. Delivery Challan (DC)
+        const PayrollDashboardScreen(), // 13. Payroll Suite
       ];
       _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.co_present_outlined), selectedIcon: Icon(Icons.co_present), label: Text('Attendance')),
         const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
         const NavigationRailDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: Text('Create Job')),
         const NavigationRailDestination(icon: Icon(Icons.list_alt), selectedIcon: Icon(Icons.list), label: Text('EDP Production')),
@@ -91,12 +101,12 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.storage_outlined), selectedIcon: Icon(Icons.storage), label: Text('Database')),
         const NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: Text('Delivery Challan')),
-        const NavigationRailDestination(icon: Icon(Icons.payments_outlined), selectedIcon: Icon(Icons.payments), label: Text('Payroll')),
+        const NavigationRailDestination(icon: Icon(Icons.payments_outlined), selectedIcon: Icon(Icons.payments), label: Text('Payroll Suite')),
       ];
 
       if (_role == UserRole.owner) {
         _screens.add(
-          const JobApprovalScreen(), // 11. Approvals
+          const JobApprovalScreen(), // 14. Approvals
         );
         _destinations.add(
           const NavigationRailDestination(
@@ -106,7 +116,7 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         );
         _screens.add(
-          const EstimatesScreen(), // 12. Estimates
+          const EstimatesScreen(), // 15. Estimates
         );
         _destinations.add(
           const NavigationRailDestination(
@@ -118,51 +128,101 @@ class _MainLayoutState extends State<MainLayout> {
       }
     } else if (_role == UserRole.employee1) {
       _screens = [
+        const AttendanceTerminalDashboard(),
         const SpareProductionDashboardScreen(),
         const RawMaterialsScreen(),
       ];
       _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.co_present_outlined), selectedIcon: Icon(Icons.co_present), label: Text('Attendance')),
         const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('Spare at EDP')),
         const NavigationRailDestination(icon: Icon(Icons.category_outlined), selectedIcon: Icon(Icons.category), label: Text('Raw Materials')),
       ];
     } else if (_role == UserRole.employee2) {
       _screens = [
+        const AttendanceTerminalDashboard(),
         const ActiveJobsScreen(),
         const SpareProductionDashboardScreen(),
       ];
       _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.co_present_outlined), selectedIcon: Icon(Icons.co_present), label: Text('Attendance')),
         const NavigationRailDestination(icon: Icon(Icons.list_alt), selectedIcon: Icon(Icons.list), label: Text('EDP Production')),
         const NavigationRailDestination(icon: Icon(Icons.inventory_outlined), selectedIcon: Icon(Icons.inventory), label: Text('EDP Spare Prod')),
       ];
     } else if (_role == UserRole.employee3) {
       _screens = [
+        const AttendanceTerminalDashboard(),
         const RecoatingDashboardScreen(recoatingJobs: []),
         const ReadyForDeliveryScreen(),
         const DeliveredJobsScreen(),
       ];
       _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.co_present_outlined), selectedIcon: Icon(Icons.co_present), label: Text('Attendance')),
         const NavigationRailDestination(icon: Icon(Icons.build_circle_outlined), selectedIcon: Icon(Icons.build_circle), label: Text('Re-coating')),
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
       ];
     } else if (_role == UserRole.payroll) {
       _screens = [
-        const PayrollDashboardScreen(),
+        const AttendanceTerminalDashboard(), // 0. Live Attendance & Face Terminal (Main Dashboard)
+        const ExecutiveOverviewScreen(), // 1. Executive Overview & KPIs
+        const SalaryStatementScreen(), // 2. Salary Statement (24 Col)
+        const PaySlipsScreen(), // 3. Employee Pay Slips
+        const BankTransfersScreen(), // 4. Online Bank Transfers
+        const LeaveRegisterScreen(), // 5. Leave & Attendance Register
+        const PersonalLoansScreen(), // 6. Staff Personal Loans
+        const BiometricRegistryScreen(), // 7. Staff Biometric Registry
       ];
       _destinations = [
         const NavigationRailDestination(
-          icon: Icon(Icons.payments_outlined),
-          selectedIcon: Icon(Icons.payments),
-          label: Text('Payroll'),
+          icon: Icon(Icons.co_present_outlined),
+          selectedIcon: Icon(Icons.co_present),
+          label: Text('Attendance'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.insights_outlined),
+          selectedIcon: Icon(Icons.insights),
+          label: Text('Overview'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.table_chart_outlined),
+          selectedIcon: Icon(Icons.table_chart),
+          label: Text('Statement'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.receipt_long_outlined),
+          selectedIcon: Icon(Icons.receipt_long),
+          label: Text('Pay Slips'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.account_balance_outlined),
+          selectedIcon: Icon(Icons.account_balance),
+          label: Text('Bank Transfer'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.beach_access_outlined),
+          selectedIcon: Icon(Icons.beach_access),
+          label: Text('Leave Register'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.request_quote_outlined),
+          selectedIcon: Icon(Icons.request_quote),
+          label: Text('Staff Loans'),
+        ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.badge_outlined),
+          selectedIcon: Icon(Icons.badge),
+          label: Text('Biometrics'),
         ),
       ];
     } else {
       _screens = [
+        const AttendanceTerminalDashboard(),
         const RecoatingDashboardScreen(recoatingJobs: []),
         const ReadyForDeliveryScreen(),
         const DeliveredJobsScreen(),
       ];
       _destinations = [
+        const NavigationRailDestination(icon: Icon(Icons.co_present_outlined), selectedIcon: Icon(Icons.co_present), label: Text('Attendance')),
         const NavigationRailDestination(icon: Icon(Icons.build_circle_outlined), selectedIcon: Icon(Icons.build_circle), label: Text('Re-coating')),
         const NavigationRailDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: Text('Ready for Delivery')),
         const NavigationRailDestination(icon: Icon(Icons.check_circle_outline), selectedIcon: Icon(Icons.check_circle), label: Text('Delivered')),
@@ -198,7 +258,7 @@ class _MainLayoutState extends State<MainLayout> {
                           final auth = await EstimateAuthService.ensureAuthorized(context);
                           if (!auth) return;
                         }
-                        if (index == 0) {
+                        if (index < _screens.length && _screens[index] is OwnerDashboard) {
                           _dashboardKey.currentState?.reload();
                         }
                         setState(() {
