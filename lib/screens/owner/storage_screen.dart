@@ -119,7 +119,7 @@ class _StorageScreenState extends State<StorageScreen> {
                 ),
                 // Search Field
                 SizedBox(
-                  width: 280,
+                  width: 260,
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Search companies...',
@@ -138,7 +138,19 @@ class _StorageScreenState extends State<StorageScreen> {
                   ),
                 ),
                 if (_isOwner) ...[
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: _showAddCompanyDialog,
+                    icon: const Icon(Icons.add_business, size: 18),
+                    label: const Text('Add Company', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0288D1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   // Delete Option at the top (Owner only)
                   _buildTopDeleteOption(),
                 ],
@@ -203,8 +215,8 @@ class _StorageScreenState extends State<StorageScreen> {
                         )
                       : GridView.builder(
                           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 300,
-                            childAspectRatio: 1.5,
+                            maxCrossAxisExtent: 320,
+                            childAspectRatio: 1.35,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),
@@ -332,80 +344,535 @@ class _StorageScreenState extends State<StorageScreen> {
             borderRadius: BorderRadius.circular(12),
             hoverColor: _isDeleteMode ? Colors.red[50] : Colors.blue[50],
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.business,
-                      size: 32,
-                      color: _isDeleteMode ? Colors.red[400] : const Color(0xFF29B6F6),
-                    ),
-                    const SizedBox(height: 14),
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF29B6F6).withAlpha(25),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.business,
+                          size: 24,
+                          color: _isDeleteMode ? Colors.red[400] : const Color(0xFF0288D1),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              company.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (company.gstin.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.blueGrey[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.blueGrey[100]!),
+                                ),
+                                child: Text(
+                                  'GSTIN: ${company.gstin}',
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.blueGrey[800], letterSpacing: 0.3),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 28), // Reserve space for top-right menu
+                    ],
+                  ),
+                  const Spacer(),
+                  if (company.billingAddress.isNotEmpty) ...[
                     Text(
-                      company.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                      maxLines: 3,
+                      company.billingAddress.replaceAll('\n', ', '),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 6),
                   ],
-                ),
+                  Row(
+                    children: [
+                      if (company.placeOfSupply.isNotEmpty) ...[
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.indigo[50],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              company.placeOfSupply,
+                              style: TextStyle(fontSize: 10, color: Colors.indigo[800], fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      if (company.vendorCode.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'VC: ${company.vendorCode}',
+                            style: TextStyle(fontSize: 10, color: Colors.amber[900], fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      InkWell(
+                        onTap: () => _showCompanyDetailsDialog(company),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Icon(Icons.edit_outlined, size: 16, color: Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-          // Delete trash button (top right of each card, owner only)
-          if (_isOwner)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: _isDeleteMode
-                ? InkWell(
-                    onTap: () => _confirmDeleteCompany(company),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.red[700],
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withAlpha(76),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
+          // Top right action
+          Positioned(
+            top: 6,
+            right: 6,
+            child: _isDeleteMode
+              ? InkWell(
+                  onTap: () => _confirmDeleteCompany(company),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.red[700],
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withAlpha(76),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.delete_outline, size: 16, color: Colors.white),
+                  ),
+                )
+              : PopupMenuButton<String>(
+                  tooltip: 'Options',
+                  icon: Icon(Icons.more_horiz, size: 18, color: Colors.grey[500]),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 160),
+                  onSelected: (val) {
+                    if (val == 'edit') {
+                      _showCompanyDetailsDialog(company);
+                    } else if (val == 'delete') {
+                      _confirmDeleteCompany(company);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_note, size: 18, color: Colors.blue[700]),
+                          const SizedBox(width: 8),
+                          const Text('View & Edit Details', style: TextStyle(fontSize: 13)),
                         ],
                       ),
-                      child: const Icon(Icons.delete_outline, size: 16, color: Colors.white),
                     ),
-                  )
-                : PopupMenuButton<String>(
-                    tooltip: 'Options',
-                    icon: Icon(Icons.more_horiz, size: 18, color: Colors.grey[400]),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 140),
-                    onSelected: (val) {
-                      if (val == 'delete') {
-                        _confirmDeleteCompany(company);
-                      }
-                    },
-                    itemBuilder: (context) => [
+                    if (_isOwner)
                       PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_outline, size: 16, color: Colors.red[700]),
+                            Icon(Icons.delete_outline, size: 18, color: Colors.red[700]),
                             const SizedBox(width: 8),
                             Text('Delete Company', style: TextStyle(color: Colors.red[700], fontSize: 13)),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                  ],
+                ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showCompanyDetailsDialog(CompanyStorage company) async {
+    final nameCtrl = TextEditingController(text: company.name);
+    final gstinCtrl = TextEditingController(text: company.gstin);
+    final vendorCodeCtrl = TextEditingController(text: company.vendorCode);
+    final posCtrl = TextEditingController(text: company.placeOfSupply);
+    final stateCtrl = TextEditingController(text: company.state);
+    final pinCtrl = TextEditingController(text: company.pincode);
+    final billingCtrl = TextEditingController(text: company.billingAddress);
+    final shippingCtrl = TextEditingController(text: company.shippingAddress);
+    final prefixCtrl = TextEditingController(text: company.prefixes.join(', '));
+    bool isSaving = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              width: 580,
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.edit_note, color: Color(0xFF0288D1), size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Edit Company Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text('Update GST, addresses, and identifiers for automatic invoicing.', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    _buildDialogTextField('Company Official Name *', nameCtrl, hint: 'e.g. Excel Diamond Tools'),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDialogTextField('GSTIN / Tax ID', gstinCtrl, hint: 'e.g. 33AEZPL6819D1Z5', textCapitalization: TextCapitalization.characters),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDialogTextField('Vendor Code', vendorCodeCtrl, hint: 'e.g. 100362'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: _buildDialogTextField('Place of Supply', posCtrl, hint: 'e.g. Tamil Nadu (33)'),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDialogTextField('Pincode', pinCtrl, hint: 'e.g. 641001'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildDialogTextField('Prefixes (comma separated)', prefixCtrl, hint: 'e.g. EDT, EXCEL'),
+                    const SizedBox(height: 12),
+                    _buildDialogTextField('Billing Address', billingCtrl, hint: 'Full street address, city, state, pin', maxLines: 3),
+                    const SizedBox(height: 12),
+                    _buildDialogTextField('Shipping Address (leave empty if same)', shippingCtrl, hint: 'Consignee / delivery address if different', maxLines: 2),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                          child: const Text('Cancel'),
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          icon: isSaving
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.save, size: 18),
+                          label: Text(isSaving ? 'Saving...' : 'Save Changes'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0288D1),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: isSaving ? null : () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(ctx);
+                            final newName = nameCtrl.text.trim();
+                            if (newName.isEmpty) {
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('Company name cannot be empty.'), backgroundColor: Colors.red),
+                              );
+                              return;
+                            }
+                            setDialogState(() => isSaving = true);
+                            final prefixesList = prefixCtrl.text
+                                .split(',')
+                                .map((s) => s.trim().toUpperCase())
+                                .where((s) => s.isNotEmpty)
+                                .toList();
+                            if (prefixesList.isEmpty) {
+                              prefixesList.add(newName.split(' ')[0].toUpperCase());
+                            }
+                            final updated = company.copyWith(
+                              name: newName,
+                              prefixes: prefixesList,
+                              gstin: gstinCtrl.text.trim().toUpperCase(),
+                              vendorCode: vendorCodeCtrl.text.trim(),
+                              placeOfSupply: posCtrl.text.trim(),
+                              state: stateCtrl.text.trim().isNotEmpty
+                                  ? stateCtrl.text.trim()
+                                  : (posCtrl.text.contains('(') ? posCtrl.text.split('(')[0].trim() : posCtrl.text.trim()),
+                              pincode: pinCtrl.text.trim(),
+                              billingAddress: billingCtrl.text.trim(),
+                              shippingAddress: shippingCtrl.text.trim(),
+                            );
+                            final ok = await ApiService().updateCompanyStorage(updated, oldName: company.name);
+                            if (mounted) {
+                              nav.pop();
+                              setState(() {});
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(ok ? 'Successfully updated "${updated.name}".' : 'Saved locally; server update failed.'),
+                                  backgroundColor: ok ? Colors.green[700] : Colors.orange[700],
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _showAddCompanyDialog() async {
+    final nameCtrl = TextEditingController();
+    final gstinCtrl = TextEditingController();
+    final vendorCodeCtrl = TextEditingController();
+    final posCtrl = TextEditingController();
+    final pinCtrl = TextEditingController();
+    final billingCtrl = TextEditingController();
+    final shippingCtrl = TextEditingController();
+    final prefixCtrl = TextEditingController();
+    bool isSaving = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              width: 580,
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.add_business, color: Colors.green, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Add New Company', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text('Register a new company with full address and tax details.', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    _buildDialogTextField('Company Official Name *', nameCtrl, hint: 'e.g. New Engineering Works Ltd'),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDialogTextField('GSTIN / Tax ID', gstinCtrl, hint: 'e.g. 33AAAAA0000A1Z5', textCapitalization: TextCapitalization.characters),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDialogTextField('Vendor Code', vendorCodeCtrl, hint: 'e.g. 100999'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: _buildDialogTextField('Place of Supply', posCtrl, hint: 'e.g. Tamil Nadu (33)'),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDialogTextField('Pincode', pinCtrl, hint: 'e.g. 600001'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildDialogTextField('Prefix (e.g. NEW, ENG)', prefixCtrl, hint: 'Identifier prefix for item barcodes / IDs'),
+                    const SizedBox(height: 12),
+                    _buildDialogTextField('Billing Address', billingCtrl, hint: 'Street, area, city, state, pin', maxLines: 3),
+                    const SizedBox(height: 12),
+                    _buildDialogTextField('Shipping Address (optional)', shippingCtrl, hint: 'Consignee / delivery address if different', maxLines: 2),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                          child: const Text('Cancel'),
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          icon: isSaving
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.check, size: 18),
+                          label: Text(isSaving ? 'Creating...' : 'Create Company'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: isSaving ? null : () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(ctx);
+                            final name = nameCtrl.text.trim();
+                            if (name.isEmpty) {
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('Company name is required.'), backgroundColor: Colors.red),
+                              );
+                              return;
+                            }
+                            setDialogState(() => isSaving = true);
+                            final pref = prefixCtrl.text.trim().isNotEmpty
+                                ? prefixCtrl.text.trim().toUpperCase()
+                                : name.split(' ')[0].toUpperCase();
+                            final pList = prefixCtrl.text
+                                .split(',')
+                                .map((s) => s.trim().toUpperCase())
+                                .where((s) => s.isNotEmpty)
+                                .toList();
+                            if (pList.isEmpty) pList.add(pref);
+
+                            await ApiService().createCompanyStorage(
+                              name,
+                              pref,
+                              prefixes: pList,
+                              gstin: gstinCtrl.text.trim().toUpperCase(),
+                              vendorCode: vendorCodeCtrl.text.trim(),
+                              placeOfSupply: posCtrl.text.trim(),
+                              pincode: pinCtrl.text.trim(),
+                              billingAddress: billingCtrl.text.trim(),
+                              shippingAddress: shippingCtrl.text.trim(),
+                            );
+                            if (mounted) {
+                              nav.pop();
+                              setState(() {});
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Company "$name" created successfully.'),
+                                  backgroundColor: Colors.green[700],
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDialogTextField(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    int maxLines = 1,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151))),
+        const SizedBox(height: 4),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          textCapitalization: textCapitalization,
+          style: const TextStyle(fontSize: 13),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF0288D1), width: 1.5)),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+        ),
+      ],
     );
   }
 }

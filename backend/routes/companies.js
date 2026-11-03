@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const CompanyStorage = require('../models/CompanyStorage');
 const auth = require('../middleware/auth');
+const mongoose = require('mongoose');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const companies = await CompanyStorage.find();
+    const companies = await CompanyStorage.find({ isDeleted: false }).sort({ name: 1 });
     res.json(companies);
   } catch (err) {
     res.status(500).json({ error: 'Server error fetching companies' });
@@ -14,28 +15,122 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, prefixes } = req.body;
+    const {
+      name,
+      aliases,
+      prefixes,
+      billingAddress,
+      shippingAddress,
+      gstin,
+      vendorCode,
+      placeOfSupply,
+      state,
+      pincode
+    } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
 
-    const existing = await CompanyStorage.findOne({ name });
-    if (existing) {
-      existing.isDeleted = false;
-      if (prefixes) {
-        existing.prefixes = [...new Set([...existing.prefixes, ...prefixes])];
+    const trimmedName = name.trim();
+    let company = await CompanyStorage.findOne({
+      $or: [
+        { name: trimmedName },
+        { aliases: trimmedName }
+      ]
+    });
+
+    if (company) {
+      company.isDeleted = false;
+      if (prefixes && Array.isArray(prefixes)) {
+        company.prefixes = [...new Set([...company.prefixes, ...prefixes])];
       }
-      await existing.save();
-      return res.json(existing);
+      if (aliases && Array.isArray(aliases)) {
+        company.aliases = [...new Set([...company.aliases, ...aliases])];
+      }
+      if (billingAddress !== undefined) company.billingAddress = billingAddress;
+      if (shippingAddress !== undefined) company.shippingAddress = shippingAddress;
+      if (gstin !== undefined) company.gstin = gstin;
+      if (vendorCode !== undefined) company.vendorCode = vendorCode;
+      if (placeOfSupply !== undefined) company.placeOfSupply = placeOfSupply;
+      if (state !== undefined) company.state = state;
+      if (pincode !== undefined) company.pincode = pincode;
+      company.updatedAt = new Date();
+      await company.save();
+      return res.json(company);
     }
 
-    const company = new CompanyStorage({
-      name,
-      prefixes: prefixes || [name.split(' ')[0].toUpperCase()],
-      isDeleted: false
+    company = new CompanyStorage({
+      name: trimmedName,
+      aliases: aliases || [],
+      prefixes: prefixes || [trimmedName.split(' ')[0].toUpperCase()],
+      billingAddress: billingAddress || '',
+      shippingAddress: shippingAddress || '',
+      gstin: gstin || '',
+      vendorCode: vendorCode || '',
+      placeOfSupply: placeOfSupply || '',
+      state: state || '',
+      pincode: pincode || '',
+      isDeleted: false,
+      updatedAt: new Date()
     });
     await company.save();
     res.json(company);
   } catch (err) {
+    console.error('Error creating company:', err);
     res.status(500).json({ error: 'Server error creating company' });
+  }
+});
+
+// Update company details (Owner / Admin)
+router.put('/:identifier', auth, async (req, res) => {
+  try {
+    const identifier = decodeURIComponent(req.params.identifier).trim();
+    if (!identifier) {
+      return res.status(400).json({ error: 'Company identifier is required' });
+    }
+
+    let query = { name: { $regex: new RegExp(`^${identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } };
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      query = { $or: [{ _id: identifier }, { name: identifier }] };
+    }
+
+    const {
+      name,
+      aliases,
+      prefixes,
+      billingAddress,
+      shippingAddress,
+      gstin,
+      vendorCode,
+      placeOfSupply,
+      state,
+      pincode
+    } = req.body;
+
+    const updateData = { updatedAt: new Date() };
+    if (name) updateData.name = name.trim();
+    if (aliases !== undefined) updateData.aliases = aliases;
+    if (prefixes !== undefined) updateData.prefixes = prefixes;
+    if (billingAddress !== undefined) updateData.billingAddress = billingAddress;
+    if (shippingAddress !== undefined) updateData.shippingAddress = shippingAddress;
+    if (gstin !== undefined) updateData.gstin = gstin;
+    if (vendorCode !== undefined) updateData.vendorCode = vendorCode;
+    if (placeOfSupply !== undefined) updateData.placeOfSupply = placeOfSupply;
+    if (state !== undefined) updateData.state = state;
+    if (pincode !== undefined) updateData.pincode = pincode;
+
+    const updated = await CompanyStorage.findOneAndUpdate(
+      query,
+      { $set: updateData },
+      { new: true, upsert: false }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    console.error('Error updating company:', err);
+    res.status(500).json({ error: 'Server error updating company' });
   }
 });
 
@@ -51,8 +146,6 @@ router.delete('/:identifier', auth, async (req, res) => {
       return res.status(400).json({ error: 'Company identifier is required' });
     }
 
-    // Try finding by name or by ObjectId
-    const mongoose = require('mongoose');
     let query = { name: { $regex: new RegExp(`^${identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } };
     if (mongoose.Types.ObjectId.isValid(identifier)) {
       query = { $or: [{ _id: identifier }, { name: identifier }] };
@@ -60,7 +153,7 @@ router.delete('/:identifier', auth, async (req, res) => {
 
     const updated = await CompanyStorage.findOneAndUpdate(
       query,
-      { $set: { isDeleted: true } },
+      { $set: { isDeleted: true, updatedAt: new Date() } },
       { upsert: true, new: true }
     );
 

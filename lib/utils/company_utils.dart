@@ -7,7 +7,7 @@ List<String> getCompaniesForPrefix(String itemName) {
   
   // Special handling for ADMAC
   if (upperName.contains('ADMAC') || upperName.contains('ADMACH')) {
-    return ['ADMAC'];
+    return ['ADMACH AUTO INDUSTRIES INDIA PVT LTD, FARIDABAD', 'ADMAC'];
   }
 
   // Special handling for Lapping Compound (LC)
@@ -15,30 +15,29 @@ List<String> getCompaniesForPrefix(String itemName) {
     return ['Lapping Compound'];
   }
 
-  
   // Special handling for BIL SRICITY
   if (upperName.startsWith('BIL') && (upperName.contains('SRIC') || upperName.contains('SRI CITY') || upperName.contains('SRI-CITY') || upperName.contains('BILSRI'))) {
-    return ['Brakes india limited SRICITY'];
+    return ['Brakes India Private Limited, Sri City', 'Brakes india limited SRICITY'];
   }
 
   // Special handling for RANE PONNERI
   if (upperName.contains('PONNERI') || upperName.contains('PONEERI') || upperName.contains('RANE MADRAS')) {
-    return ['RANE PONNERI'];
+    return ['Rane Madras Limited(ECD), Ponneri', 'RANE PONNERI'];
   }
 
   // Special handling for RBL with explicit locations
   if (upperName.startsWith('RBL ') || upperName.startsWith('RBL-')) {
     if (upperName.contains('TRICHY')) {
-      return ['Rane Brake Lining Limited Trichy'];
+      return ['Rane (Madras) Limited(BCD), Trichy', 'Rane Brake Lining Limited Trichy'];
     }
     if (upperName.contains('MEDAK')) {
-      return ['Rane Brakelining Limited Medak'];
+      return ['Rane (Madras) Limited(BCD), Medak', 'Rane Brakelining Limited Medak'];
     }
     if (upperName.contains('AMBATTUR')) {
-      return ['Rane Brake Lining Limited Ambattur'];
+      return ['Rane (Madras) Limited(BCD), Ambattur', 'Rane Brake Lining Limited Ambattur'];
     }
     if (upperName.contains('PONDICHERRY')) {
-      return ['Rane Brakelining Limited Pondicherry'];
+      return ['Rane (Madras) Limited(BCD), Pondicherry', 'Rane Brakelining Limited Pondicherry'];
     }
   }
 

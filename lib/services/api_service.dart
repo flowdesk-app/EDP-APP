@@ -984,17 +984,41 @@ class ApiService {
     }
   }
 
-  Future<void> createCompanyStorage(String name, String prefix) async {
+  Future<void> createCompanyStorage(
+    String name,
+    String prefix, {
+    List<String>? prefixes,
+    List<String>? aliases,
+    String? billingAddress,
+    String? shippingAddress,
+    String? gstin,
+    String? vendorCode,
+    String? placeOfSupply,
+    String? state,
+    String? pincode,
+  }) async {
     if (name.trim().isEmpty) return;
     await _loadToken();
     try {
+      final pList = (prefixes != null && prefixes.isNotEmpty)
+          ? prefixes
+          : [prefix.trim().toUpperCase()];
+      final payload = {
+        'name': name.trim(),
+        'prefixes': pList,
+        'aliases': aliases ?? [],
+        'billingAddress': billingAddress ?? '',
+        'shippingAddress': shippingAddress ?? '',
+        'gstin': gstin ?? '',
+        'vendorCode': vendorCode ?? '',
+        'placeOfSupply': placeOfSupply ?? '',
+        'state': state ?? '',
+        'pincode': pincode ?? '',
+      };
       final res = await http.post(
         Uri.parse('$baseUrl/companies'),
         headers: _headers,
-        body: jsonEncode({
-          'name': name.trim(),
-          'prefixes': [prefix.trim().toUpperCase()]
-        }),
+        body: jsonEncode(payload),
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -1003,6 +1027,28 @@ class ApiService {
     } catch (e) {
       debugPrint('Error creating company: $e');
     }
+  }
+
+  Future<bool> updateCompanyStorage(CompanyStorage company, {String? oldName}) async {
+    if (company.name.trim().isEmpty) return false;
+    await _loadToken();
+    try {
+      final identifier = (oldName != null && oldName.trim().isNotEmpty) ? oldName.trim() : company.name.trim();
+      final res = await http.put(
+        Uri.parse('$baseUrl/companies/${Uri.encodeComponent(identifier)}'),
+        headers: _headers,
+        body: jsonEncode(company.toJson()),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final updatedCompany = CompanyStorage.fromJson(data);
+        mergeDynamicCompanies([updatedCompany]);
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Error updating company: $e');
+    }
+    return false;
   }
 
   Future<bool> deleteCompanyStorage(String name) async {

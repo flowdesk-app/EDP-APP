@@ -265,6 +265,57 @@ class _CompanyItemsScreenState extends State<CompanyItemsScreen> {
                 ),
               ],
             ),
+            if (widget.company.gstin.isNotEmpty || widget.company.billingAddress.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.location_on_outlined, size: 20, color: Color(0xFF0288D1)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.company.billingAddress.isNotEmpty)
+                            Text(
+                              widget.company.billingAddress,
+                              style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.3),
+                            ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 4,
+                            children: [
+                              if (widget.company.gstin.isNotEmpty)
+                                Text('GSTIN: ${widget.company.gstin}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              if (widget.company.placeOfSupply.isNotEmpty)
+                                Text('Place of Supply: ${widget.company.placeOfSupply}', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                              if (widget.company.vendorCode.isNotEmpty)
+                                Text('Vendor Code: ${widget.company.vendorCode}', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (_isOwner && _isDeleteMode) ...[
               const SizedBox(height: 14),
               Container(
