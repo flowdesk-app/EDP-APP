@@ -21,8 +21,8 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
   final ApiService _api = ApiService();
   final WebCameraService _camera = WebCameraService();
 
-  // Mode: auto, in, out
-  String _scanMode = 'auto';
+  // Mode: in (Shift Entry), out (Shift Exit)
+  String _scanMode = 'in';
 
   // State
   bool _cameraActive = false;
@@ -98,8 +98,27 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
 
     try {
       String? snapshot;
-      if (forcePicker || !_cameraActive) {
+      if (forcePicker) {
         snapshot = await _camera.pickAndCaptureSnapshotBase64();
+        if (snapshot == null) return;
+        setState(() {
+          _scanning = true;
+          _lastPunchResult = null;
+        });
+      } else if (!_cameraActive) {
+        final started = await _camera.startCamera();
+        if (mounted) {
+          setState(() {
+            _cameraActive = started;
+            _errorMessage = _camera.lastError;
+          });
+        }
+        if (!started) {
+          return;
+        }
+        // Small delay to let video stream warm up
+        await Future.delayed(const Duration(milliseconds: 300));
+        snapshot = _camera.captureSnapshotBase64();
         if (snapshot == null) return;
         setState(() {
           _scanning = true;
@@ -398,19 +417,19 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
           _buildMiniStat(Icons.more_time, 'Overtime Active', '${totalOtHours.toStringAsFixed(1)} hrs', const Color(0xFFD97706)),
           const Spacer(),
 
-          // Shift Action Mode Toggle
+          // Shift Action Mode Toggle (Strict Dual Mode: Entry In vs Exit Out)
           Container(
-            padding: const EdgeInsets.all(3),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildModeTab('auto', 'Smart Auto', Icons.auto_mode),
                 _buildModeTab('in', 'Shift Entry (In)', Icons.login),
+                const SizedBox(width: 4),
                 _buildModeTab('out', 'Shift Exit (Out)', Icons.logout),
               ],
             ),
@@ -439,34 +458,31 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
 
   Widget _buildModeTab(String modeKey, String label, IconData icon) {
     final isSelected = _scanMode == modeKey;
-    final color = modeKey == 'in'
-        ? const Color(0xFF059669)
-        : modeKey == 'out'
-            ? const Color(0xFFDC2626)
-            : const Color(0xFF4338CA);
+    final activeBg = modeKey == 'in' ? const Color(0xFF059669) : const Color(0xFFDC2626);
 
     return InkWell(
       onTap: () => setState(() => _scanMode = modeKey),
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
+          color: isSelected ? activeBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
           boxShadow: isSelected
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 1))]
+              ? [BoxShadow(color: activeBg.withValues(alpha: 0.35), blurRadius: 6, offset: const Offset(0, 2))]
               : null,
         ),
         child: Row(
           children: [
-            Icon(icon, size: 14, color: isSelected ? color : const Color(0xFF64748B)),
-            const SizedBox(width: 5),
+            Icon(icon, size: 15, color: isSelected ? Colors.white : const Color(0xFF64748B)),
+            const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? color : const Color(0xFF64748B),
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.white : const Color(0xFF475569),
               ),
             ),
           ],
@@ -613,39 +629,70 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
               ),
             ),
 
-          // Shift Mode Banner on Camera
+          // Shift Mode Switcher on Top of Camera Viewport
           Positioned(
             top: 16,
             left: 16,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.black.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.white24),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _scanMode == 'in'
-                          ? const Color(0xFF10B981)
-                          : _scanMode == 'out'
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFF6366F1),
-                      shape: BoxShape.circle,
+                  InkWell(
+                    onTap: () => setState(() => _scanMode = 'in'),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _scanMode == 'in' ? const Color(0xFF059669) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.login, size: 14, color: _scanMode == 'in' ? Colors.white : Colors.white70),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Shift Entry (In)',
+                            style: TextStyle(
+                              color: _scanMode == 'in' ? Colors.white : Colors.white70,
+                              fontSize: 11.5,
+                              fontWeight: _scanMode == 'in' ? FontWeight.w800 : FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _scanMode == 'in'
-                        ? 'MODE: SHIFT ENTRY (IN-TIME)'
-                        : _scanMode == 'out'
-                            ? 'MODE: SHIFT EXIT (OUT-TIME)'
-                            : 'MODE: SMART AUTO-DETECT',
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => setState(() => _scanMode = 'out'),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _scanMode == 'out' ? const Color(0xFFDC2626) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 14, color: _scanMode == 'out' ? Colors.white : Colors.white70),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Shift Exit (Out)',
+                            style: TextStyle(
+                              color: _scanMode == 'out' ? Colors.white : Colors.white70,
+                              fontSize: 11.5,
+                              fontWeight: _scanMode == 'out' ? FontWeight.w800 : FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -659,24 +706,22 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
               child: ElevatedButton.icon(
                 onPressed: _scanning ? null : () => _captureAndVerifyCameraFrame(),
                 icon: _scanning
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.face, size: 22),
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Icon(_scanMode == 'out' ? Icons.logout : Icons.face, size: 22),
                 label: Text(
                   _scanning
                       ? 'Analyzing Biometrics...'
                       : _scanMode == 'in'
-                          ? 'Scan Face & Mark Entry (In-Time)'
-                          : _scanMode == 'out'
-                              ? 'Scan Face & Mark Exit (Out-Time)'
-                              : 'Scan Face & Mark Attendance',
+                          ? 'Scan Face & Mark Attendance'
+                          : 'Scan Face & Exit',
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _scanMode == 'out' ? const Color(0xFFDC2626) : const Color(0xFF4338CA),
+                  backgroundColor: _scanMode == 'out' ? const Color(0xFFDC2626) : const Color(0xFF059669),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   elevation: 6,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  textStyle: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, letterSpacing: 0.3),
                 ),
               ),
             ),
@@ -917,11 +962,11 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
       ),
       child: Row(
         children: [
-          const Icon(Icons.flash_on, size: 16, color: Color(0xFF4338CA)),
+          Icon(Icons.badge_outlined, size: 18, color: _scanMode == 'out' ? const Color(0xFFDC2626) : const Color(0xFF059669)),
           const SizedBox(width: 8),
-          const Text(
-            'Quick Punch & Enroll:',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF334155)),
+          Text(
+            '16 Staff Roster (${_scanMode == 'out' ? 'Shift Exit' : 'Shift Entry'}):',
+            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFF334155)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -931,28 +976,46 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
                 children: _enrolledEmployees.map((e) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: ActionChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: e.isFaceEnrolled ? const Color(0xFF10B981) : Colors.grey.shade400,
-                        radius: 8,
-                        child: Text(
-                          e.name.isNotEmpty ? e.name[0] : 'E',
-                          style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                    child: Tooltip(
+                      message: '${e.empNo} - ${e.name} (${e.department})\n${e.isFaceEnrolled ? 'Face Registered in Biometrics' : 'Face NOT Registered in Biometrics'}',
+                      child: ActionChip(
+                        avatar: CircleAvatar(
+                          backgroundColor: e.isFaceEnrolled ? const Color(0xFF10B981) : Colors.grey.shade400,
+                          radius: 9,
+                          child: Icon(
+                            e.isFaceEnrolled ? Icons.check : Icons.face,
+                            size: 11,
+                            color: Colors.white,
+                          ),
                         ),
+                        label: Text(
+                          '${e.empNo} ${e.name}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: e.isFaceEnrolled ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                          ),
+                        ),
+                        backgroundColor: e.isFaceEnrolled ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                        side: BorderSide(color: e.isFaceEnrolled ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0)),
+                        onPressed: () {
+                          if (e.isFaceEnrolled) {
+                            _processScanForEmployee(e.email);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('${e.name} (${e.empNo}) is not registered in the Biometric Section yet. Please enroll their face in Biometrics first.'),
+                                backgroundColor: const Color(0xFFDC2626),
+                                action: SnackBarAction(
+                                  label: 'Enroll Face',
+                                  textColor: Colors.white,
+                                  onPressed: () => _openEnrollmentDialog(e),
+                                ),
+                              ),
+                            );
+                          }
+                        },
                       ),
-                      label: Text(
-                        e.name.split(' ').first,
-                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600),
-                      ),
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      side: BorderSide(color: e.isFaceEnrolled ? const Color(0xFFA7F3D0) : const Color(0xFFCBD5E1)),
-                      onPressed: () {
-                        if (e.isFaceEnrolled) {
-                          _processScanForEmployee(e.email);
-                        } else {
-                          _openEnrollmentDialog(e);
-                        }
-                      },
                     ),
                   );
                 }).toList(),
@@ -963,7 +1026,8 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
           ElevatedButton.icon(
             onPressed: () {
               if (_enrolledEmployees.isNotEmpty) {
-                _openEnrollmentDialog(_enrolledEmployees.first);
+                final pending = _enrolledEmployees.firstWhere((e) => !e.isFaceEnrolled, orElse: () => _enrolledEmployees.first);
+                _openEnrollmentDialog(pending);
               }
             },
             icon: const Icon(Icons.person_add, size: 14),
@@ -974,7 +1038,7 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-              textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
             ),
           ),
         ],

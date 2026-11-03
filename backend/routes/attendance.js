@@ -3,6 +3,7 @@ const router = express.Router();
 const { spawn } = require('child_process');
 const path = require('path');
 const Attendance = require('../models/Attendance');
+const Payroll = require('../models/Payroll');
 const User = require('../models/User');
 
 const getTodayDateStr = () => {
@@ -28,31 +29,72 @@ const FACTORY_EMPLOYEES = [
   { empNo: "20048", name: "MAHESH G", designation: "ADMIN EXECUTIVE", department: "Admin", email: "20048@flowdesk.com" }
 ];
 
-async function ensureFactoryEmployees() {
-  const count = await User.countDocuments({ empNo: { $exists: true } });
-  if (count < 16) {
-    for (const emp of FACTORY_EMPLOYEES) {
-      let u = await User.findOne({ $or: [{ empNo: emp.empNo }, { email: emp.email }] });
-      if (!u) {
-        u = new User({
-          empNo: emp.empNo,
-          email: emp.email,
-          name: emp.name,
-          designation: emp.designation,
-          department: emp.department,
-          password: 'password123',
-          role: 'employee',
-          isFaceEnrolled: false,
-          faceEmbeddings: []
-        });
-        await u.save();
-      } else {
-        u.empNo = emp.empNo;
-        u.name = emp.name;
-        u.designation = emp.designation;
-        u.department = emp.department;
-        await u.save();
+async function syncAttendanceToPayroll(empNo, dateStr) {
+  try {
+    if (!empNo) return;
+    const month = dateStr ? dateStr.substring(0, 7) : getTodayDateStr().substring(0, 7);
+    const user = await User.findOne({ empNo }).lean();
+    if (!user) return;
+
+    const records = await Attendance.find({
+      employeeEmail: user.email,
+      date: { $regex: `^${month}` },
+      status: 'Completed'
+    }).lean();
+
+    const daysWorked = records.length;
+    const totalOtHours = records.reduce((s, r) => s + (r.overtimeHours || 0), 0);
+    const otDecimal = parseFloat(totalOtHours.toFixed(2));
+    const otHours = Math.floor(otDecimal);
+    const otMins = Math.round((otDecimal - otHours) * 60);
+    const otFormatted = `${otHours}h ${otMins}m`;
+
+    const payroll = await Payroll.findOne({ empNo, month });
+    if (payroll) {
+      if (daysWorked > 0) {
+        payroll.attendance.daysWorked = daysWorked;
       }
+      payroll.attendance.otHoursDecimal = otDecimal;
+      payroll.attendance.otHoursFormatted = otFormatted;
+
+      const basic = payroll.earnings?.basic || 5000;
+      const da = payroll.earnings?.da || 2500;
+      const hourlyRate = (basic + da) / 180;
+      const otAmount = Math.round(otDecimal * hourlyRate);
+
+      payroll.earnings.otAmount = otAmount;
+      payroll.earnings.grossSalary = (payroll.earnings.earnedGross || 0) + otAmount;
+      payroll.netSalary = Math.max(0, payroll.earnings.grossSalary - (payroll.deductions?.totalDeductions || 0));
+
+      await payroll.save();
+    }
+  } catch (err) {
+    console.error('Error syncing attendance to payroll:', err);
+  }
+}
+
+async function ensureFactoryEmployees() {
+  for (const emp of FACTORY_EMPLOYEES) {
+    let u = await User.findOne({ empNo: emp.empNo });
+    if (!u) {
+      u = new User({
+        empNo: emp.empNo,
+        email: emp.email,
+        name: emp.name,
+        designation: emp.designation,
+        department: emp.department,
+        password: 'password123',
+        role: 'employee',
+        isFaceEnrolled: false,
+        faceEmbeddings: []
+      });
+      await u.save();
+    } else {
+      let mod = false;
+      if (!u.name || u.name !== emp.name) { u.name = emp.name; mod = true; }
+      if (!u.department || u.department !== emp.department) { u.department = emp.department; mod = true; }
+      if (!u.designation || u.designation !== emp.designation) { u.designation = emp.designation; mod = true; }
+      if (mod) await u.save();
     }
   }
 }
@@ -181,9 +223,16 @@ router.post('/scan', async (req, res) => {
       return res.status(404).json({ error: 'Employee not found' });
     }
 
-    const def = DEFAULT_EMPLOYEE_DETAILS[email] || {};
-    const empName = user.name || def.name || email.split('@')[0];
-    const dept = user.department || def.department || 'Production';
+    const empName = user.name || user.empNo || email.split('@')[0];
+    const dept = user.department || 'Production';
+
+    if (!user.isFaceEnrolled) {
+      return res.status(400).json({
+        success: false,
+        notEnrolled: true,
+        error: `${empName} (${user.empNo || user.email}) is not enrolled in the Biometric Section yet. Attendance cannot be marked until facial biometrics are registered in the Biometric Section.`
+      });
+    }
 
     const todayDate = getTodayDateStr();
     const now = new Date();
@@ -225,6 +274,7 @@ router.post('/scan', async (req, res) => {
       if (notes) record.notes = notes;
       record.calculateShift();
       await record.save();
+      await syncAttendanceToPayroll(user.empNo, todayDate);
       actionTaken = 'out';
     } else {
       // Auto-detect: if no record or no clockInTime -> clock in. If clocked in without clockOutTime -> clock out.
@@ -407,7 +457,18 @@ router.post('/verify-camera-frame', async (req, res) => {
               success: false,
               matched: true,
               employee: { ...matchedEmp, name: empName, department: dept, photoUrl: user.facePhotoUrl },
-              error: `Cannot clock out. No clock-in record found for ${empName} today. Please scan Entry (Clock-In) first.`,
+              error: `Cannot record Shift Exit. No clock-in record found for ${empName} today. Please scan Shift Entry (In-Time) first.`,
+            });
+          }
+          if (record.clockOutTime) {
+            return res.json({
+              success: true,
+              matched: true,
+              alreadyCompleted: true,
+              employee: { ...matchedEmp, name: empName, department: dept, photoUrl: user.facePhotoUrl },
+              message: `${empName} has already completed shift exit today (${record.regularHours}h regular, ${record.overtimeHours}h OT).`,
+              record,
+              actionTaken: 'already_completed',
             });
           }
           record.clockOutTime = now;
@@ -415,6 +476,7 @@ router.post('/verify-camera-frame', async (req, res) => {
           if (notes) record.notes = notes;
           record.calculateShift();
           await record.save();
+          await syncAttendanceToPayroll(user?.empNo || matchedEmp.empNo, todayDate);
           actionTaken = 'out';
         } else {
           // Auto
@@ -451,6 +513,7 @@ router.post('/verify-camera-frame', async (req, res) => {
             if (notes) record.notes = notes;
             record.calculateShift();
             await record.save();
+            await syncAttendanceToPayroll(user?.empNo || matchedEmp.empNo, todayDate);
             actionTaken = 'out';
           } else {
             return res.json({
