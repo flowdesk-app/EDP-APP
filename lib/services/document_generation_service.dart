@@ -39,20 +39,53 @@ class DocumentGenerationService {
       reference = 'Job #${job.jobId}';
     }
 
-    // Description lines
+    // Description and Title formatting
+    String title = '';
     final descLines = <String>[];
-    if (job.wheelSize != null && job.wheelSize!.trim().isNotEmpty) {
-      descLines.add('EDP - ${job.wheelSize!.trim()}');
-    } else if (job.partDescription != null && job.partDescription!.trim().isNotEmpty) {
-      descLines.add('EDP - ${job.partDescription!.trim()}');
+
+    final rawPartNo = job.partNumber?.trim() ?? '';
+    final rawDesc = job.partDescription?.trim() ?? '';
+    final rawWheel = job.wheelSize?.trim() ?? '';
+
+    if (rawPartNo.isNotEmpty && !RegExp(r'^\d+$').hasMatch(rawPartNo) && rawPartNo.toLowerCase() != 'assembly') {
+      title = rawPartNo;
+      if (rawWheel.isNotEmpty) {
+        descLines.add(rawWheel.startsWith('EDP') ? rawWheel : 'EDP - $rawWheel');
+      } else if (rawDesc.isNotEmpty) {
+        descLines.add(rawDesc.startsWith('EDP') ? rawDesc : 'EDP - $rawDesc');
+      }
+    } else if (rawDesc.isNotEmpty) {
+      title = rawDesc;
+      if (rawWheel.isNotEmpty && rawWheel != rawDesc) {
+        descLines.add(rawWheel.startsWith('EDP') ? rawWheel : 'EDP - $rawWheel');
+      }
+      if (rawPartNo.isNotEmpty) {
+        descLines.add('Drg no :$rawPartNo');
+      }
+    } else if (rawWheel.isNotEmpty) {
+      final lines = rawWheel.split(RegExp(r'[\r\n]+')).map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+      if (lines.length > 1) {
+        title = lines[0].startsWith('EDP') ? lines[0] : 'EDP - ${lines[0]}';
+        descLines.addAll(lines.sublist(1));
+      } else {
+        title = rawWheel.startsWith('EDP') ? rawWheel : 'EDP - $rawWheel';
+      }
+      if (rawPartNo.isNotEmpty) {
+        descLines.add('Drg no :$rawPartNo');
+      }
     } else {
-      descLines.add('EDP Grinding Wheel');
+      title = 'EDP Grinding Wheel';
+      if (rawPartNo.isNotEmpty) {
+        descLines.add('Drg no :$rawPartNo');
+      }
     }
-    if (job.partNumber != null && job.partNumber!.trim().isNotEmpty) {
-      descLines.add('Drg no :${job.partNumber!.trim()}');
-    }
+
     if (job.diamondPowderGritSize != null && job.diamondPowderGritSize!.trim().isNotEmpty) {
-      descLines.add('Grit: ${job.diamondPowderGritSize!.trim()}');
+      final grit = job.diamondPowderGritSize!.trim();
+      final fullText = '$title ${descLines.join(' ')}';
+      if (!fullText.toLowerCase().contains(grit.toLowerCase())) {
+        descLines.add('Grit: $grit');
+      }
     }
 
     final billAddr = company?.billingAddress.isNotEmpty == true
@@ -86,6 +119,7 @@ class DocumentGenerationService {
       reference: reference,
       items: [
         InvoiceItem(
+          title: title,
           description: descLines.join('\n'),
           hsnCode: '68042110',
           quantity: job.quantity ?? 1,
