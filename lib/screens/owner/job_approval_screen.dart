@@ -81,8 +81,7 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
 
   List<JobModel> get _grantedJobs {
     return _allJobs.where((j) {
-      if (!j.accessGranted) return false;
-      if (j.grantedAt == null && j.grantedBy == null) return false;
+      if (!j.isOwnerGranted) return false;
       if (_searchQuery.isEmpty) return true;
       final q = _searchQuery.toLowerCase();
       return j.jobId.toLowerCase().contains(q) ||
@@ -338,7 +337,7 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final pendingCount = _allJobs.where((j) => !j.accessGranted).length;
-    final grantedCount = _allJobs.where((j) => j.accessGranted && (j.grantedAt != null || j.grantedBy != null)).length;
+    final grantedCount = _allJobs.where((j) => j.isOwnerGranted).length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),

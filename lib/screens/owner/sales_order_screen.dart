@@ -73,7 +73,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> with SingleTickerPr
   }
 
   List<JobModel> get _grantedJobs {
-    return _allJobs.where((j) => j.accessGranted == true).toList();
+    return _allJobs.where((j) => j.isOwnerGranted).toList();
   }
 
   List<JobModel> get _availableJobs {

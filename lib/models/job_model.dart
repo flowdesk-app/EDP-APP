@@ -87,6 +87,8 @@ class JobModel {
   final DateTime? grantedAt;
   final String? grantedBy;
 
+  bool get isOwnerGranted => accessGranted && (grantedAt != null || grantedBy != null);
+
   JobModel({
     this.id,
     required this.jobId,

@@ -94,8 +94,12 @@ void main() {
       status: 'Granted',
       createdDate: DateTime.now(),
       accessGranted: true,
+      grantedBy: 'Owner',
+      grantedAt: DateTime.now(),
       itemRate: 1000.0,
     );
+
+    expect(job.isOwnerGranted, true);
 
     var soData = DocumentGenerationService.buildSalesOrderData(job);
     var invData = DocumentGenerationService.buildTaxInvoiceData(job);

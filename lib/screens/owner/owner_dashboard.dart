@@ -74,7 +74,7 @@ class OwnerDashboardState extends State<OwnerDashboard> {
       if (ApiService().currentUser?.role == UserRole.owner) {
         final allJobs = await _api.getFilteredJobs();
         pendingCount = allJobs.where((j) => !j.accessGranted).length;
-        grantedCount = allJobs.where((j) => j.accessGranted && (j.grantedAt != null || j.grantedBy != null)).length;
+        grantedCount = allJobs.where((j) => j.isOwnerGranted).length;
       }
 
       if (mounted) {
