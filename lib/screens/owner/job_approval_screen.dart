@@ -790,10 +790,19 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => SalesOrderScreen(initialJob: job)),
-                    );
+                    ).then((_) => _loadJobs());
                   },
-                  icon: const Icon(Icons.assignment_outlined, size: 16),
-                  label: const Text('Generate Sale Order'),
+                  icon: Icon(
+                    job.salesOrderNumber != null && job.salesOrderNumber!.trim().isNotEmpty
+                        ? Icons.visibility
+                        : Icons.assignment_outlined,
+                    size: 16,
+                  ),
+                  label: Text(
+                    job.salesOrderNumber != null && job.salesOrderNumber!.trim().isNotEmpty
+                        ? 'View Sale Order'
+                        : 'Generate Sale Order',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
                     foregroundColor: Colors.white,
@@ -805,10 +814,19 @@ class _JobApprovalScreenState extends State<JobApprovalScreen> with SingleTicker
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => TaxInvoiceScreen(initialJob: job)),
-                    );
+                    ).then((_) => _loadJobs());
                   },
-                  icon: const Icon(Icons.receipt_long, size: 16),
-                  label: const Text('Generate Invoice'),
+                  icon: Icon(
+                    job.invoiceNumber != null && job.invoiceNumber!.trim().isNotEmpty
+                        ? Icons.visibility
+                        : Icons.receipt_long,
+                    size: 16,
+                  ),
+                  label: Text(
+                    job.invoiceNumber != null && job.invoiceNumber!.trim().isNotEmpty
+                        ? 'View Invoice'
+                        : 'Generate Invoice',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2E7D32),
                     foregroundColor: Colors.white,

@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:automated_dashboard/utils/pdf_tax_invoice_api.dart';
+import 'package:automated_dashboard/models/job_model.dart';
+import 'package:automated_dashboard/models/company_storage.dart';
+import 'package:automated_dashboard/services/document_generation_service.dart';
 
 void main() {
   test('PdfTaxInvoiceApi generates sample invoice 1 correctly', () async {
@@ -78,5 +81,57 @@ void main() {
 
     final outDir = Directory('/Users/siddarth-mac/.gemini/antigravity/brain/ed7196ec-da69-4194-986b-8cae9dfbf6e5/scratch');
     File('${outDir.path}/generated_tax_invoice_2.pdf').writeAsBytesSync(bytes);
+  });
+
+  test('DocumentGenerationService dynamically updates when job quantity or company database changes', () {
+    // 1. Initial job
+    var job = JobModel(
+      jobId: '2627-0099',
+      customerName: 'Rane (Madras) Limited(BCD), Medak',
+      quantity: 5,
+      wheelSize: 'Dia 150mm peripheral wheel',
+      partNumber: 'BP50011',
+      status: 'Granted',
+      createdDate: DateTime.now(),
+      accessGranted: true,
+      itemRate: 1000.0,
+    );
+
+    var soData = DocumentGenerationService.buildSalesOrderData(job);
+    var invData = DocumentGenerationService.buildTaxInvoiceData(job);
+
+    expect(soData.items.first.quantity, 5);
+    expect(invData.items.first.quantity, 5);
+    expect(invData.billToGstin, contains('36AACCR9772M1ZM'));
+
+    // 2. Simulate owner editing quantity in Granted tab
+    job = job.copyWith(quantity: 12);
+    soData = DocumentGenerationService.buildSalesOrderData(job);
+    invData = DocumentGenerationService.buildTaxInvoiceData(job);
+
+    expect(soData.items.first.quantity, 12);
+    expect(invData.items.first.quantity, 12);
+
+    // 3. Simulate owner updating company address and GSTIN in database (kCompanyStorages)
+    final existingIdx = kCompanyStorages.indexWhere((c) => c.name.contains('Medak'));
+    expect(existingIdx != -1, true);
+    final origCompany = kCompanyStorages[existingIdx];
+
+    kCompanyStorages[existingIdx] = origCompany.copyWith(
+      billingAddress: 'NEW UPDATED MEDAK FACTORY ROAD, TELANGANA 502311',
+      gstin: '36UPDATEDGSTIN123',
+    );
+
+    // Re-generate without re-entering anything
+    soData = DocumentGenerationService.buildSalesOrderData(job);
+    invData = DocumentGenerationService.buildTaxInvoiceData(job);
+
+    expect(soData.billToAddress, 'NEW UPDATED MEDAK FACTORY ROAD, TELANGANA 502311');
+    expect(invData.billToAddress, 'NEW UPDATED MEDAK FACTORY ROAD, TELANGANA 502311');
+    expect(soData.billToGstin, '36UPDATEDGSTIN123');
+    expect(invData.billToGstin, '36UPDATEDGSTIN123');
+
+    // Restore original company for test idempotency
+    kCompanyStorages[existingIdx] = origCompany;
   });
 }

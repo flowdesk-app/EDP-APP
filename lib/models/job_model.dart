@@ -63,6 +63,10 @@ class JobModel {
   
   final String? inspectionReportNumber;
   final String? invoiceNumber;
+  final DateTime? invoiceDate;
+  final String? salesOrderNumber;
+  final DateTime? salesOrderDate;
+  final double? itemRate;
 
   final bool sentToSpare;
   final String? usedSpareId;
@@ -142,6 +146,10 @@ class JobModel {
     this.poNotGiven = false,
     this.inspectionReportNumber,
     this.invoiceNumber,
+    this.invoiceDate,
+    this.salesOrderNumber,
+    this.salesOrderDate,
+    this.itemRate,
     this.sentToSpare = false,
     this.usedSpareId,
     this.edpPurchaseOrderNumber,
@@ -219,6 +227,10 @@ class JobModel {
     List<dynamic>? statusHistory,
     List<dynamic>? supplierMovements,
     String? invoiceNumber,
+    DateTime? invoiceDate,
+    String? salesOrderNumber,
+    DateTime? salesOrderDate,
+    double? itemRate,
     bool? sentToSpare,
     String? usedSpareId,
     String? edpPurchaseOrderNumber,
@@ -295,6 +307,10 @@ class JobModel {
       poNotGiven: poNotGiven ?? this.poNotGiven,
       inspectionReportNumber: inspectionReportNumber ?? this.inspectionReportNumber,
       invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      invoiceDate: invoiceDate ?? this.invoiceDate,
+      salesOrderNumber: salesOrderNumber ?? this.salesOrderNumber,
+      salesOrderDate: salesOrderDate ?? this.salesOrderDate,
+      itemRate: itemRate ?? this.itemRate,
       sentToSpare: sentToSpare ?? this.sentToSpare,
       usedSpareId: usedSpareId ?? this.usedSpareId,
       edpPurchaseOrderNumber: edpPurchaseOrderNumber ?? this.edpPurchaseOrderNumber,
@@ -375,6 +391,10 @@ class JobModel {
     poNotGiven: json['poNotGiven'] ?? false,
     inspectionReportNumber: json['inspectionReportNumber'],
     invoiceNumber: json['invoiceNumber'],
+    invoiceDate: json['invoiceDate'] != null ? DateTime.parse(json['invoiceDate']) : null,
+    salesOrderNumber: json['salesOrderNumber'],
+    salesOrderDate: json['salesOrderDate'] != null ? DateTime.parse(json['salesOrderDate']) : null,
+    itemRate: (json['itemRate'] as num?)?.toDouble(),
     sentToSpare: json['sentToSpare'] ?? false,
     usedSpareId: json['usedSpareId'],
     edpPurchaseOrderNumber: json['edpPurchaseOrderNumber'],
@@ -450,6 +470,10 @@ class JobModel {
     'poNotGiven': poNotGiven,
     'inspectionReportNumber': inspectionReportNumber,
     'invoiceNumber': invoiceNumber,
+    'invoiceDate': invoiceDate?.toIso8601String(),
+    'salesOrderNumber': salesOrderNumber,
+    'salesOrderDate': salesOrderDate?.toIso8601String(),
+    'itemRate': itemRate,
     'sentToSpare': sentToSpare,
     'usedSpareId': usedSpareId,
     'edpPurchaseOrderNumber': edpPurchaseOrderNumber,

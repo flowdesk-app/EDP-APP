@@ -105,3 +105,39 @@ bool smartMatch(String? target, String query) {
   });
 }
 
+/// Dynamically resolves the latest CompanyStorage record for a job based on its customerName.
+/// This ensures that if company details (name, address, GSTIN, vendor code, place of supply)
+/// are edited in the database, the latest information is immediately reflected everywhere.
+CompanyStorage? findCompanyForJob(String? customerName) {
+  if (customerName == null || customerName.trim().isEmpty) return null;
+  final nameTrimmed = customerName.trim();
+  final nameLower = nameTrimmed.toLowerCase();
+
+  // 1. Exact match on name
+  for (final c in kCompanyStorages) {
+    if (c.name.toLowerCase() == nameLower) return c;
+  }
+
+  // 2. Exact match on alias
+  for (final c in kCompanyStorages) {
+    if (c.aliases.any((a) => a.toLowerCase() == nameLower)) return c;
+  }
+
+  // 3. Substring match
+  for (final c in kCompanyStorages) {
+    if (c.name.toLowerCase().contains(nameLower) || nameLower.contains(c.name.toLowerCase())) {
+      return c;
+    }
+  }
+
+  // 4. Prefix match
+  for (final c in kCompanyStorages) {
+    if (c.prefixes.any((p) => nameLower.startsWith(p.toLowerCase()) || nameLower.contains(p.toLowerCase()))) {
+      return c;
+    }
+  }
+
+  return null;
+}
+
+
