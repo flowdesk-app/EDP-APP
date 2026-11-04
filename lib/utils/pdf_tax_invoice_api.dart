@@ -99,19 +99,17 @@ class TaxInvoiceData {
       ? double.parse((subTotal * 0.09).toStringAsFixed(2))
       : 0.0;
 
-  double get totalTaxAmount => igstAmount + cgstAmount + sgstAmount;
+  double get totalTaxAmount => isLutExempt ? 0.0 : (igstAmount + cgstAmount + sgstAmount);
 
   double get rawTotal => subTotal + totalTaxAmount;
 
   double get rounding {
     if (manualRounding != null) return manualRounding!;
-    if (totalTaxAmount == 0.0) return 0.0;
     final rounded = rawTotal.roundToDouble();
     return double.parse((rounded - rawTotal).toStringAsFixed(2));
   }
 
   double get grandTotal {
-    if (totalTaxAmount == 0.0) return subTotal;
     return rawTotal + rounding;
   }
 }
@@ -218,8 +216,17 @@ class PdfTaxInvoiceApi {
                       _buildTotalsAndBankSection(data),
 
                       // 7. HSN/SAC Summary Section (if taxable)
-                      if (!data.isLutExempt && data.totalTaxAmount > 0)
+                      if (!data.isLutExempt && data.totalTaxAmount > 0) ...[
+                        pw.Container(
+                          padding: const pw.EdgeInsets.only(left: 8, top: 7, bottom: 4),
+                          alignment: pw.Alignment.centerLeft,
+                          child: pw.Text(
+                            'HSN/SAC Summary:',
+                            style: const pw.TextStyle(fontSize: 8.5),
+                          ),
+                        ),
                         _buildHsnSummary(data),
+                      ],
 
                       pw.Spacer(),
                     ],
@@ -272,7 +279,7 @@ class PdfTaxInvoiceApi {
               alignment: pw.Alignment.topRight,
               child: pw.Text(
                 'TAX INVOICE',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
               ),
             ),
           ),
@@ -284,19 +291,20 @@ class PdfTaxInvoiceApi {
   static pw.Widget _buildMetaGrid(TaxInvoiceData data) {
     final dateStr = DateFormat('dd MMM yyyy').format(data.invoiceDate);
 
-    return pw.Container(
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: borderSide),
+    return pw.Table(
+      columnWidths: const {
+        0: pw.FlexColumnWidth(1.0),
+        1: pw.FlexColumnWidth(1.0),
+      },
+      border: const pw.TableBorder(
+        bottom: borderSide,
+        verticalInside: borderSide,
       ),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          // Left column
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(right: borderSide),
-              ),
+      children: [
+        pw.TableRow(
+          children: [
+            // Left column
+            pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -309,10 +317,8 @@ class PdfTaxInvoiceApi {
                 ],
               ),
             ),
-          ),
-          // Right column
-          pw.Expanded(
-            child: pw.Container(
+            // Right column
+            pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -333,9 +339,9 @@ class PdfTaxInvoiceApi {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -359,57 +365,63 @@ class PdfTaxInvoiceApi {
   }
 
   static pw.Widget _buildBillShipHeader() {
-    return pw.Container(
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: borderSide),
+    return pw.Table(
+      columnWidths: const {
+        0: pw.FlexColumnWidth(1.0),
+        1: pw.FlexColumnWidth(1.0),
+      },
+      border: const pw.TableBorder(
+        bottom: borderSide,
+        verticalInside: borderSide,
       ),
-      child: pw.Row(
-        children: [
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(right: borderSide),
-              ),
-              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+      children: [
+        pw.TableRow(
+          children: [
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               child: pw.Text(
                 'Bill To',
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
               ),
             ),
-          ),
-          pw.Expanded(
-            child: pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               child: pw.Text(
                 'Ship To',
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
   static pw.Widget _buildBillShipDetails(TaxInvoiceData data) {
-    final effectiveShipName = data.shipToName.isNotEmpty ? data.shipToName : data.billToName;
-    final effectiveShipAddr = data.shipToAddress.isNotEmpty ? data.shipToAddress : data.billToAddress;
-    final effectiveShipGstin = data.shipToGstin.isNotEmpty ? data.shipToGstin : data.billToGstin;
-    final effectiveShipVendor = data.shipToVendorCode.isNotEmpty ? data.shipToVendorCode : data.billToVendorCode;
+    final effectiveShipAddr = data.shipToAddress.isNotEmpty
+        ? data.shipToAddress
+        : data.billToAddress;
+    final effectiveShipGstin = data.shipToGstin.isNotEmpty
+        ? data.shipToGstin
+        : data.billToGstin;
+    final effectiveShipVendor = data.shipToVendorCode.isNotEmpty
+        ? data.shipToVendorCode
+        : data.billToVendorCode;
 
-    return pw.Container(
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: borderSide),
+    return pw.Table(
+      columnWidths: const {
+        0: pw.FlexColumnWidth(1.0),
+        1: pw.FlexColumnWidth(1.0),
+      },
+      border: const pw.TableBorder(
+        bottom: borderSide,
+        verticalInside: borderSide,
       ),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          // Bill To details
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(right: borderSide),
-              ),
+      children: [
+        pw.TableRow(
+          children: [
+            // Bill To Details
+            pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -418,8 +430,8 @@ class PdfTaxInvoiceApi {
                     data.billToName,
                     style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
                   ),
+                  pw.SizedBox(height: 2),
                   if (data.billToAddress.isNotEmpty) ...[
-                    pw.SizedBox(height: 2),
                     ...data.billToAddress.split(RegExp(r'[\r\n]+')).map(
                           (line) => pw.Text(line.trim(), style: const pw.TextStyle(fontSize: 8.0)),
                         ),
@@ -435,18 +447,16 @@ class PdfTaxInvoiceApi {
                 ],
               ),
             ),
-          ),
 
-          // Ship To details
-          pw.Expanded(
-            child: pw.Container(
+            // Ship To Details
+            pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  if (effectiveShipName.isNotEmpty && effectiveShipName != data.billToName) ...[
+                  if (data.shipToName.isNotEmpty && data.shipToName != data.billToName) ...[
                     pw.Text(
-                      effectiveShipName,
+                      data.shipToName,
                       style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
                     ),
                     pw.SizedBox(height: 2),
@@ -467,9 +477,9 @@ class PdfTaxInvoiceApi {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -482,11 +492,11 @@ class PdfTaxInvoiceApi {
       ),
       columnWidths: const {
         0: pw.FixedColumnWidth(24.0), // #
-        1: pw.FlexColumnWidth(1.0),   // Description
+        1: pw.FlexColumnWidth(1.0),   // Description (~253 pt)
         2: pw.FixedColumnWidth(64.0), // HSN/SAC
-        3: pw.FixedColumnWidth(46.0), // Qty
-        4: pw.FixedColumnWidth(64.0), // Rate
-        5: pw.FixedColumnWidth(68.0), // Amount
+        3: pw.FixedColumnWidth(50.0), // Qty
+        4: pw.FixedColumnWidth(72.0), // Rate
+        5: pw.FixedColumnWidth(76.0), // Amount
       },
       children: [
         // Header Row
@@ -520,7 +530,7 @@ class PdfTaxInvoiceApi {
                 padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 child: pw.Text(
                   item.description,
-                  style: const pw.TextStyle(fontSize: 8.5),
+                  style: const pw.TextStyle(fontSize: 8.5, lineSpacing: 1.2),
                 ),
               ),
               pw.Container(
@@ -562,9 +572,9 @@ class PdfTaxInvoiceApi {
     );
   }
 
-  static pw.Widget _tableHeaderCell(String text, {pw.TextAlign align = pw.TextAlign.left}) {
+  static pw.Widget _tableHeaderCell(String text, {required pw.TextAlign align}) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 5),
       alignment: align == pw.TextAlign.right
           ? pw.Alignment.centerRight
           : (align == pw.TextAlign.center ? pw.Alignment.center : pw.Alignment.centerLeft),
@@ -577,25 +587,24 @@ class PdfTaxInvoiceApi {
   }
 
   static pw.Widget _buildTotalsAndBankSection(TaxInvoiceData data) {
-    return pw.Container(
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: borderSide),
+    return pw.Table(
+      columnWidths: const {
+        0: pw.FlexColumnWidth(1.0),
+        1: pw.FixedColumnWidth(262.0), // Exactly matches sum of HSN(64) + Qty(50) + Rate(72) + Amount(76)
+      },
+      border: const pw.TableBorder(
+        verticalInside: borderSide,
       ),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          // Left Column (Words & Bank Details)
-          pw.Expanded(
-            flex: 11,
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(right: borderSide),
-              ),
+      children: [
+        pw.TableRow(
+          children: [
+            // Left Cell (Words & Bank Details)
+            pw.Container(
               padding: const pw.EdgeInsets.all(8),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('Total In Words', style: pw.TextStyle(fontSize: 8.5, fontStyle: pw.FontStyle.italic)),
+                  pw.Text('Total In Words', style: const pw.TextStyle(fontSize: 8.5)),
                   pw.SizedBox(height: 2),
                   pw.Text(
                     numberToWords(data.grandTotal),
@@ -606,8 +615,6 @@ class PdfTaxInvoiceApi {
                     ),
                   ),
                   pw.SizedBox(height: 8),
-                  pw.Divider(thickness: 0.5, color: PdfColors.black),
-                  pw.SizedBox(height: 4),
                   pw.Text('Bank Details', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 2),
                   pw.Text('Bank Name: Karur Vysya Bank', style: const pw.TextStyle(fontSize: 8.0)),
@@ -618,16 +625,16 @@ class PdfTaxInvoiceApi {
                 ],
               ),
             ),
-          ),
 
-          // Right Column (Totals & Signatory)
-          pw.Expanded(
-            flex: 9,
-            child: pw.Column(
+            // Right Cell (Totals Box & Signatory Box, each with border bottom)
+            pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
                 // Totals Rows
                 pw.Container(
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(bottom: borderSide),
+                  ),
                   padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   child: pw.Column(
                     children: [
@@ -652,24 +659,23 @@ class PdfTaxInvoiceApi {
                         pw.SizedBox(height: 3),
                         _totalLine('Rounding', formatIndianCurrency(data.rounding)),
                       ],
-                      pw.SizedBox(height: 4),
-                      pw.Divider(thickness: 0.5, color: PdfColors.black),
-                      pw.SizedBox(height: 2),
+                      pw.SizedBox(height: 3),
                       _totalLine(
                         'Total',
                         formatIndianCurrency(data.grandTotal),
                         isBold: true,
-                        fontSize: 10.0,
+                        fontSize: 9.5,
                       ),
                     ],
                   ),
                 ),
 
-                pw.Divider(thickness: 0.8, color: PdfColors.black),
-
                 // Signatory block
                 pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(bottom: borderSide),
+                  ),
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
@@ -677,7 +683,7 @@ class PdfTaxInvoiceApi {
                         'For Exclusive Diamond Products',
                         style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
                       ),
-                      pw.SizedBox(height: 36),
+                      pw.SizedBox(height: 42),
                       pw.Text(
                         'Authorized Signatory',
                         style: const pw.TextStyle(fontSize: 8.5),
@@ -687,9 +693,9 @@ class PdfTaxInvoiceApi {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -724,126 +730,367 @@ class PdfTaxInvoiceApi {
 
     final isIgst = data.taxType == TaxType.igst18 || data.taxType == TaxType.custom;
 
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+    if (isIgst) {
+      // 4-column table for IGST with Rate/Amount in IGST cell
+      const colWidths = <int, pw.TableColumnWidth>{
+        0: pw.FlexColumnWidth(1.0),   // HSN/SAC (~115 pt)
+        1: pw.FixedColumnWidth(165.0), // Taxable Amount
+        2: pw.FixedColumnWidth(150.0), // IGST (subdivided into Rate 55 + Amount 95)
+        3: pw.FixedColumnWidth(109.0), // Total Tax Amount
+      };
+
+      final totalTaxable = hsnMap.values.fold<double>(0.0, (sum, val) => sum + val);
+      final totalIgst = double.parse((totalTaxable * (data.igstRate / 100)).toStringAsFixed(2));
+
+      return pw.Table(
+        columnWidths: colWidths,
+        border: const pw.TableBorder(
+          top: borderSide,
+          bottom: borderSide,
+          horizontalInside: borderSide,
+          verticalInside: borderSide,
+        ),
         children: [
-          pw.Text('HSN/SAC Summary:', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 4),
-          pw.Table(
-            border: const pw.TableBorder(
-              top: borderSide,
-              bottom: borderSide,
-              left: borderSide,
-              right: borderSide,
-              horizontalInside: borderSide,
-              verticalInside: borderSide,
-            ),
+          // 2-tier Header Row
+          pw.TableRow(
             children: [
-              // Header Row
-              if (isIgst)
-                pw.TableRow(
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text('HSN/SAC', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text('Taxable Amount', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Column(
+                children: [
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('IGST', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                  ),
+                  pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(top: borderSide)),
+                    child: pw.Row(
+                      children: [
+                        pw.Container(
+                          width: 55,
+                          padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                          alignment: pw.Alignment.center,
+                          child: pw.Text('Rate', style: pw.TextStyle(fontSize: 8.0, fontWeight: pw.FontWeight.bold)),
+                        ),
+                        pw.Container(
+                          width: 95,
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                          alignment: pw.Alignment.centerRight,
+                          child: pw.Text('Amount', style: pw.TextStyle(fontSize: 8.0, fontWeight: pw.FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text('Total Tax Amount', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+            ],
+          ),
+
+          // Data Rows
+          ...hsnMap.entries.map((entry) {
+            final hsn = entry.key;
+            final taxable = entry.value;
+            final igstAmt = double.parse((taxable * (data.igstRate / 100)).toStringAsFixed(2));
+
+            return pw.TableRow(
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  alignment: pw.Alignment.centerLeft,
+                  child: pw.Text(hsn, style: const pw.TextStyle(fontSize: 8.5)),
+                ),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  alignment: pw.Alignment.centerRight,
+                  child: pw.Text(formatIndianCurrency(taxable), style: const pw.TextStyle(fontSize: 8.5)),
+                ),
+                pw.Row(
                   children: [
-                    _hsnCell('HSN/SAC', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell('Taxable Amount', isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('IGST Rate', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell('IGST Amount', isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('Total Tax Amount', isBold: true, align: pw.TextAlign.right),
-                  ],
-                )
-              else
-                pw.TableRow(
-                  children: [
-                    _hsnCell('HSN/SAC', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell('Taxable Amount', isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('CGST Rate', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell('CGST Amount', isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('SGST Rate', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell('SGST Amount', isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('Total Tax Amount', isBold: true, align: pw.TextAlign.right),
+                    pw.Container(
+                      width: 55,
+                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('${data.igstRate.toStringAsFixed(data.igstRate.truncateToDouble() == data.igstRate ? 0 : 1)}%', style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
+                    pw.Container(
+                      width: 95,
+                      decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      alignment: pw.Alignment.centerRight,
+                      child: pw.Text(formatIndianCurrency(igstAmt), style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
                   ],
                 ),
-
-              // Data Rows
-              ...hsnMap.entries.map((entry) {
-                final hsn = entry.key;
-                final taxable = entry.value;
-
-                if (isIgst) {
-                  final igstRate = data.igstRate;
-                  final igstAmt = double.parse((taxable * (igstRate / 100)).toStringAsFixed(2));
-                  return pw.TableRow(
-                    children: [
-                      _hsnCell(hsn, align: pw.TextAlign.center),
-                      _hsnCell(formatIndianCurrency(taxable), align: pw.TextAlign.right),
-                      _hsnCell('${igstRate.toStringAsFixed(igstRate.truncateToDouble() == igstRate ? 0 : 1)}%', align: pw.TextAlign.center),
-                      _hsnCell(formatIndianCurrency(igstAmt), align: pw.TextAlign.right),
-                      _hsnCell(formatIndianCurrency(igstAmt), align: pw.TextAlign.right),
-                    ],
-                  );
-                } else {
-                  final cgstAmt = double.parse((taxable * 0.09).toStringAsFixed(2));
-                  final sgstAmt = double.parse((taxable * 0.09).toStringAsFixed(2));
-                  return pw.TableRow(
-                    children: [
-                      _hsnCell(hsn, align: pw.TextAlign.center),
-                      _hsnCell(formatIndianCurrency(taxable), align: pw.TextAlign.right),
-                      _hsnCell('9%', align: pw.TextAlign.center),
-                      _hsnCell(formatIndianCurrency(cgstAmt), align: pw.TextAlign.right),
-                      _hsnCell('9%', align: pw.TextAlign.center),
-                      _hsnCell(formatIndianCurrency(sgstAmt), align: pw.TextAlign.right),
-                      _hsnCell(formatIndianCurrency(cgstAmt + sgstAmt), align: pw.TextAlign.right),
-                    ],
-                  );
-                }
-              }),
-
-              // Total Row
-              if (isIgst)
-                pw.TableRow(
-                  children: [
-                    _hsnCell('Total', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell(formatIndianCurrency(data.taxableAmount), isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('', align: pw.TextAlign.center),
-                    _hsnCell(formatIndianCurrency(data.igstAmount), isBold: true, align: pw.TextAlign.right),
-                    _hsnCell(formatIndianCurrency(data.totalTaxAmount), isBold: true, align: pw.TextAlign.right),
-                  ],
-                )
-              else
-                pw.TableRow(
-                  children: [
-                    _hsnCell('Total', isBold: true, align: pw.TextAlign.center),
-                    _hsnCell(formatIndianCurrency(data.taxableAmount), isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('', align: pw.TextAlign.center),
-                    _hsnCell(formatIndianCurrency(data.cgstAmount), isBold: true, align: pw.TextAlign.right),
-                    _hsnCell('', align: pw.TextAlign.center),
-                    _hsnCell(formatIndianCurrency(data.sgstAmount), isBold: true, align: pw.TextAlign.right),
-                    _hsnCell(formatIndianCurrency(data.totalTaxAmount), isBold: true, align: pw.TextAlign.right),
-                  ],
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  alignment: pw.Alignment.centerRight,
+                  child: pw.Text(formatIndianCurrency(igstAmt), style: const pw.TextStyle(fontSize: 8.5)),
                 ),
+              ],
+            );
+          }),
+
+          // Total Row
+          pw.TableRow(
+            children: [
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text('Total', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(formatIndianCurrency(totalTaxable), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Row(
+                children: [
+                  pw.Container(width: 55),
+                  pw.Container(
+                    width: 95,
+                    decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    alignment: pw.Alignment.centerRight,
+                    child: pw.Text(formatIndianCurrency(totalIgst), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(formatIndianCurrency(totalIgst), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
             ],
           ),
         ],
-      ),
-    );
-  }
+      );
+    } else {
+      // 5-column table for CGST + SGST
+      const colWidths = <int, pw.TableColumnWidth>{
+        0: pw.FlexColumnWidth(1.0),   // HSN/SAC (~95 pt)
+        1: pw.FixedColumnWidth(125.0), // Taxable Amount
+        2: pw.FixedColumnWidth(110.0), // CGST (Rate 45 + Amount 65)
+        3: pw.FixedColumnWidth(110.0), // SGST (Rate 45 + Amount 65)
+        4: pw.FixedColumnWidth(99.0),  // Total Tax Amount
+      };
 
-  static pw.Widget _hsnCell(String text, {bool isBold = false, pw.TextAlign align = pw.TextAlign.left}) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-      alignment: align == pw.TextAlign.right
-          ? pw.Alignment.centerRight
-          : (align == pw.TextAlign.center ? pw.Alignment.center : pw.Alignment.centerLeft),
-      child: pw.Text(
-        text,
-        textAlign: align,
-        style: pw.TextStyle(
-          fontSize: 7.5,
-          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+      final totalTaxable = hsnMap.values.fold<double>(0.0, (sum, val) => sum + val);
+      final totalCgst = double.parse((totalTaxable * 0.09).toStringAsFixed(2));
+      final totalSgst = double.parse((totalTaxable * 0.09).toStringAsFixed(2));
+      final grandTax = totalCgst + totalSgst;
+
+      return pw.Table(
+        columnWidths: colWidths,
+        border: const pw.TableBorder(
+          top: borderSide,
+          bottom: borderSide,
+          horizontalInside: borderSide,
+          verticalInside: borderSide,
         ),
-      ),
-    );
+        children: [
+          // 2-tier Header Row
+          pw.TableRow(
+            children: [
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text('HSN/SAC', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text('Taxable Amount', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Column(
+                children: [
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('CGST', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                  ),
+                  pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(top: borderSide)),
+                    child: pw.Row(
+                      children: [
+                        pw.Container(
+                          width: 45,
+                          padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                          alignment: pw.Alignment.center,
+                          child: pw.Text('Rate', style: pw.TextStyle(fontSize: 8.0, fontWeight: pw.FontWeight.bold)),
+                        ),
+                        pw.Container(
+                          width: 65,
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                          alignment: pw.Alignment.centerRight,
+                          child: pw.Text('Amount', style: pw.TextStyle(fontSize: 8.0, fontWeight: pw.FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              pw.Column(
+                children: [
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                    alignment: pw.Alignment.center,
+                    child: pw.Text('SGST', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                  ),
+                  pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(top: borderSide)),
+                    child: pw.Row(
+                      children: [
+                        pw.Container(
+                          width: 45,
+                          padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                          alignment: pw.Alignment.center,
+                          child: pw.Text('Rate', style: pw.TextStyle(fontSize: 8.0, fontWeight: pw.FontWeight.bold)),
+                        ),
+                        pw.Container(
+                          width: 65,
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                          alignment: pw.Alignment.centerRight,
+                          child: pw.Text('Amount', style: pw.TextStyle(fontSize: 8.0, fontWeight: pw.FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text('Total Tax Amount', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+            ],
+          ),
+
+          // Data Rows
+          ...hsnMap.entries.map((entry) {
+            final hsn = entry.key;
+            final taxable = entry.value;
+            final cgstAmt = double.parse((taxable * 0.09).toStringAsFixed(2));
+            final sgstAmt = double.parse((taxable * 0.09).toStringAsFixed(2));
+
+            return pw.TableRow(
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  alignment: pw.Alignment.centerLeft,
+                  child: pw.Text(hsn, style: const pw.TextStyle(fontSize: 8.5)),
+                ),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  alignment: pw.Alignment.centerRight,
+                  child: pw.Text(formatIndianCurrency(taxable), style: const pw.TextStyle(fontSize: 8.5)),
+                ),
+                pw.Row(
+                  children: [
+                    pw.Container(
+                      width: 45,
+                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('9%', style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
+                    pw.Container(
+                      width: 65,
+                      decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      alignment: pw.Alignment.centerRight,
+                      child: pw.Text(formatIndianCurrency(cgstAmt), style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
+                  ],
+                ),
+                pw.Row(
+                  children: [
+                    pw.Container(
+                      width: 45,
+                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('9%', style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
+                    pw.Container(
+                      width: 65,
+                      decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      alignment: pw.Alignment.centerRight,
+                      child: pw.Text(formatIndianCurrency(sgstAmt), style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
+                  ],
+                ),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  alignment: pw.Alignment.centerRight,
+                  child: pw.Text(formatIndianCurrency(cgstAmt + sgstAmt), style: const pw.TextStyle(fontSize: 8.5)),
+                ),
+              ],
+            );
+          }),
+
+          // Total Row
+          pw.TableRow(
+            children: [
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text('Total', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(formatIndianCurrency(totalTaxable), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Row(
+                children: [
+                  pw.Container(width: 45),
+                  pw.Container(
+                    width: 65,
+                    decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    alignment: pw.Alignment.centerRight,
+                    child: pw.Text(formatIndianCurrency(totalCgst), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                  ),
+                ],
+              ),
+              pw.Row(
+                children: [
+                  pw.Container(width: 45),
+                  pw.Container(
+                    width: 65,
+                    decoration: const pw.BoxDecoration(border: pw.Border(left: borderSide)),
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    alignment: pw.Alignment.centerRight,
+                    child: pw.Text(formatIndianCurrency(totalSgst), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(formatIndianCurrency(grandTax), style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
   }
 
   static pw.Widget _buildFooter() {
