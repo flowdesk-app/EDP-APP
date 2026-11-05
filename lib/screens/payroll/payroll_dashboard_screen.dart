@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
+import '../../widgets/payroll_auth_dialog.dart';
 import 'attendance_terminal_dashboard.dart';
 import 'bank_transfers_screen.dart';
 import 'biometric_registry_screen.dart';
@@ -58,7 +59,26 @@ class _PayrollDashboardScreenState extends State<PayrollDashboardScreen> {
       const BiometricRegistryScreen(),
     ];
 
-    final currentScreen = _selectedIndex < screens.length ? screens[_selectedIndex] : screens[0];
+    Widget currentScreen;
+    if (_selectedIndex >= 1 && !PayrollAuthService.isUnlocked) {
+      final titles = [
+        'Attendance Terminal',
+        'Executive Overview',
+        'Salary Statement',
+        'Employee Pay Slips',
+        'Bank Transfers',
+        'Leave Register',
+        'Staff Personal Loans',
+        'Staff Biometrics',
+      ];
+      final title = _selectedIndex < titles.length ? titles[_selectedIndex] : 'Payroll Section';
+      currentScreen = PayrollLockedPlaceholder(
+        sectionTitle: title,
+        onUnlocked: () => setState(() {}),
+      );
+    } else {
+      currentScreen = _selectedIndex < screens.length ? screens[_selectedIndex] : screens[0];
+    }
 
     return Scaffold(
       body: Row(
@@ -126,6 +146,20 @@ class _PayrollDashboardScreenState extends State<PayrollDashboardScreen> {
                     ],
                   ),
                 ),
+                IconButton(
+                  tooltip: PayrollAuthService.isUnlocked ? 'Lock Admin Sections (Requires 1212)' : 'Locked',
+                  icon: Icon(
+                    PayrollAuthService.isUnlocked ? Icons.lock_open : Icons.lock_outline,
+                    size: 16,
+                    color: PayrollAuthService.isUnlocked ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                  ),
+                  onPressed: () {
+                    if (PayrollAuthService.isUnlocked) {
+                      PayrollAuthService.lock();
+                      setState(() => _selectedIndex = 0);
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -140,9 +174,16 @@ class _PayrollDashboardScreenState extends State<PayrollDashboardScreen> {
                 final item = items[idx];
                 final isSelected = _selectedIndex == idx;
                 final badge = item['badge'] as String?;
+                final isLocked = idx >= 1 && !PayrollAuthService.isUnlocked;
 
                 return InkWell(
-                  onTap: () => setState(() => _selectedIndex = idx),
+                  onTap: () async {
+                    if (idx >= 1) {
+                      final ok = await PayrollAuthService.ensureAuthorized(context, targetSection: item['title'] as String?);
+                      if (!ok) return;
+                    }
+                    setState(() => _selectedIndex = idx);
+                  },
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -168,7 +209,12 @@ class _PayrollDashboardScreenState extends State<PayrollDashboardScreen> {
                             ),
                           ),
                         ),
-                        if (badge != null)
+                        if (isLocked)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 4),
+                            child: Icon(Icons.lock_outline, size: 14, color: Color(0xFF94A3B8)),
+                          )
+                        else if (badge != null)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(

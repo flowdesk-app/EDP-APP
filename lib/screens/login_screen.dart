@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../widgets/flowdesk_logo.dart';
+import '../widgets/estimate_auth_dialog.dart';
+import '../widgets/payroll_auth_dialog.dart';
 import 'owner/main_layout.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,6 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (!mounted) return;
+
+    PayrollAuthService.lock();
+    EstimateAuthService.lock();
 
     // Both Admin and Employee use the MainLayout now
     Navigator.pushReplacement(

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/attendance_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/global_logout_button.dart';
+import '../../widgets/payroll_auth_dialog.dart';
 import 'camera_permission_guide_dialog.dart';
 import 'face_enrollment_dialog.dart';
 import 'web_camera_service.dart';
@@ -222,6 +223,10 @@ class _AttendanceTerminalDashboardState extends State<AttendanceTerminalDashboar
   }
 
   void _openEnrollmentDialog(EnrolledEmployeeModel employee) async {
+    final auth = await PayrollAuthService.ensureAuthorized(context, targetSection: 'Biometrics');
+    if (!auth) return;
+
+    if (!mounted) return;
     final updated = await showDialog<bool>(
       context: context,
       builder: (ctx) => FaceEnrollmentDialog(employee: employee),

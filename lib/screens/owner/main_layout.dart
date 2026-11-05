@@ -23,6 +23,7 @@ import 'job_approval_screen.dart';
 import 'estimates_screen.dart';
 import 'delivery_challans_screen.dart';
 import '../../widgets/estimate_auth_dialog.dart';
+import '../../widgets/payroll_auth_dialog.dart';
 import '../payroll/attendance_terminal_dashboard.dart';
 import '../payroll/executive_overview_screen.dart';
 import '../payroll/salary_statement_screen.dart';
@@ -237,7 +238,7 @@ class _MainLayoutState extends State<MainLayout> {
       body: Row(
         children: [
           LayoutBuilder(
-            builder: (context, constraints) {
+            builder: (_, constraints) {
               return SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -247,7 +248,14 @@ class _MainLayoutState extends State<MainLayout> {
                       onDestinationSelected: (int index) async {
                         if (index < _screens.length && _screens[index] is EstimatesScreen) {
                           final auth = await EstimateAuthService.ensureAuthorized(context);
-                          if (!auth) return;
+                          if (!auth || !mounted) return;
+                        }
+                        if (_role == UserRole.payroll && index >= 1) {
+                          final targetName = index < _destinations.length && _destinations[index].label is Text
+                              ? (_destinations[index].label as Text).data
+                              : 'Overview';
+                          final auth = await PayrollAuthService.ensureAuthorized(context, targetSection: targetName);
+                          if (!auth || !mounted) return;
                         }
                         if (index < _screens.length && _screens[index] is OwnerDashboard) {
                           _dashboardKey.currentState?.reload();
@@ -260,7 +268,40 @@ class _MainLayoutState extends State<MainLayout> {
                       backgroundColor: Colors.white,
                       selectedIconTheme: const IconThemeData(color: Color(0xFF29B6F6)),
                       selectedLabelTextStyle: const TextStyle(color: Color(0xFF29B6F6), fontWeight: FontWeight.bold),
-
+                      trailing: _role == UserRole.payroll
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 16, bottom: 12),
+                              child: IconButton(
+                                tooltip: PayrollAuthService.isUnlocked
+                                    ? 'Lock Admin Sections (Requires 1212)'
+                                    : 'Admin Sections Locked (Click to Unlock)',
+                                icon: Icon(
+                                  PayrollAuthService.isUnlocked ? Icons.lock_open_rounded : Icons.lock_rounded,
+                                  color: PayrollAuthService.isUnlocked ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                                  size: 22,
+                                ),
+                                onPressed: () async {
+                                  if (PayrollAuthService.isUnlocked) {
+                                    PayrollAuthService.lock();
+                                    setState(() {
+                                      _currentIndex = 0; // Return to Attendance
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Payroll admin sections locked. Password (1212) required to re-open.'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  } else {
+                                    final ok = await PayrollAuthService.ensureAuthorized(context, targetSection: 'Overview');
+                                    if (ok && mounted) {
+                                      setState(() {});
+                                    }
+                                  }
+                                },
+                              ),
+                            )
+                          : null,
                       destinations: _destinations,
                     ),
                   ),
@@ -270,11 +311,25 @@ class _MainLayoutState extends State<MainLayout> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: _currentIndex < _screens.length ? _screens[_currentIndex] : const SizedBox(),
+            child: _buildCurrentScreen(),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildCurrentScreen() {
+    if (_currentIndex >= _screens.length) return const SizedBox();
+    if (_role == UserRole.payroll && _currentIndex >= 1 && !PayrollAuthService.isUnlocked) {
+      final targetName = _currentIndex < _destinations.length && _destinations[_currentIndex].label is Text
+          ? (_destinations[_currentIndex].label as Text).data ?? 'Overview'
+          : 'Overview';
+      return PayrollLockedPlaceholder(
+        sectionTitle: targetName,
+        onUnlocked: () => setState(() {}),
+      );
+    }
+    return _screens[_currentIndex];
   }
 
   Widget _buildMobileLayout() {
@@ -295,12 +350,22 @@ class _MainLayoutState extends State<MainLayout> {
               return ListTile(
                 leading: _currentIndex == index ? _destinations[index].selectedIcon : _destinations[index].icon,
                 title: _destinations[index].label,
+                trailing: (_role == UserRole.payroll && index >= 1 && !PayrollAuthService.isUnlocked)
+                    ? const Icon(Icons.lock_outline, size: 16, color: Color(0xFF94A3B8))
+                    : null,
                 selected: _currentIndex == index,
                 selectedColor: const Color(0xFF29B6F6),
                 onTap: () async {
                   if (index < _screens.length && _screens[index] is EstimatesScreen) {
                     final auth = await EstimateAuthService.ensureAuthorized(context);
-                    if (!auth) return;
+                    if (!auth || !mounted) return;
+                  }
+                  if (_role == UserRole.payroll && index >= 1) {
+                    final targetName = index < _destinations.length && _destinations[index].label is Text
+                        ? (_destinations[index].label as Text).data
+                        : 'Overview';
+                    final auth = await PayrollAuthService.ensureAuthorized(context, targetSection: targetName);
+                    if (!auth || !mounted) return;
                   }
                   if (index == 0) {
                     _dashboardKey.currentState?.reload();
@@ -316,6 +381,8 @@ class _MainLayoutState extends State<MainLayout> {
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
               onTap: () async {
+                PayrollAuthService.lock();
+                EstimateAuthService.lock();
                 await ApiService().logout();
                 if (mounted) {
                   Navigator.pushAndRemoveUntil(
@@ -329,12 +396,23 @@ class _MainLayoutState extends State<MainLayout> {
           ],
         ),
       ),
-      body: _currentIndex < _screens.length ? _screens[_currentIndex] : const SizedBox(),
+      body: _buildCurrentScreen(),
       bottomNavigationBar: _destinations.length >= 2
           ? BottomNavigationBar(
               currentIndex: _currentIndex >= _destinations.take(4).length ? 0 : _currentIndex,
               type: BottomNavigationBarType.fixed,
-              onTap: (index) {
+              onTap: (index) async {
+                if (index < _screens.length && _screens[index] is EstimatesScreen) {
+                  final auth = await EstimateAuthService.ensureAuthorized(context);
+                  if (!auth || !mounted) return;
+                }
+                if (_role == UserRole.payroll && index >= 1) {
+                  final targetName = index < _destinations.length && _destinations[index].label is Text
+                      ? (_destinations[index].label as Text).data
+                      : 'Overview';
+                  final auth = await PayrollAuthService.ensureAuthorized(context, targetSection: targetName);
+                  if (!auth || !mounted) return;
+                }
                 if (index == 0 && (_role == UserRole.admin || _role == UserRole.owner)) {
                   _dashboardKey.currentState?.reload();
                 }
