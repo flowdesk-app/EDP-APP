@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/attendance_model.dart';
 import '../../services/api_service.dart';
+import 'camera_permission_guide_dialog.dart';
 import 'web_camera_service.dart';
 
 class AddEditEmployeeDialog extends StatefulWidget {
@@ -115,7 +116,16 @@ class _AddEditEmployeeDialogState extends State<AddEditEmployeeDialog> {
     if (_camera.isSupported) {
       _camera.registerView(_viewId);
       final active = await _camera.startCamera();
-      if (mounted) setState(() => _cameraActive = active);
+      if (mounted) {
+        setState(() => _cameraActive = active);
+        if (!active) {
+          showCameraPermissionGuideDialog(
+            context,
+            onRetry: _startWebcam,
+            onUseFallback: _pickPhotoFromFile,
+          );
+        }
+      }
     }
   }
 

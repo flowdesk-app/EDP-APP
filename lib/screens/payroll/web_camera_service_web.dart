@@ -32,15 +32,33 @@ class WebCameraService {
 
   String _formatCameraError(String str) {
     if (str.contains('NotAllowedError') || str.contains('PermissionDeniedError') || str.contains('Permission denied')) {
-      return 'Camera access was blocked by the browser or system. Please:\n1. Click the lock/tune icon on the left of your URL bar and toggle Camera to Allow.\n2. On Windows: Settings -> Privacy -> Camera: enable "Camera access" and "Let desktop apps access your camera".\n3. On iPhone/iPad: Apple requires using Safari for live camera streams (or use Snap / Upload Photo below).';
+      return 'Camera access is currently blocked by your browser.\n\n⚠️ Why the browser doesn\'t prompt again:\nBrowsers remember your previous "Block" choice and will NOT show the permission prompt again until you allow it in your URL bar.\n\nHow to unblock in 2 clicks:\n1. Look at your browser address bar at the very top.\n2. Click the 🎛️ Tune / Lock 🔒 icon on the left of the website URL.\n3. Change "Camera" to "Allow".\n4. On Mac: Also verify Apple Menu  -> System Settings -> Privacy & Security -> Camera.';
     }
     if (str.contains('NotFoundError') || str.contains('DevicesNotFoundError')) {
       return 'No camera hardware found. Please verify your laptop camera privacy slider/switch is open, or use Snap / Upload Photo below.';
     }
     if (str.contains('NotReadableError') || str.contains('TrackStartError')) {
-      return 'Camera is being used by another application (WhatsApp, Teams, Zoom, or Camera app). Please close other apps and click Start / Allow Camera.';
+      return 'Camera is being used by another application (WhatsApp, Teams, Zoom, or FaceTime). Please close other apps and click Start / Allow Camera.';
     }
     return 'Camera access error: $str';
+  }
+
+  Future<String> getPermissionState() async {
+    try {
+      if (js.context.hasProperty('getCameraPermissionState')) {
+        final res = js.context.callMethod('getCameraPermissionState');
+        return res?.toString() ?? 'unknown';
+      }
+    } catch (_) {}
+    return 'unknown';
+  }
+
+  void listenToPermissionChange(void Function(String state) onStateChanged) {
+    try {
+      js.context['_onCameraPermissionChanged'] = js.JsFunction.withThis((self, [dynamic state]) {
+        onStateChanged(state?.toString() ?? '');
+      });
+    } catch (_) {}
   }
 
   Future<bool> startCamera() async {

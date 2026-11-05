@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../models/attendance_model.dart';
 import '../../services/api_service.dart';
+import 'camera_permission_guide_dialog.dart';
 import 'web_camera_service.dart';
 
 class FaceEnrollmentDialog extends StatefulWidget {
@@ -31,6 +32,13 @@ class _FaceEnrollmentDialogState extends State<FaceEnrollmentDialog> {
     _viewId = 'face-enroll-video-${DateTime.now().millisecondsSinceEpoch}';
     if (_camera.isSupported) {
       _camera.registerView(_viewId);
+      _camera.listenToPermissionChange((state) {
+        if (state == 'granted' && mounted && !_cameraActive) {
+          _camera.startCamera().then((active) {
+            if (mounted) setState(() => _cameraActive = active);
+          });
+        }
+      });
       _camera.startCamera().then((active) {
         if (mounted) setState(() => _cameraActive = active);
       });
@@ -281,6 +289,33 @@ class _FaceEnrollmentDialogState extends State<FaceEnrollmentDialog> {
                     ),
                   ),
                 ] else ...[
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final photo = await _camera.pickAndCaptureSnapshotBase64();
+                      if (photo != null && mounted) {
+                        setState(() {
+                          _capturedImageBase64 = photo;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.upload_file, size: 16),
+                    label: const Text('Upload Photo'),
+                  ),
+                  const SizedBox(width: 8),
+                  if (!_cameraActive)
+                    IconButton(
+                      tooltip: 'Camera Help / Why isn\'t it asking for permission?',
+                      icon: const Icon(Icons.help_outline, color: Color(0xFFF59E0B)),
+                      onPressed: () => showCameraPermissionGuideDialog(
+                        context,
+                        onRetry: () {
+                          _camera.startCamera().then((active) {
+                            if (mounted) setState(() => _cameraActive = active);
+                          });
+                        },
+                      ),
+                    ),
                   ElevatedButton.icon(
                     onPressed: _cameraActive && !_capturing ? _capturePhoto : null,
                     icon: const Icon(Icons.camera_alt, size: 18),

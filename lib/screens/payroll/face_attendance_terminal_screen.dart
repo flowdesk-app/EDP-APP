@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/attendance_model.dart';
 import '../../services/api_service.dart';
+import 'camera_permission_guide_dialog.dart';
 import 'web_camera_service.dart';
 
 class FaceAttendanceTerminalScreen extends StatefulWidget {
@@ -48,7 +49,12 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
 
     if (_camera.isSupported) {
       _camera.registerView(_viewId);
-      _startStream();
+      _camera.listenToPermissionChange((state) {
+        if (state == 'granted' && mounted && !_cameraActive) {
+          _startStream(userTriggered: false);
+        }
+      });
+      _startStream(userTriggered: false);
     }
   }
 
@@ -75,7 +81,7 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
     }
   }
 
-  Future<void> _startStream() async {
+  Future<void> _startStream({bool userTriggered = false}) async {
     setState(() {
       _errorMessage = null;
     });
@@ -89,6 +95,13 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
           _errorMessage = null;
         }
       });
+      if (!active && userTriggered) {
+        showCameraPermissionGuideDialog(
+          context,
+          onRetry: () => _startStream(userTriggered: true),
+          onUseFallback: () => _captureAndVerifyCameraFrame(forcePicker: true),
+        );
+      }
     }
   }
 
@@ -378,28 +391,51 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                       'Webcam Permission Needed',
                       style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _errorMessage ?? 'Please allow camera access in your browser or click Snap / Upload Photo below.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF37474F)),
+                      ),
+                      child: Text(
+                        _errorMessage ?? 'If your browser blocked camera access, click the 🎛️ Tune icon in the URL bar to allow it.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.4),
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
                     Wrap(
-                      spacing: 12,
+                      spacing: 10,
                       runSpacing: 10,
                       alignment: WrapAlignment.center,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: _startStream,
+                          onPressed: () => _startStream(userTriggered: true),
                           icon: const Icon(Icons.videocam, size: 18),
                           label: const Text('Start / Allow Camera'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0288D1),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                             elevation: 4,
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => showCameraPermissionGuideDialog(
+                            context,
+                            onRetry: () => _startStream(userTriggered: true),
+                            onUseFallback: () => _captureAndVerifyCameraFrame(forcePicker: true),
+                          ),
+                          icon: const Icon(Icons.help_outline, size: 18),
+                          label: const Text('How to Allow (Guide)'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF81D4FA),
+                            side: const BorderSide(color: Color(0xFF0288D1)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                         ),
                         OutlinedButton.icon(
@@ -409,7 +445,7 @@ class _FaceAttendanceTerminalScreenState extends State<FaceAttendanceTerminalScr
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: const BorderSide(color: Color(0xFF29B6F6)),
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                         ),

@@ -50,6 +50,35 @@
   -->
   <script>
     window._currentCameraStream = null;
+    window._cameraPermissionStatus = 'unknown';
+
+    // Watch camera permission in real-time
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'camera' }).then(function(permissionStatus) {
+        window._cameraPermissionStatus = permissionStatus.state;
+        console.log('Camera permission initial state:', permissionStatus.state);
+        permissionStatus.onchange = function() {
+          window._cameraPermissionStatus = this.state;
+          console.log('Camera permission state changed to:', this.state);
+          if (window._onCameraPermissionChanged) {
+            try {
+              window._onCameraPermissionChanged(this.state);
+            } catch (e) {
+              console.warn('Error in _onCameraPermissionChanged:', e);
+            }
+          }
+          if (this.state === 'granted') {
+            window.startWebcam();
+          }
+        };
+      }).catch(function(e) {
+        console.log('Permissions query camera not supported:', e);
+      });
+    }
+
+    window.getCameraPermissionState = function() {
+      return window._cameraPermissionStatus || 'unknown';
+    };
 
     window.startWebcam = function(callback) {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -57,10 +86,18 @@
         return;
       }
       if (window._currentCameraStream) {
-        if (callback) callback({ success: true });
-        return;
+        var tracks = window._currentCameraStream.getVideoTracks();
+        if (tracks.length > 0 && tracks[0].readyState === 'live') {
+          if (callback) callback({ success: true });
+          return;
+        } else {
+          window.stopWebcam();
+        }
       }
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+        .catch(function() {
+          return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        })
         .then(function(stream) {
           window._currentCameraStream = stream;
           if (callback) callback({ success: true });
