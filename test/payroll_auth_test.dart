@@ -71,7 +71,6 @@ void main() {
       expect(PayrollAuthService.isUnlocked, isTrue);
 
       // Subsequent access should return true without showing dialog
-      bool? secondAuthResult;
       await tester.tap(find.text('Open Overview'));
       await tester.pump();
       expect(find.text('Unlock Overview'), findsNothing);

@@ -395,7 +395,7 @@ class _EstimatesScreenState extends State<EstimatesScreen> with SingleTickerProv
                     }
                   },
                   icon: const Icon(Icons.vpn_key, size: 18),
-                  label: const Text('Enter Password (1212)'),
+                  label: const Text('Enter Password to Unlock'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0288D1),
                     foregroundColor: Colors.white,

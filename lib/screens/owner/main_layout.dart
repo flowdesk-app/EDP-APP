@@ -273,8 +273,8 @@ class _MainLayoutState extends State<MainLayout> {
                               padding: const EdgeInsets.only(top: 16, bottom: 12),
                               child: IconButton(
                                 tooltip: PayrollAuthService.isUnlocked
-                                    ? 'Lock Admin Sections (Requires 1212)'
-                                    : 'Admin Sections Locked (Click to Unlock)',
+                                    ? 'Lock Admin Sections'
+                                    : 'Unlock Admin Sections',
                                 icon: Icon(
                                   PayrollAuthService.isUnlocked ? Icons.lock_open_rounded : Icons.lock_rounded,
                                   color: PayrollAuthService.isUnlocked ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
@@ -288,7 +288,7 @@ class _MainLayoutState extends State<MainLayout> {
                                     });
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Payroll admin sections locked. Password (1212) required to re-open.'),
+                                        content: Text('Payroll admin sections locked. Password required to re-open.'),
                                         duration: Duration(seconds: 2),
                                       ),
                                     );

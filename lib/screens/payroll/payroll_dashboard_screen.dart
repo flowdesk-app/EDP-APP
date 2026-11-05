@@ -147,7 +147,7 @@ class _PayrollDashboardScreenState extends State<PayrollDashboardScreen> {
                   ),
                 ),
                 IconButton(
-                  tooltip: PayrollAuthService.isUnlocked ? 'Lock Admin Sections (Requires 1212)' : 'Locked',
+                  tooltip: PayrollAuthService.isUnlocked ? 'Lock Admin Sections' : 'Admin Sections Locked',
                   icon: Icon(
                     PayrollAuthService.isUnlocked ? Icons.lock_open : Icons.lock_outline,
                     size: 16,

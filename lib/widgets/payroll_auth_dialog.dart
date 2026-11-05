@@ -145,8 +145,8 @@ class _PayrollPasswordDialogState extends State<_PayrollPasswordDialog> {
               autofocus: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Enter Password',
-                hintText: 'Enter 1212',
+                labelText: 'Password',
+                hintText: '••••',
                 prefixIcon: const Icon(Icons.key, size: 20, color: Color(0xFF4338CA)),
                 suffixIcon: IconButton(
                   icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, size: 20),
@@ -251,7 +251,7 @@ class PayrollLockedPlaceholder extends StatelessWidget {
                 }
               },
               icon: const Icon(Icons.key, size: 18),
-              label: const Text('Enter Password (1212) to Unlock'),
+              label: const Text('Enter Password to Unlock'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4338CA),
                 foregroundColor: Colors.white,
