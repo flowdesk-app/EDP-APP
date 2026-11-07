@@ -296,16 +296,7 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                         children: [
                                           Expanded(
                                             child: (job.productionStage != null)
-                                                ? Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      ProductionStatusChain(job: job),
-                                                      if (job.supplierChain.isNotEmpty) ...[
-                                                        const SizedBox(height: 8),
-                                                        _buildSupplierChain(job),
-                                                      ],
-                                                    ],
-                                                  )
+                                                ? ProductionStatusChain(job: job)
                                                 : _buildSupplierChain(job),
                                           ),
                                           const SizedBox(width: 8),

@@ -364,16 +364,7 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
                                             children: [
                                               Expanded(
                                                 child: (job.status == 'Production' || job.productionStage != null)
-                                                    ? Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          ProductionStatusChain(job: job),
-                                                          if (job.supplierChain.isNotEmpty) ...[
-                                                            const SizedBox(height: 8),
-                                                            _buildSupplierChain(job),
-                                                          ],
-                                                        ],
-                                                      )
+                                                    ? ProductionStatusChain(job: job)
                                                     : _buildSupplierChain(job),
                                               ),
                                               const SizedBox(width: 8),

@@ -75,7 +75,7 @@ void main() {
   });
 
   group('ProductionStatusChain widget', () {
-    testWidgets('renders Start stage in green initially', (tester) async {
+    testWidgets('renders Production Start in green initially with unified EDP chain', (tester) async {
       final job = JobModel(
         jobId: 'J-1',
         status: 'Production',
@@ -93,20 +93,30 @@ void main() {
 
       expect(find.text('Production Status'), findsOneWidget);
       final richTexts = tester.widgetList<RichText>(find.byType(RichText)).toList();
-      // The chain RichText is the one containing 'Start'
-      final chainRichText = richTexts.firstWhere((r) => (r.text as TextSpan).children?.any((c) => (c as TextSpan).text == 'Start') ?? false);
+      final chainRichText = richTexts.firstWhere((r) => (r.text as TextSpan).children?.any((c) => (c as TextSpan).text == 'Production Start') ?? false);
       final textSpan = chainRichText.text as TextSpan;
-      expect(textSpan.children, hasLength(1));
-      final span = textSpan.children!.first as TextSpan;
-      expect(span.text, equals('Start'));
-      expect(span.style?.color, equals(const Color(0xFF2E7D32)));
+      
+      // EDP, ' -> ', Production Start, ' -> ', Cleaning, ' -> ', Lacquering, ' -> ', Plating, ' -> ', Tacking, ' -> ', Final Cleaning
+      expect(textSpan.children, hasLength(13));
+      final edpSpan = textSpan.children![0] as TextSpan;
+      expect(edpSpan.text, equals('EDP'));
+      expect(edpSpan.style?.color, equals(const Color(0xFF202124)));
+
+      final startSpan = textSpan.children![2] as TextSpan;
+      expect(startSpan.text, equals('Production Start'));
+      expect(startSpan.style?.color, equals(const Color(0xFF2E7D32))); // Green active
+
+      final cleaningSpan = textSpan.children![4] as TextSpan;
+      expect(cleaningSpan.text, equals('Cleaning'));
+      expect(cleaningSpan.style?.color, equals(const Color(0xFF9E9E9E))); // Grey remaining
     });
 
-    testWidgets('renders arrow chain up to active stage with active stage in green', (tester) async {
+    testWidgets('renders supplier chain EDP -> SKMT -> Production Start -> ... with active stage in green and remaining in grey', (tester) async {
       final expectedDate = DateTime(2026, 11, 20);
       final job = JobModel(
         jobId: 'J-2',
         status: 'Production',
+        supplierChain: ['SKMT'],
         productionStage: 'Plating',
         expectedProductionStageDate: expectedDate,
         createdDate: DateTime.now(),
@@ -126,19 +136,30 @@ void main() {
       final richTexts = tester.widgetList<RichText>(find.byType(RichText)).toList();
       final chainRichText = richTexts.firstWhere((r) => (r.text as TextSpan).children?.any((c) => (c as TextSpan).text == 'Plating') ?? false);
       final textSpan = chainRichText.text as TextSpan;
-      // Start, ' -> ', Cleaning, ' -> ', Lacquering, ' -> ', Plating
-      // Total children: 7
-      expect(textSpan.children, hasLength(7));
+      
+      // EDP, ' -> ', SKMT, ' -> ', Production Start, ' -> ', Cleaning, ' -> ', Lacquering, ' -> ', Plating, ' -> ', Tacking, ' -> ', Final Cleaning
+      // Total children: 15
+      expect(textSpan.children, hasLength(15));
 
-      // First child is Start (dark)
-      final startSpan = textSpan.children![0] as TextSpan;
-      expect(startSpan.text, equals('Start'));
+      final edpSpan = textSpan.children![0] as TextSpan;
+      expect(edpSpan.text, equals('EDP'));
+      expect(edpSpan.style?.color, equals(const Color(0xFF202124)));
+
+      final skmtSpan = textSpan.children![2] as TextSpan;
+      expect(skmtSpan.text, equals('SKMT'));
+      expect(skmtSpan.style?.color, equals(const Color(0xFF202124)));
+
+      final startSpan = textSpan.children![4] as TextSpan;
+      expect(startSpan.text, equals('Production Start'));
       expect(startSpan.style?.color, equals(const Color(0xFF202124)));
 
-      // Last child is Plating (green)
-      final platingSpan = textSpan.children![6] as TextSpan;
+      final platingSpan = textSpan.children![10] as TextSpan;
       expect(platingSpan.text, equals('Plating'));
-      expect(platingSpan.style?.color, equals(const Color(0xFF2E7D32)));
+      expect(platingSpan.style?.color, equals(const Color(0xFF2E7D32))); // Green active
+
+      final tackingSpan = textSpan.children![12] as TextSpan;
+      expect(tackingSpan.text, equals('Tacking'));
+      expect(tackingSpan.style?.color, equals(const Color(0xFF9E9E9E))); // Grey remaining
     });
 
     testWidgets('renders Ready for Dispatch when completed', (tester) async {
@@ -160,7 +181,7 @@ void main() {
       final richTexts = tester.widgetList<RichText>(find.byType(RichText)).toList();
       final chainRichText = richTexts.firstWhere((r) => (r.text as TextSpan).children?.any((c) => (c as TextSpan).text == 'Ready for Dispatch') ?? false);
       final textSpan = chainRichText.text as TextSpan;
-      // All 6 stages + arrow + Ready for Dispatch
+      // All stages + arrow + Ready for Dispatch
       final lastSpan = textSpan.children!.last as TextSpan;
       expect(lastSpan.text, equals('Ready for Dispatch'));
       expect(lastSpan.style?.color, equals(const Color(0xFF2E7D32)));
