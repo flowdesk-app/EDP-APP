@@ -167,6 +167,21 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
     }
   }
 
+  Future<void> _openJobTimeline(JobModel job) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => JobTimelineScreen(job: job),
+      ),
+    );
+    if (!mounted) return;
+    if (result == 'recoating_done') {
+      Navigator.pop(context, true);
+    } else {
+      _refreshJobs();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -235,7 +250,7 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                     : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _filteredJobs.length,
-                    itemBuilder: (context, index) {
+                    itemBuilder: (_, index) {
                       final job = _filteredJobs[index];
                       final displayTitle = job.partNumber?.isNotEmpty == true
                           ? '${job.partNumber} - ${job.customerName ?? ""}'
@@ -263,14 +278,7 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                 _selectedJobIds.add(job.jobId);
                               }
                             });
-                          } : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => JobTimelineScreen(job: job),
-                              ),
-                            ).then((_) => _refreshJobs());
-                          },
+                          } : () => _openJobTimeline(job),
                           child: Row(
                             children: [
                               if (_isEditing)

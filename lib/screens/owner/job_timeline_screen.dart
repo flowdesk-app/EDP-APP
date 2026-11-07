@@ -218,17 +218,31 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     }
   }
 
+  void _finishRecoatingOrRefresh() {
+    if (!mounted) return;
+    if (_currentJob.jobType == 'Re-coating') {
+      Navigator.pop(context, 'recoating_done');
+    } else {
+      _refresh();
+    }
+  }
+
   Future<void> _updateStatus(String newStatus, {String? location, int? quantity}) async {
     setState(() => _isUpdating = true);
     try {
       await ApiService().updateJobStatus(_currentJob.jobId, newStatus, location: location, quantity: quantity);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Status updated to $newStatus')));
-        _refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Status updated to $newStatus'),
+            backgroundColor: const Color(0xFF2E7D32),
+          ),
+        );
+        _finishRecoatingOrRefresh();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
         setState(() => _isUpdating = false);
       }
     }
@@ -270,8 +284,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               try {
                 await ApiService().returnPartialJob(_currentJob.jobId, val);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Return processed!')));
-                  _refresh();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Return processed!'),
+                      backgroundColor: Color(0xFF2E7D32),
+                    ),
+                  );
+                  _finishRecoatingOrRefresh();
                 }
               } catch (e) {
                 if (mounted) {
@@ -415,10 +434,11 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   backgroundColor: const Color(0xFF2E7D32),
                 ),
               );
-              _refresh();
-
               if (downloadDC && savedDc != null) {
                 await PdfDeliveryChallanApi.printOrShare(savedDc);
+              }
+              if (mounted) {
+                _finishRecoatingOrRefresh();
               }
             } catch (e) {
               if (!mounted) return;
@@ -617,8 +637,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   invoiceNumber: invoiceCtrl.text.trim().isEmpty ? null : invoiceCtrl.text.trim(),
                 );
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Delivered')));
-                _refresh();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Status updated to Delivered'),
+                    backgroundColor: Color(0xFF2E7D32),
+                  ),
+                );
+                _finishRecoatingOrRefresh();
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
@@ -1027,8 +1052,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
     try {
       await ApiService().updateJobStatus(_currentJob.jobId, 'Extracted', extractionDate: _extractionDate, expectedExtractionDate: _expectedExtractionDate);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Extracted')));
-        _refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Status updated to Extracted'),
+            backgroundColor: Color(0xFF2E7D32),
+          ),
+        );
+        _finishRecoatingOrRefresh();
       }
     } catch (e) {
       if (mounted) {
@@ -1189,8 +1219,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
       // Assuming I'll update ApiService right after this.
       await ApiService().updateJobStatus(_currentJob.jobId, 'Production', extractionCompletedDate: _extractionCompletedDate, productionDate: _productionDate, expectedProductionDate: _expectedProductionDate);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Production')));
-        _refresh();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Status updated to Production'),
+            backgroundColor: Color(0xFF2E7D32),
+          ),
+        );
+        _finishRecoatingOrRefresh();
       }
     } catch (e) {
       if (mounted) {
@@ -1278,8 +1313,13 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   expectedProductionDate: expectedProductionDate,
                 );
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated to Production!')));
-                _refresh();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Status updated to Production!'),
+                    backgroundColor: Color(0xFF2E7D32),
+                  ),
+                );
+                _finishRecoatingOrRefresh();
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
@@ -1356,10 +1396,11 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                     backgroundColor: const Color(0xFF2E7D32),
                   ),
                 );
-                _refresh();
-
                 if (downloadDC && savedDc != null) {
                   await PdfDeliveryChallanApi.printOrShare(savedDc);
+                }
+                if (mounted) {
+                  _finishRecoatingOrRefresh();
                 }
               } catch (e) {
                 if (!mounted) return;
