@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../widgets/job_type_badge.dart';
+import '../../widgets/production_status_chain.dart';
 
 class FilteredJobsScreen extends StatefulWidget {
   final String title;
@@ -353,8 +354,9 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                                 (job.status == 'At Supplier' || job.status == 'SKMT') && 
                                                 (job.supplier?.toUpperCase() == 'SKMT' || job.currentLocation.toUpperCase() == 'SKMT');
                                             final isArrived = (job.status == 'Created' || job.status == 'Arrived') && (job.jobType == 'Re-coating' || job.jobType == 'Coating');
-                                            final statusText = isSKMT ? 'SKMT' : (isArrived ? 'Arrived' : job.status);
-                                            final statusColor = isSKMT ? Colors.deepPurple : _getStatusColor(statusText);
+                                            final isReadyForDispatch = job.status == 'Completed';
+                                            final statusText = isSKMT ? 'SKMT' : (isArrived ? 'Arrived' : (isReadyForDispatch ? 'Ready for Dispatch' : job.status));
+                                            final statusColor = isSKMT ? Colors.deepPurple : (isReadyForDispatch ? const Color(0xFF1E8E3E) : _getStatusColor(statusText));
                                             return Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                               decoration: BoxDecoration(
@@ -384,7 +386,18 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Expanded(
-                                            child: _buildSupplierChain(job)
+                                            child: (job.status == 'Production' || job.productionStage != null)
+                                                ? Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      ProductionStatusChain(job: job),
+                                                      if (job.supplierChain.isNotEmpty) ...[
+                                                        const SizedBox(height: 8),
+                                                        _buildSupplierChain(job),
+                                                      ],
+                                                    ],
+                                                  )
+                                                : _buildSupplierChain(job),
                                           ),
                                           const SizedBox(width: 8),
                                           _buildInfo('Date', DateFormat('dd-MMM-yyyy').format(job.createdDate)),
@@ -562,7 +575,9 @@ class _FilteredJobsScreenState extends State<FilteredJobsScreen> {
       case 'Extracted': return Colors.orange;
       case 'Arrived': return Colors.blueAccent;
       case 'Production': return Colors.teal;
-      case 'Completed': return const Color(0xFF1E8E3E);
+      case 'Completed':
+      case 'Ready for Dispatch':
+        return const Color(0xFF1E8E3E);
       default: return Colors.blueGrey;
     }
   }

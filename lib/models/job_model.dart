@@ -47,6 +47,9 @@ class JobModel {
   final DateTime? extractionCompletedDate;
   final DateTime? productionDate;
   final DateTime? expectedProductionDate;
+  final String? productionStage;
+  final DateTime? expectedProductionStageDate;
+  final List<dynamic> productionStageHistory;
   
   final String? highConcentration;
   final String? standardConcentration;
@@ -135,6 +138,9 @@ class JobModel {
     this.extractionCompletedDate,
     this.productionDate,
     this.expectedProductionDate,
+    this.productionStage,
+    this.expectedProductionStageDate,
+    this.productionStageHistory = const [],
     this.highConcentration,
     this.standardConcentration,
     this.microns,
@@ -210,6 +216,9 @@ class JobModel {
     DateTime? extractionCompletedDate,
     DateTime? productionDate,
     DateTime? expectedProductionDate,
+    String? productionStage,
+    DateTime? expectedProductionStageDate,
+    List<dynamic>? productionStageHistory,
     String? highConcentration,
     String? standardConcentration,
     String? microns,
@@ -296,6 +305,9 @@ class JobModel {
       extractionCompletedDate: extractionCompletedDate ?? this.extractionCompletedDate,
       productionDate: productionDate ?? this.productionDate,
       expectedProductionDate: expectedProductionDate ?? this.expectedProductionDate,
+      productionStage: productionStage ?? this.productionStage,
+      expectedProductionStageDate: expectedProductionStageDate ?? this.expectedProductionStageDate,
+      productionStageHistory: productionStageHistory ?? this.productionStageHistory,
       highConcentration: highConcentration ?? this.highConcentration,
       standardConcentration: standardConcentration ?? this.standardConcentration,
       microns: microns ?? this.microns,
@@ -380,6 +392,9 @@ class JobModel {
     extractionCompletedDate: json['extractionCompletedDate'] != null ? DateTime.parse(json['extractionCompletedDate']) : null,
     productionDate: json['productionDate'] != null ? DateTime.parse(json['productionDate']) : null,
     expectedProductionDate: json['expectedProductionDate'] != null ? DateTime.parse(json['expectedProductionDate']) : null,
+    productionStage: json['productionStage'] as String?,
+    expectedProductionStageDate: json['expectedProductionStageDate'] != null ? DateTime.parse(json['expectedProductionStageDate']) : null,
+    productionStageHistory: (json['productionStageHistory'] as List?) ?? [],
     highConcentration: json['highConcentration'],
     standardConcentration: json['standardConcentration'],
     microns: json['microns'],
@@ -459,6 +474,9 @@ class JobModel {
     'extractionCompletedDate': extractionCompletedDate?.toIso8601String(),
     'productionDate': productionDate?.toIso8601String(),
     'expectedProductionDate': expectedProductionDate?.toIso8601String(),
+    'productionStage': productionStage,
+    'expectedProductionStageDate': expectedProductionStageDate?.toIso8601String(),
+    'productionStageHistory': productionStageHistory,
     'highConcentration': highConcentration,
     'standardConcentration': standardConcentration,
     'microns': microns,

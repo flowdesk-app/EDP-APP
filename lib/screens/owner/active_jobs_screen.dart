@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../models/user_model.dart';
 import '../../widgets/job_type_badge.dart';
+import '../../widgets/production_status_chain.dart';
 
 class ActiveJobsScreen extends StatefulWidget {
   final bool showBackButton;
@@ -337,12 +338,12 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: _getStatusColor(job.status).withValues(alpha: 0.1),
+                                                  color: _getStatusColor(job.status == 'Completed' ? 'Ready for Dispatch' : job.status).withValues(alpha: 0.1),
                                                   borderRadius: BorderRadius.circular(12),
                                                 ),
                                                 child: Text(
-                                                  job.status,
-                                                  style: TextStyle(color: _getStatusColor(job.status), fontSize: 12, fontWeight: FontWeight.bold),
+                                                  job.status == 'Completed' ? 'Ready for Dispatch' : job.status,
+                                                  style: TextStyle(color: _getStatusColor(job.status == 'Completed' ? 'Ready for Dispatch' : job.status), fontSize: 12, fontWeight: FontWeight.bold),
                                                 ),
                                               ),
                                             ],
@@ -362,7 +363,18 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
                                               Expanded(
-                                                child: _buildSupplierChain(job)
+                                                child: (job.status == 'Production' || job.productionStage != null)
+                                                    ? Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          ProductionStatusChain(job: job),
+                                                          if (job.supplierChain.isNotEmpty) ...[
+                                                            const SizedBox(height: 8),
+                                                            _buildSupplierChain(job),
+                                                          ],
+                                                        ],
+                                                      )
+                                                    : _buildSupplierChain(job),
                                               ),
                                               const SizedBox(width: 8),
                                               _buildInfo('Date', DateFormat('dd-MMM-yyyy').format(job.createdDate)),
@@ -598,9 +610,13 @@ class _ActiveJobsScreenState extends State<ActiveJobsScreen> {
       case 'Dispatched': return Colors.blue;
       case 'At Supplier': return Colors.orange;
       case 'In Process': return Colors.deepPurple;
+      case 'Production': return Colors.teal;
       case 'Returned': return Colors.purple;
       case 'Delivered': return Colors.green;
       case 'Closed': return const Color(0xFF1E8E3E);
+      case 'Completed':
+      case 'Ready for Dispatch':
+        return const Color(0xFF1E8E3E);
       default: return Colors.blueGrey;
     }
   }

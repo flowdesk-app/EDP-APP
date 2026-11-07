@@ -11,6 +11,7 @@ import '../../utils/positive_number_formatter.dart';
 import '../../models/delivery_challan_model.dart';
 import '../../utils/pdf_delivery_challan_api.dart';
 import 'delivery_challan_edit_dialog.dart';
+import '../../widgets/production_status_chain.dart';
 
 class JobTimelineScreen extends StatefulWidget {
   final JobModel job;
@@ -792,7 +793,12 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                   _row('Quantity', '${_currentJob.quantity ?? 0} units'),
                 if (_currentJob.isAssembly || (_currentJob.numberOfSets != null && _currentJob.numberOfSets! > 0))
                   _row('Assembly Sets', '${_currentJob.numberOfSets ?? 0} Sets'),
-                _row('Status', _isRecoatingSKMT ? 'SKMT' : (((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : _currentJob.status)),
+                _row('Status', _isRecoatingSKMT ? 'SKMT' : (((_currentJob.jobType == 'Re-coating' || _currentJob.jobType == 'Coating') && _currentJob.status == 'Created') ? 'Arrived' : (_currentJob.status == 'Completed' ? 'Ready for Dispatch' : _currentJob.status))),
+                if (_currentJob.status == 'Production' || _currentJob.productionStage != null) ...[
+                  _row('Production Process', getEffectiveProductionStage(_currentJob)),
+                  if (_currentJob.expectedProductionStageDate != null)
+                    _row('Expected Process Date', DateFormat('dd-MM-yyyy').format(_currentJob.expectedProductionStageDate!)),
+                ],
                 _row('Location', _currentJob.currentLocation),
                 if (_currentJob.negotiationDone != null && _currentJob.jobType == 'New')
                   _row('Negotiation', _currentJob.negotiationDone! ? 'Yes' : 'No'),
@@ -955,7 +961,10 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
               if ((_currentJob.jobType == 'Re-coating' && _isRecoatingSKMT) ||
                   (_currentJob.jobType == 'Coating' && (_currentJob.status == 'Created' || _currentJob.status == 'Arrived')))
                 _buildExtractionCompletedUI(),
+              if (_currentJob.status == 'Production')
+                _buildProductionWorkflowUI(),
               if (!_isRecoatingSKMT &&
+                  _currentJob.status != 'Production' &&
                   (_currentJob.jobType != 'Re-coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Extracted')) && 
                   (_currentJob.jobType != 'Coating' || (_currentJob.status != 'Created' && _currentJob.status != 'Arrived')) && 
                   _currentJob.status != 'Delivered' && 
@@ -1993,6 +2002,349 @@ class _JobTimelineScreenState extends State<JobTimelineScreen> {
                 ],
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _promptNextProductionStage(String nextStage) async {
+    final DateTime initialDate = _currentJob.expectedProductionStageDate != null &&
+            _currentJob.expectedProductionStageDate!.isAfter(DateTime.now().subtract(const Duration(days: 1)))
+        ? _currentJob.expectedProductionStageDate!
+        : DateTime.now().add(const Duration(days: 1));
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'EXPECTED DATE FOR $nextStage',
+      confirmText: 'CONFIRM',
+    );
+
+    if (picked == null) return;
+
+    setState(() => _isUpdating = true);
+    try {
+      final updated = await ApiService().updateProductionStage(
+        _currentJob.jobId,
+        nextStage,
+        expectedDate: picked,
+      );
+      if (!mounted) return;
+      setState(() {
+        _currentJob = updated;
+        _isUpdating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Job #${_currentJob.jobId} moved to $nextStage stage (Expected: ${DateFormat('dd-MM-yyyy').format(picked)})'),
+          backgroundColor: const Color(0xFF2E7D32),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update stage: $e'), backgroundColor: Colors.red),
+      );
+      setState(() => _isUpdating = false);
+    }
+  }
+
+  Future<void> _undoProductionStage(String prevStage) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Undo Stage?'),
+        content: Text('Are you sure you want to revert to the "$prevStage" stage?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Revert', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isUpdating = true);
+    try {
+      final updated = await ApiService().updateProductionStage(
+        _currentJob.jobId,
+        prevStage,
+      );
+      if (!mounted) return;
+      setState(() {
+        _currentJob = updated;
+        _isUpdating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Production stage reverted to $prevStage'),
+          backgroundColor: Colors.blueGrey,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to revert: $e'), backgroundColor: Colors.red),
+      );
+      setState(() => _isUpdating = false);
+    }
+  }
+
+  Future<void> _confirmCompleteProduction() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Complete Production?'),
+        content: const Text(
+          'Final cleaning has been completed.\n\n'
+          'This job will be moved directly to "Ready for Delivery", and will be marked as "Ready for Dispatch".',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E8E3E),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Move to Ready for Delivery'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isUpdating = true);
+    try {
+      final updated = await ApiService().updateProductionStage(
+        _currentJob.jobId,
+        'Ready for Dispatch',
+      );
+      if (!mounted) return;
+      setState(() {
+        _currentJob = updated;
+        _isUpdating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Production completed! Job moved to Ready for Delivery (Ready for Dispatch).'),
+          backgroundColor: Color(0xFF1E8E3E),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+      );
+      setState(() => _isUpdating = false);
+    }
+  }
+
+  Widget _buildProductionWorkflowUI() {
+    final currentStage = getEffectiveProductionStage(_currentJob);
+    final nextStage = getNextProductionStage(currentStage);
+    final prevStage = getPreviousProductionStage(currentStage);
+    final isFinalStage = currentStage == 'Final Cleaning';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.precision_manufacturing, color: Color(0xFF2E7D32), size: 22),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'EDP Production Pipeline',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF202124)),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    currentStage,
+                    style: const TextStyle(
+                      color: Color(0xFF2E7D32),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ProductionStatusChain(job: _currentJob, showLabel: true, fontSize: 14),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (int i = 0; i < kProductionStages.length; i++) ...[
+                    Builder(builder: (context) {
+                      final stageName = kProductionStages[i];
+                      final currentIdx = kProductionStages.indexOf(currentStage);
+                      final isDone = i < currentIdx;
+                      final isCurrent = i == currentIdx;
+
+                      Color bgColor = Colors.grey.shade100;
+                      Color textColor = Colors.grey.shade700;
+                      Color borderColor = Colors.grey.shade300;
+
+                      if (isCurrent) {
+                        bgColor = const Color(0xFF2E7D32);
+                        textColor = Colors.white;
+                        borderColor = const Color(0xFF2E7D32);
+                      } else if (isDone) {
+                        bgColor = const Color(0xFFE8F5E9);
+                        textColor = const Color(0xFF2E7D32);
+                        borderColor = const Color(0xFFA5D6A7);
+                      }
+
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isDone) ...[
+                                  const Icon(Icons.check, size: 14, color: Color(0xFF2E7D32)),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  '${i + 1}. $stageName',
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (i < kProductionStages.length - 1)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Icon(
+                                Icons.arrow_forward,
+                                size: 14,
+                                color: isDone ? const Color(0xFF2E7D32) : Colors.grey.shade400,
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (prevStage != null) ...[
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blueGrey,
+                      side: const BorderSide(color: Colors.blueGrey),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.undo, size: 16),
+                    label: Text('Undo to $prevStage'),
+                    onPressed: _isUpdating ? null : () => _undoProductionStage(prevStage),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: isFinalStage
+                      ? ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E8E3E),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: _isUpdating
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.check_circle),
+                          label: const Text(
+                            'Complete Production (Ready for Delivery)',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          onPressed: _isUpdating ? null : _confirmCompleteProduction,
+                        )
+                      : ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2E7D32),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: _isUpdating
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.arrow_forward),
+                          label: Text(
+                            'Next: $nextStage',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          onPressed: _isUpdating ? null : () => _promptNextProductionStage(nextStage!),
+                        ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(foregroundColor: const Color(0xFF1976D2), visualDensity: VisualDensity.compact),
+                onPressed: _isUpdating ? null : _showForwardDialog,
+                icon: const Icon(Icons.forward_to_inbox, size: 16),
+                label: const Text('Forward to Outside Supplier'),
+              ),
+            ),
           ],
         ),
       ),

@@ -376,7 +376,7 @@ class ApiService {
     }
   }
 
-  Future<void> updateJobStatus(String jobId, String status, {String? location, int? quantity, DateTime? extractionDate, DateTime? expectedExtractionDate, DateTime? extractionCompletedDate, DateTime? productionDate, DateTime? expectedProductionDate, String? inspectionReportNumber, String? invoiceNumber}) async {
+  Future<void> updateJobStatus(String jobId, String status, {String? location, int? quantity, DateTime? extractionDate, DateTime? expectedExtractionDate, DateTime? extractionCompletedDate, DateTime? productionDate, DateTime? expectedProductionDate, String? inspectionReportNumber, String? invoiceNumber, String? productionStage, DateTime? expectedProductionStageDate}) async {
     await _loadToken();
     final Map<String, dynamic> body = {
       'status': status,
@@ -390,6 +390,8 @@ class ApiService {
     if (expectedProductionDate != null) body['expectedProductionDate'] = expectedProductionDate.toIso8601String();
     if (inspectionReportNumber != null) body['inspectionReportNumber'] = inspectionReportNumber;
     if (invoiceNumber != null) body['invoiceNumber'] = invoiceNumber;
+    if (productionStage != null) body['productionStage'] = productionStage;
+    if (expectedProductionStageDate != null) body['expectedProductionStageDate'] = expectedProductionStageDate.toIso8601String();
     final res = await http.put(
       Uri.parse('$baseUrl/jobs/$jobId/status'),
       headers: _headers,
@@ -398,6 +400,25 @@ class ApiService {
     if (res.statusCode >= 400) {
       throw Exception('Failed to update status: ${res.body}');
     }
+  }
+
+  Future<JobModel> updateProductionStage(String jobId, String stage, {DateTime? expectedDate}) async {
+    await _loadToken();
+    final Map<String, dynamic> body = {
+      'stage': stage,
+    };
+    if (expectedDate != null) {
+      body['expectedDate'] = expectedDate.toIso8601String();
+    }
+    final res = await http.put(
+      Uri.parse('$baseUrl/jobs/$jobId/production-stage'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+    if (res.statusCode >= 400) {
+      throw Exception('Failed to update production stage: ${res.body}');
+    }
+    return JobModel.fromJson(jsonDecode(res.body));
   }
 
   Future<void> forwardJob(String jobId, String nextSupplier, {int? forwardQuantity, String? deliveryChalanNumber, DateTime? deliveryChalanDate}) async {

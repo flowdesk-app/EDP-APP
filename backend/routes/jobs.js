@@ -290,7 +290,7 @@ router.put('/:id', auth, async (req, res) => {
 // @route   PUT api/jobs/:id/status
 router.put('/:id/status', auth, async (req, res) => {
     try {
-        const { status, currentLocation, deliveredQuantity, extractionDate, expectedExtractionDate, extractionCompletedDate, productionDate, expectedProductionDate, inspectionReportNumber, invoiceNumber } = req.body;
+        const { status, currentLocation, deliveredQuantity, extractionDate, expectedExtractionDate, extractionCompletedDate, productionDate, expectedProductionDate, inspectionReportNumber, invoiceNumber, productionStage, expectedProductionStageDate } = req.body;
 
         let job = await Job.findById(req.params.id).catch(() => null);
         if (!job) job = await Job.findOne({ jobId: req.params.id });
@@ -351,6 +351,19 @@ router.put('/:id/status', auth, async (req, res) => {
             if (extractionCompletedDate) job.extractionCompletedDate = extractionCompletedDate;
             if (productionDate) job.productionDate = productionDate;
             if (expectedProductionDate) job.expectedProductionDate = expectedProductionDate;
+            if (status === 'Production') {
+                job.productionStage = productionStage || job.productionStage || 'Start';
+                if (expectedProductionStageDate) job.expectedProductionStageDate = expectedProductionStageDate;
+                if (!job.productionStageHistory) job.productionStageHistory = [];
+                job.productionStageHistory.push({
+                    stage: job.productionStage,
+                    date: new Date(),
+                    expectedDate: expectedProductionStageDate ? new Date(expectedProductionStageDate) : null
+                });
+            } else if (productionStage) {
+                job.productionStage = productionStage;
+                if (expectedProductionStageDate) job.expectedProductionStageDate = expectedProductionStageDate;
+            }
             
             if (currentLocation) {
                 job.currentLocation = currentLocation;
@@ -475,6 +488,63 @@ router.put('/:id/status', auth, async (req, res) => {
         res.json(job);
     } catch (err) {
         console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   PUT api/jobs/:id/production-stage
+router.put('/:id/production-stage', auth, async (req, res) => {
+    try {
+        const { stage, expectedDate } = req.body;
+        let job = await Job.findById(req.params.id).catch(() => null);
+        if (!job) job = await Job.findOne({ jobId: req.params.id });
+        if (!job) return res.status(404).send('Job not found');
+
+        job.productionStage = stage;
+        if (expectedDate) {
+            job.expectedProductionStageDate = new Date(expectedDate);
+        } else if (stage === 'Start') {
+            job.expectedProductionStageDate = null;
+        }
+
+        if (!job.productionStageHistory) job.productionStageHistory = [];
+        job.productionStageHistory.push({
+            stage: stage,
+            date: new Date(),
+            expectedDate: expectedDate ? new Date(expectedDate) : null
+        });
+
+        if (stage === 'Ready for Dispatch' || stage === 'Completed') {
+            job.status = 'Completed';
+            job.currentLocation = 'EDP';
+            if (!job.statusHistory) job.statusHistory = [];
+            job.statusHistory.push({
+                status: 'Completed',
+                date: new Date(),
+                location: 'EDP'
+            });
+        } else {
+            job.status = 'Production';
+            job.currentLocation = 'EDP';
+            if (!job.statusHistory) job.statusHistory = [];
+            job.statusHistory.push({
+                status: 'Production',
+                date: new Date(),
+                location: 'EDP'
+            });
+        }
+
+        await job.save();
+
+        await AuditLog.create({
+            userId: req.user.id,
+            action: 'Production Stage Updated',
+            details: { jobId: job.jobId, stage, expectedDate }
+        });
+
+        res.json(job);
+    } catch (err) {
+        console.error('Error updating production stage:', err);
         res.status(500).send('Server Error');
     }
 });

@@ -58,6 +58,13 @@ const jobSchema = new mongoose.Schema({
   extractionCompletedDate: { type: Date },
   productionDate: { type: Date },
   expectedProductionDate: { type: Date },
+  productionStage: { type: String, default: 'Start' },
+  expectedProductionStageDate: { type: Date },
+  productionStageHistory: [{
+    stage: { type: String },
+    date: { type: Date, default: Date.now },
+    expectedDate: { type: Date }
+  }],
   purchaseOrderReceived: { type: Boolean },
   purchaseOrderNumber: { type: String },
   purchaseOrderDate: { type: Date },

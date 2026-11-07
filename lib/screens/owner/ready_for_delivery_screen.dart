@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'job_timeline_screen.dart';
 import '../../widgets/drawer_menu_button.dart';
 import '../../widgets/job_type_badge.dart';
+import '../../widgets/production_status_chain.dart';
 
 class ReadyForDeliveryScreen extends StatefulWidget {
   const ReadyForDeliveryScreen({super.key});
@@ -260,12 +261,12 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: _getStatusColor(job.status).withValues(alpha: 0.1),
+                                              color: _getStatusColor('Ready for Dispatch').withValues(alpha: 0.1),
                                               borderRadius: BorderRadius.circular(12),
                                             ),
                                             child: Text(
-                                              job.status,
-                                              style: TextStyle(color: _getStatusColor(job.status), fontSize: 12, fontWeight: FontWeight.bold),
+                                              'Ready for Dispatch',
+                                              style: TextStyle(color: _getStatusColor('Ready for Dispatch'), fontSize: 12, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                         ],
@@ -294,7 +295,18 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Expanded(
-                                            child: _buildSupplierChain(job)
+                                            child: (job.productionStage != null)
+                                                ? Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      ProductionStatusChain(job: job),
+                                                      if (job.supplierChain.isNotEmpty) ...[
+                                                        const SizedBox(height: 8),
+                                                        _buildSupplierChain(job),
+                                                      ],
+                                                    ],
+                                                  )
+                                                : _buildSupplierChain(job),
                                           ),
                                           const SizedBox(width: 8),
                                           _buildInfo('Date', DateFormat('dd-MMM-yyyy').format(job.createdDate)),
@@ -457,7 +469,10 @@ class _ReadyForDeliveryScreenState extends State<ReadyForDeliveryScreen> {
       case 'In Process': return Colors.deepPurple;
       case 'Returned': return Colors.purple;
       case 'Delivered': return Colors.green;
-      case 'Closed': return const Color(0xFF1E8E3E);
+      case 'Closed':
+      case 'Completed':
+      case 'Ready for Dispatch':
+        return const Color(0xFF1E8E3E);
       default: return Colors.blueGrey;
     }
   }
