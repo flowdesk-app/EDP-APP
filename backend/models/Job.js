@@ -100,7 +100,6 @@ const jobSchema = new mongoose.Schema({
   grantedBy: { type: String },
 }, { timestamps: true });
 
-jobSchema.index({ jobId: 1 });
 jobSchema.index({ partNumber: 1 });
 jobSchema.index({ supplier: 1 });
 jobSchema.index({ status: 1 });

@@ -76,10 +76,25 @@ app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/payroll', require('./routes/payroll'));
 
 // Serve static files from the public folder (Flutter Web App)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+        // Prevent aggressive caching of HTML, service worker, and bootstrap files so updates load immediately
+        if (filePath.endsWith('.html') ||
+            filePath.endsWith('flutter_service_worker.js') ||
+            filePath.endsWith('flutter_bootstrap.js') ||
+            filePath.endsWith('version.json')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
+    }
+}));
 
 // Catch-all route to serve index.html for Flutter's web routing
 app.use((req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

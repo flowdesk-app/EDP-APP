@@ -143,7 +143,7 @@
         ctx.translate(w, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(videoEl, 0, 0, w, h);
-        return canvas.toDataUrl('image/jpeg', 0.85);
+        return canvas.toDataURL('image/jpeg', 0.85);
       } catch (e) {
         console.error('Frame capture error:', e);
         return null;
